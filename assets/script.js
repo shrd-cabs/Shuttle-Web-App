@@ -1,156 +1,129 @@
 // ===============================================================
-// SHRD Shuttle - FULLY WORKING (Login + Logout Perfect)
+// SHRD Shuttle - FIXED VERSION (Login + Signup + Auto Login)
 //===============================================================
 
 const APP_CONFIG = {
     SCRIPT_ID: 'AKfycbwIZE9kQ5ONEJB8ejsHknLWyllNL2pQAR8Q2lioo7KG8c4D2CW5LCO5JwZOF_rK7Ztq',
-    SPREADSHEET_ID: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'  // YOUR SHEET ID
+    SPREADSHEET_ID: '1AFyDz6GsimoI8CTXJYMI81W8VhyZDtRC6xLvT8_tbJE'
 };
 
 let currentUser = null;
 
-// === ALL onclick FUNCTIONS ===
+// ================= LOGIN =================
 window.login = async function() {
-    const emailEl = document.getElementById('loginEmail');
-    const passEl = document.getElementById('loginPassword');
-    const email = emailEl ? emailEl.value.trim() : '';
-    const password = passEl ? passEl.value.trim() : '';
-    
-    if (!email || !password) return alert('Enter email/password');
-    
-    // Local users
-    const localUsers = JSON.parse(localStorage.getItem('usersData') || '[]');
-    const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    
-    if (localUser) {
-        currentUser = localUser;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        showMainContent();
-        alert(`Welcome ${localUser.name}!`);
+    const email = document.getElementById('loginEmail')?.value.trim();
+    const password = document.getElementById('loginPassword')?.value.trim();
+
+    if (!email || !password) {
+        alert('Enter email and password');
         return;
     }
-    
-    // Sheets
+
     try {
         const url = `https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=validateUser&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
         const res = await fetch(url);
         const result = await res.json();
-        
+
         if (result.user) {
             currentUser = result.user;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             showMainContent();
             alert(`Welcome ${result.user.name}!`);
         } else {
-            alert('Wrong credentials. Add to Users sheet.');
+            alert('Wrong credentials');
         }
-    } catch(e) {
-        alert('Network error - Check internet');
+    } catch (e) {
+        console.error(e);
+        alert('Network / Script error');
     }
 };
 
+// ================= LOGOUT =================
 window.logout = function() {
     currentUser = null;
     localStorage.removeItem('currentUser');
-    
-    // Show login, hide main
-    const loginSec = document.getElementById('loginSection');
-    const mainContent = document.getElementById('mainContent');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
-    if (loginSec) loginSec.style.display = 'block';
-    loginSec.classList.add('active');
-    if (mainContent) mainContent.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-    
-    // Reset tabs
-    document.querySelectorAll('.nav-tab.active, .content-section.active').forEach(el => {
-        el.classList.remove('active');
-    });
-    
+
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'none';
+
     alert('Logged out');
-    console.log('✅ Logout complete');
 };
 
+// ================= SIGNUP =================
 window.signup = async function() {
-    const inputs = ['signupName','signupEmail','signupPhone','signupPassword'];
-    const values = {};
-    
-    for (let id of inputs) {
-        const el = document.getElementById(id);
-        values[id.replace('signup','')] = el ? el.value.trim() : '';
-        if (!values[id.replace('signup','')]) return alert('Fill all signup fields');
+    const name = document.getElementById('signupName')?.value.trim();
+    const email = document.getElementById('signupEmail')?.value.trim();
+    const phone = document.getElementById('signupPhone')?.value.trim();
+    const password = document.getElementById('signupPassword')?.value.trim();
+
+    if (!name || !email || !phone || !password) {
+        alert('Fill all signup fields');
+        return;
     }
-    
-    const newUser = {
-        name: values.name, email: values.email, phone: values.phone, password: values.password,
-        role: 'user', status: 'active', createdDate: new Date().toISOString().split('T')[0]
-    };
-    
+
+    const newUser = { name, email, phone, password, role: 'user' };
+
     try {
-        const url = `https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=addUser&${new URLSearchParams(newUser)}`;
+        const params = new URLSearchParams(newUser).toString();
+        const url = `https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=addUser&${params}`;
+
         const res = await fetch(url);
         const result = await res.json();
-        
+
         if (result.success) {
             currentUser = newUser;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             showMainContent();
-            alert(`Account created ${newUser.name}!`);
+            alert(`Account created! Welcome ${name}`);
             document.getElementById('signupForm').style.display = 'none';
         } else {
-            alert('Signup failed: ' + (result.error || 'Try again'));
+            alert('Signup failed: ' + (result.error || 'User exists'));
         }
-    } catch(e) {
-        alert('Signup error');
+    } catch (e) {
+        console.error(e);
+        alert('Signup error – check Apps Script deployment');
     }
 };
 
+// ================= UI HELPERS =================
 window.toggleSignup = function() {
     const form = document.getElementById('signupForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 };
 
-window.saveGoogleSheetsConfig = function() {
-    alert('✅ Config permanent - No setup needed!');
-};
-
-window.testGoogleSheetsConnection = function() {
-    fetch(`https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=getUsers`)
-    .then(r=>r.json()).then(result=>alert(`✅ Connected! ${result.users?.length || 0} users`));
-};
-
 window.switchTab = function(tabName) {
     document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+
     event.target.classList.add('active');
-    const section = document.getElementById(tabName + 'Section');
-    if (section) section.classList.add('active');
+    document.getElementById(tabName + 'Section')?.classList.add('active');
 };
 
-// Show main content helper
 function showMainContent() {
-    const loginSec = document.getElementById('loginSection');
-    const mainContent = document.getElementById('mainContent');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
-    if (loginSec) loginSec.style.display = 'none';
-    if (mainContent) mainContent.style.display = 'block';
-    if (logoutBtn) logoutBtn.style.display = 'block';
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'block';
 }
 
-// All other functions
-['resetBooking','openPaymentModal','processPayment','closePaymentModal','closeConfirmationModal','cancelBooking','clearCancelForm','syncAllBookingsToSheets','syncAllUsersToSheets','importRoutesFromSheets','generateAnalytics'].forEach(name => {
-    window[name] = function() { 
-        console.log(`${name} clicked`);
-        alert(`${name} - Coming soon!`);
+// ================= STUB FUNCTIONS =================
+[
+ 'resetBooking','openPaymentModal','processPayment','closePaymentModal',
+ 'closeConfirmationModal','cancelBooking','clearCancelForm',
+ 'syncAllBookingsToSheets','syncAllUsersToSheets','importRoutesFromSheets',
+ 'generateAnalytics'
+].forEach(name => {
+    window[name] = function() {
+        alert(`${name} – Coming soon!`);
     };
 });
 
-// Auto-login check
+// ================= AUTO LOGIN =================
 document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getElementById('currentUser')) {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
         showMainContent();
     }
-    console.log('✅ SHRD JS FULLY LOADED');
+    console.log('✅ SHRD JS LOADED');
 });
