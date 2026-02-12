@@ -62,10 +62,10 @@
         <!-- MAIN CONTENT (Hidden until login) -->
         <div id="mainContent" style="display: none;">
             <div class="nav-tabs">
-                <button class="nav-tab active" data-tab="booking">Book Seat</button>
-                <button class="nav-tab" data-tab="mytrips">My Trips</button>
-                <button class="nav-tab" data-tab="cancel">Cancel Booking</button>
-                <button class="nav-tab" data-tab="admin">Admin Panel</button>
+                <button class="nav-tab active" onclick="switchTab('booking')" data-tab="booking">Book Seat</button>
+                <button class="nav-tab" onclick="switchTab('myTrips')" data-tab="mytrips">My Trips</button>
+                <button class="nav-tab" onclick="switchTab('cancel')" data-tab="cancel">Cancel Booking</button>
+                <button class="nav-tab" onclick="switchTab('admin')" data-tab="admin">Admin Panel</button>
             </div>
 
             <!-- BOOKING SECTION -->
@@ -78,7 +78,7 @@
                         <input type="date" id="tripDate">
                     </div>
                     <div class="form-group">
-                        <label for="tripTime">Departure Time</label>
+                        <label for="tripTime">From</label>
                         <select id="tripTime">
                             <option>6:00 AM</option>
                             <option>9:00 AM</option>
@@ -89,7 +89,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="route">Route</label>
+                        <label for="route">To</label>
                         <select id="route">
                             <option>Delhi - Gurgaon</option>
                             <option>Delhi - Noida</option>
