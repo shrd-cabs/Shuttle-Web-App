@@ -1,0 +1,5 @@
+open terminal and give this code
+cd ~/Documents/SHRD/Shuttle-Web-App
+then
+python3 -m http.server 3000
+but this it will directly host onto localhost:3000
