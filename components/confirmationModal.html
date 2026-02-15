@@ -1,0 +1,35 @@
+<!-- ===========================================================
+confirmationModal.html
+---------------------------------------------------------------
+This component contains the booking confirmation popup modal.
+
+Functions used:
+- closeConfirmationModal()
+=========================================================== -->
+
+<div id="confirmationModal" class="confirmation-modal">
+  <div class="confirmation-content">
+    <div class="confirmation-icon">✓</div>
+
+    <h2>Booking Confirmed!</h2>
+    <p>Your shuttle booking has been successfully completed.</p>
+
+    <div class="confirmation-details">
+      <p><strong>Booking ID:</strong> <span id="confirmBookingId"></span></p>
+      <p><strong>Email:</strong> <span id="confirmEmail"></span></p>
+      <p><strong>Route:</strong> <span id="confirmRoute"></span></p>
+      <p><strong>Date:</strong> <span id="confirmDate"></span></p>
+      <p><strong>Time:</strong> <span id="confirmTime"></span></p>
+      <p><strong>Seats:</strong> <span id="confirmSeats"></span></p>
+      <p><strong>Amount Paid:</strong> ₹<span id="confirmAmount"></span></p>
+
+      <p style="margin-top: 15px; font-size: 0.95em; color: #666;">
+        A confirmation email has been sent to your registered email address.
+      </p>
+    </div>
+
+    <button class="close-confirmation" onclick="closeConfirmationModal()">
+      Done
+    </button>
+  </div>
+</div>

@@ -1,0 +1,282 @@
+<!-- ===========================================================
+mainContent.html
+---------------------------------------------------------------
+This component contains the main content visible after login.
+
+Includes:
+- Navigation Tabs
+- Booking Section
+- My Trips Section
+- Cancel Booking Section
+- Admin Panel Section
+
+Functions used:
+- switchTab()
+- openPaymentModal()
+- resetBooking()
+- cancelBooking()
+- clearCancelForm()
+- saveGoogleSheetsConfig()
+- testGoogleSheetsConnection()
+- syncAllBookingsToSheets()
+- syncAllUsersToSheets()
+- importRoutesFromSheets()
+- generateAnalytics()
+=========================================================== -->
+
+<div id="mainContent" style="display: none;">
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('booking')" data-tab="booking">
+      Book Seat
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('myTrips')" data-tab="mytrips">
+      My Trips
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('cancel')" data-tab="cancel">
+      Cancel Booking
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('admin')" data-tab="admin">
+      Admin Panel
+    </button>
+  </div>
+
+  <!-- BOOKING SECTION -->
+  <div class="content-section active" id="bookingSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Select Your Seat
+    </h2>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label for="tripDate">Trip Date</label>
+        <input type="date" id="tripDate">
+      </div>
+
+      <div class="form-group">
+        <label for="tripTime">From</label>
+        <select id="tripTime">
+          <option>6:00 AM</option>
+          <option>9:00 AM</option>
+          <option>12:00 PM</option>
+          <option>3:00 PM</option>
+          <option>6:00 PM</option>
+          <option>9:00 PM</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="route">To</label>
+        <select id="route">
+          <option>Delhi - Gurgaon</option>
+          <option>Delhi - Noida</option>
+          <option>Delhi - Greater Noida</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <h3>Select Your Seats (Tap a seat)</h3>
+      <div class="bus-layout" id="busLayout"></div>
+    </div>
+
+    <div class="booking-details">
+      <h3>Booking Summary</h3>
+
+      <div class="detail-row">
+        <strong>Selected Seats:</strong>
+        <span id="selectedSeatsDisplay">None</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Trip Date:</strong>
+        <span id="dateDisplay">Not selected</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Departure Time:</strong>
+        <span id="timeDisplay">Not selected</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Route:</strong>
+        <span id="routeDisplay">Not selected</span>
+      </div>
+    </div>
+
+    <div id="bookingAlert" class="alert"></div>
+
+    <div class="button-group">
+      <button class="btn btn-primary" onclick="openPaymentModal()">
+        Proceed to Payment
+      </button>
+
+      <button class="btn btn-secondary" onclick="resetBooking()">
+        Clear Selection
+      </button>
+    </div>
+  </div>
+
+  <!-- MY TRIPS SECTION -->
+  <div class="content-section" id="myTripsSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Your Bookings
+    </h2>
+
+    <div class="my-trips" id="myTripsList">
+      <p style="text-align: center; color: #999;">
+        No bookings found. Start by booking a seat!
+      </p>
+    </div>
+  </div>
+
+  <!-- CANCEL SECTION -->
+  <div class="content-section" id="cancelSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Cancel Booking
+    </h2>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label for="cancelBookingId">Booking ID</label>
+        <input type="text" id="cancelBookingId" placeholder="Enter your booking ID">
+        <div class="error-text" id="cancelError"></div>
+      </div>
+    </div>
+
+    <div id="cancelAlert" class="alert"></div>
+
+    <div class="button-group">
+      <button class="btn btn-danger" onclick="cancelBooking()">
+        Cancel Booking
+      </button>
+
+      <button class="btn btn-secondary" onclick="clearCancelForm()">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL SECTION -->
+  <div class="content-section" id="adminSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Google Sheets Integration
+    </h2>
+
+    <div class="booking-form">
+      <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #6B46C1;">
+        <h3 style="color: #6B46C1; margin-bottom: 15px;">📊 Setup Instructions</h3>
+        <ol style="color: #666; line-height: 2; padding-left: 20px;">
+          <li>Create a Google Sheet with tabs: <strong>Bookings</strong>, <strong>Users</strong>, <strong>Routes</strong>, <strong>Analytics</strong></li>
+          <li>Get your <strong>Google Sheets API Key</strong> from Google Cloud Console</li>
+          <li>Copy your <strong>Spreadsheet ID</strong> from the sheet URL</li>
+          <li>Enable <strong>Google Sheets API</strong> in your Google Cloud project</li>
+          <li>Make the sheet accessible (Share → Anyone with link can edit)</li>
+        </ol>
+      </div>
+
+      <div class="form-group">
+        <label for="apiKey">🔑 Google Sheets API Key</label>
+        <input type="text" id="apiKey" placeholder="Enter your API Key (AIzaSy...)">
+        <small style="color: #999; font-size: 0.85em;">
+          Get from: Google Cloud Console → APIs & Services → Credentials
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="spreadsheetId">📄 Spreadsheet ID</label>
+        <input type="text" id="spreadsheetId" placeholder="Enter Spreadsheet ID from URL">
+        <small style="color: #999; font-size: 0.85em;">
+          Found in URL: docs.google.com/spreadsheets/d/<strong>[THIS_PART]</strong>/edit
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="sheetNames">📋 Sheet Tab Names (comma-separated)</label>
+        <input type="text" id="sheetNames" placeholder="Bookings, Users, Routes, Analytics"
+          value="Bookings, Users, Routes, Analytics">
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <p style="color: #856404; margin: 0; font-size: 0.9em;">
+          ⚠️ <strong>Important:</strong> Your API credentials will be stored locally in your browser.
+          Keep your API key secure!
+        </p>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="saveGoogleSheetsConfig()">
+          💾 Save Configuration
+        </button>
+
+        <button class="btn btn-secondary" onclick="testGoogleSheetsConnection()">
+          🔗 Test Connection
+        </button>
+      </div>
+
+      <div id="adminAlert" class="alert" style="margin-top: 20px;"></div>
+
+      <div id="connectionStatus" style="display: none; margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+        <h3 style="color: #333; margin-bottom: 15px;">📊 Integration Status</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <p style="color: #999; font-size: 0.85em; margin-bottom: 5px;">API Status</p>
+            <p id="apiStatus" style="font-weight: bold; color: #6B46C1; font-size: 1.2em;">
+              Not Connected
+            </p>
+          </div>
+
+          <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <p style="color: #999; font-size: 0.85em; margin-bottom: 5px;">Last Sync</p>
+            <p id="lastSync" style="font-weight: bold; color: #6B46C1; font-size: 1.2em;">
+              Never
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+        <h3 style="color: #333; margin-bottom: 15px;">🔄 Manual Sync Actions</h3>
+
+        <div class="button-group">
+          <button class="btn btn-secondary" onclick="syncAllBookingsToSheets()">
+            📤 Sync All Bookings
+          </button>
+
+          <button class="btn btn-secondary" onclick="syncAllUsersToSheets()">
+            👥 Sync All Users
+          </button>
+        </div>
+
+        <div class="button-group" style="margin-top: 10px;">
+          <button class="btn btn-secondary" onclick="importRoutesFromSheets()">
+            📥 Import Routes
+          </button>
+
+          <button class="btn btn-secondary" onclick="generateAnalytics()">
+            📊 Generate Analytics
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+        <h3 style="color: #2e7d32; margin-bottom: 15px;">✨ What This Integration Does</h3>
+
+        <ul style="color: #666; line-height: 2;">
+          <li>✅ <strong>Auto-sync bookings</strong> to Google Sheets in real-time</li>
+          <li>✅ <strong>Backup user data</strong> to cloud spreadsheet</li>
+          <li>✅ <strong>Import routes & pricing</strong> from Google Sheets</li>
+          <li>✅ <strong>Generate analytics</strong> (revenue, seat occupancy, popular routes)</li>
+          <li>✅ <strong>Email notifications</strong> with booking confirmations</li>
+          <li>✅ <strong>Dashboard insights</strong> for business decisions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

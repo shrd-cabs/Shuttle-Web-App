@@ -1,0 +1,28 @@
+<!-- ===========================================================
+header.html
+---------------------------------------------------------------
+This component contains the top header section of the app.
+It includes:
+- Logo + Title
+- Logout button
+
+Functions used:
+- logout()
+=========================================================== -->
+
+<div class="header">
+  <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+    <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/d9292c3a-fe4c-4df4-be25-3ce0b0f6d61e"
+      alt="Shri Radhey Logo"
+      class="logo-img">
+
+    <div>
+      <h1 style="margin: 0; font-size: 2.2em;">SHRD Shuttle Booking</h1>
+      <p style="margin: 5px 0; font-size: 1em;">Shri Radhey Travel Services</p>
+    </div>
+  </div>
+
+  <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">
+    Logout
+  </button>
+</div>

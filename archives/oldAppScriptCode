@@ -1,0 +1,176 @@
+// =======================
+// Main Web App Handlers
+// =======================
+function doGet(e) {
+  return handleRequest(e);
+}
+
+function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
+  try {
+    const action = e.parameter.action;
+
+    switch (action) {
+      case 'validateUser':
+        return validateUser(e.parameter);
+      case 'addUser':
+        return addUser(e.parameter);
+      case 'getUsers':
+        return getUsers();
+      case 'getStops':                 
+        return getStopsFromTrips();    
+      default:
+        return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid action' }))
+          .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// =======================
+// USERS
+// =======================
+function validateUser(params) {
+  const sheet = getUsersSheet();
+  const email = params.email?.toLowerCase();
+  const password = params.password;
+
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const userEmail = row[1]?.toString().toLowerCase(); 
+    const userPassword = row[3]?.toString();           
+
+    if (userEmail === email && userPassword === password) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        user: {
+          name: row[0],
+          email: row[1],
+          phone: row[2],
+          role: row[4] || 'user',
+          status: row[5] || 'active'
+        }
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ success: false, user: null }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function addUser(params) {
+  try {
+    const sheet = getUsersSheet();
+    const data = sheet.getDataRange().getValues();
+    const emails = data.slice(1).map(r => r[1]?.toString().toLowerCase());
+
+    if (emails.includes(params.email?.toLowerCase())) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: 'User already exists'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    sheet.appendRow([
+      params.name,
+      params.email,
+      params.phone,
+      params.password,
+      params.role || 'user',
+      'active',
+      new Date()
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getUsers() {
+  try {
+    const sheet = getUsersSheet();
+    const data = sheet.getDataRange().getValues();
+    const users = [];
+
+    for (let i = 1; i < data.length; i++) {
+      users.push({
+        name: data[i][0],
+        email: data[i][1],
+        phone: data[i][2],
+        role: data[i][4] || 'user',
+        status: data[i][5] || 'active'
+      });
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true, users }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// =======================
+// 🔥 STOPS FROM TRIPS
+// =======================
+function getStopsFromTrips() {
+  try {
+    const ss = SpreadsheetApp.openById('1AFyDz6GsimoI8CTXJYMI81W8VhyZDtRC6xLvT8_tbJE');
+    const sheet = ss.getSheetByName('Trips');
+
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Trips sheet not found' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'No data in Trips sheet' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const values = sheet.getRange(2, 3, lastRow - 1, 1).getValues(); // Column C = stops_name
+    const stops = [...new Set(values.flat().filter(v => v))];
+    console.log(values)
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true, stops }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// =======================
+// SHEET HELPERS
+// =======================
+function getUsersSheet() {
+  const SPREADSHEET_ID = '1AFyDz6GsimoI8CTXJYMI81W8VhyZDtRC6xLvT8_tbJE';
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('Users');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('Users');
+    sheet.getRange('A1:G1').setValues([['Name','Email','Phone','Password','Role','Status','CreatedAt']]);
+    sheet.getRange('A1:G1').setFontWeight('bold');
+  }
+
+  return sheet;
+}

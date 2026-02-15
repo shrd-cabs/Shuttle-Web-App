@@ -1,0 +1,53 @@
+<!-- ===========================================================
+paymentModal.html
+---------------------------------------------------------------
+This component contains the Payment Modal popup.
+
+Functions used:
+- processPayment()
+- closePaymentModal()
+=========================================================== -->
+
+<div id="paymentModal" class="payment-modal">
+  <div class="payment-content">
+    <h2>Complete Payment</h2>
+
+    <div class="payment-info">
+      <p id="paymentRoute">Route: Not selected</p>
+      <p id="paymentDate">Date: Not selected</p>
+      <p id="paymentTime">Time: Not selected</p>
+      <p id="paymentSeats">Seats: Not selected</p>
+    </div>
+
+    <div class="price-display">
+      ₹<span id="totalPrice">0</span>
+    </div>
+
+    <div class="payment-methods">
+      <div class="payment-method">
+        <input type="radio" id="upi" name="paymentMethod" value="UPI" checked>
+        <label for="upi">💳 UPI Payment</label>
+      </div>
+
+      <div class="payment-method">
+        <input type="radio" id="card" name="paymentMethod" value="Credit/Debit Card">
+        <label for="card">🏦 Credit/Debit Card</label>
+      </div>
+
+      <div class="payment-method">
+        <input type="radio" id="wallet" name="paymentMethod" value="Digital Wallet">
+        <label for="wallet">📱 Digital Wallet</label>
+      </div>
+
+      <div class="payment-method">
+        <input type="radio" id="netbanking" name="paymentMethod" value="Net Banking">
+        <label for="netbanking">🏛️ Net Banking</label>
+      </div>
+    </div>
+
+    <div class="modal-buttons">
+      <button class="btn-pay" onclick="processPayment()">Pay Now</button>
+      <button class="btn-cancel" onclick="closePaymentModal()">Cancel</button>
+    </div>
+  </div>
+</div>
