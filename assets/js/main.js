@@ -14,17 +14,26 @@
 // This file is loaded from index.html using type="module"
 // ===============================================================
 
-console.log("🔥 main.js loaded successfully");
-
-// ---------------------------------------------------------------
-// Import Modules
-// ---------------------------------------------------------------
 import { login, signup, logout, autoLogin } from "./auth.js";
 import { toggleSignupForm, switchTabUI } from "./ui.js";
 import { registerStubFunctions } from "./stubs.js";
 import { loadComponent } from "./componentLoader.js";
+import { loadStops } from "./stops.js";
 
 console.log("📦 Modules imported successfully");
+
+// ---------------------------------------------------------------
+// Loader hide function
+// ---------------------------------------------------------------
+function hideLoader() {
+  const loader = document.getElementById("appLoader");
+  if (loader) {
+    loader.style.display = "none";
+    console.log("✅ Loader hidden successfully");
+  } else {
+    console.warn("⚠️ appLoader not found");
+  }
+}
 
 // ---------------------------------------------------------------
 // Attach functions to window so HTML onclick works
@@ -67,6 +76,40 @@ document.addEventListener("DOMContentLoaded", async function () {
   await loadComponent("paymentModalComponent", "./components/paymentModal.html");
   await loadComponent("confirmationModalComponent", "./components/confirmationModal.html");
 
+  console.log("📍 Setting up Enter key submit support...");
+
+  // LOGIN FORM ENTER SUPPORT
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      console.log("⌨️ Enter/Login submit triggered");
+      await login();
+    });
+  } else {
+    console.warn("⚠️ loginForm not found");
+  }
+
+  // SIGNUP FORM ENTER SUPPORT
+  const signupForm = document.getElementById("signupForm");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      console.log("⌨️ Enter/Signup submit triggered");
+      await signup();
+    });
+  } else {
+    console.warn("⚠️ signupForm not found");
+  }
+
+  // Load stops
+  const stopsLoaded = await loadStops();
+  if (stopsLoaded) {
+    console.log("✅ Stops inserted into dropdowns");
+  } else {
+    console.log("⚠️ Stops were not loaded");
+  }
+
   console.log("🎉 All components loaded successfully!");
 
   // Run auto login only after UI is loaded
@@ -74,4 +117,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   autoLogin();
 
   console.log("✅ SHRD JS MODULES LOADED SUCCESSFULLY");
+
+  // Hide loader after everything is ready
+  hideLoader();
 });

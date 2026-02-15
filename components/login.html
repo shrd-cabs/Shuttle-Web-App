@@ -18,17 +18,25 @@ Functions used:
       Welcome Back!
     </h2>
 
-    <div class="form-group">
-      <label for="loginEmail">Email Address</label>
-      <input type="email" id="loginEmail" placeholder="Enter your email">
-    </div>
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+      </div>
 
-    <div class="form-group">
-      <label for="loginPassword">Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter password">
-    </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" required>
+      </div>
 
-    <button class="btn btn-primary" onclick="login()">Login</button>
+      <!-- LOGIN BUTTON -->
+      <button class="btn btn-primary" type="submit" id="loginBtn">
+        <span id="loginBtnText">Login</span>
+        <span id="loginLoader" class="btn-loader" style="display:none;"></span>
+      </button>
+
+    </form>
 
     <p style="text-align: center; margin-top: 15px; color: #666;">
       Don't have an account?
@@ -39,32 +47,37 @@ Functions used:
     </p>
 
     <!-- SIGNUP FORM -->
-    <div id="signupForm"
+    <form id="signupForm"
       style="display: none; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
 
       <h3 style="margin-bottom: 20px;">Create Account</h3>
 
       <div class="form-group">
         <label for="signupName">Full Name</label>
-        <input type="text" id="signupName" placeholder="Enter your name">
+        <input type="text" id="signupName" placeholder="Enter your name" required>
       </div>
 
       <div class="form-group">
         <label for="signupEmail">Email Address</label>
-        <input type="email" id="signupEmail" placeholder="Enter your email">
+        <input type="email" id="signupEmail" placeholder="Enter your email" required>
       </div>
 
       <div class="form-group">
         <label for="signupPhone">Phone Number</label>
-        <input type="tel" id="signupPhone" placeholder="Enter your phone">
+        <input type="tel" id="signupPhone" placeholder="Enter your phone" required>
       </div>
 
       <div class="form-group">
         <label for="signupPassword">Password</label>
-        <input type="password" id="signupPassword" placeholder="Create password">
+        <input type="password" id="signupPassword" placeholder="Create password" required>
       </div>
 
-      <button class="btn btn-primary" onclick="signup()">Create Account</button>
-    </div>
+      <!-- SIGNUP BUTTON -->
+      <button class="btn btn-primary" type="submit" id="signupBtn">
+        <span id="signupBtnText">Create Account</span>
+        <span id="signupLoader" class="btn-loader" style="display:none;"></span>
+      </button>
+
+    </form>
   </div>
 </div>
