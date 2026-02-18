@@ -66,18 +66,30 @@ Functions used:
         <label for="tripTo">To</label>
         <select id="tripTo"></select>
       </div>
+
+      <div class="form-group">
+        <label for="noOfPAX">Number of Passengers</label>
+        <select id="noOfPAX">
+          <option value="1">1 Person</option>
+          <option value="2">2 People</option>
+          <option value="3">3 People</option>
+          <option value="4">4 People</option>
+          <option value="2">5 People</option>
+          <option value="3">6 People</option>
+        </select>
+      </div>
     </div>
 
-    <div style="text-align: center; margin: 20px 0;">
+    <!-- <div style="text-align: center; margin: 20px 0;">
       <h3>Select Your Seats (Tap a seat)</h3>
       <div class="bus-layout" id="busLayout"></div>
-    </div>
+    </div> -->
 
     <div class="booking-details">
       <h3>Booking Summary</h3>
 
       <div class="detail-row">
-        <strong>Selected Seats:</strong>
+        <strong>Number of Passengers:</strong>
         <span id="selectedSeatsDisplay">None</span>
       </div>
 
