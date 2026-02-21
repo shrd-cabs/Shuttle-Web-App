@@ -48,7 +48,7 @@ Functions used:
   <!-- BOOKING SECTION -->
   <div class="content-section active" id="bookingSection">
     <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
-      Select Your Seat
+      Book Your Seat
     </h2>
 
     <div class="booking-form">
@@ -76,7 +76,18 @@ Functions used:
           <option value="4">4</option>
         </select>
       </div>
+
+      <!-- CHECK AVAILABILITY BUTTON -->           
+      <div class="form-group">
+        <button class="btn btn-primary" type="button" id="checkAvailabilityBtn">
+          <span id="checkBtnText">Check Availability</span>
+          <span id="checkLoader" class="btn-loader" style="display:none;"></span>
+        </button>
+      </div>
+
     </div>
+
+    <div id="routesContainer" style="margin-top:20px;"></div>
 
     <!-- <div style="text-align: center; margin: 20px 0;">
       <h3>Select Your Seats (Tap a seat)</h3>

@@ -393,6 +393,13 @@
             display: block;
         }
 
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            display: block;
+        }
+
         .my-trips {
             max-width: 800px;
             margin: 0 auto;
@@ -770,4 +777,16 @@
 .btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.route-card {
+  border: 1px solid #ddd;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.route-card:hover {
+  background-color: #f8f8f8;
 }

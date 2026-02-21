@@ -3,3 +3,18 @@ cd ~/Documents/SHRD/Shuttle-Web-App
 then
 python3 -m http.server 3000
 but this it will directly host onto localhost:3000 
+
+https://script.google.com/macros/s/AKfycbwIZE9kQ5ONEJB8ejsHknLWyllNL2pQAR8Q2lioo7KG8c4D2CW5LCO5JwZOF_rK7Ztq/exec?action=searchRoutes&travel_date=2026-02-18&from_stop=Rajiv%20Chowk,%20Gurugram&to_stop=Bus%20Stand,%20Rewari&seats_required=1
+{
+  "success": true,
+  "routes": [
+    {
+      "route_id": "R002",
+      "route_name": "Gurgaon to Rewari Evening",
+      "departure_time": "18:00",
+      "available_seats": 30,
+      "fare_per_seat": 60,
+      "total_amount": 60
+    }
+  ]
+}
