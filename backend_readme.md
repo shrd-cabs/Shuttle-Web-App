@@ -9,8 +9,208 @@ Google Sheets (Database)
 This backend powers:
 
 ✅ Stop Management
+✅ Route Management
+✅ Route Search with Seat Availability (NEW)
+✅ Fare Calculation
+✅ Booking Creation
+✅ Razorpay Payment Data Storage
+✅ User Authentication
+
+📂 Updated Project Structure
+Shuttle-Web-App/
+│
+├── backend/
+│   ├── Code.gs              # Main API router (doGet / doPost)
+│   ├── users.gs             # User-related APIs
+│   ├── stops.gs             # Stop APIs
+│   ├── routes.gs            # Route APIs
+│   ├── searchRoutes.gs      # ✅ Route search with seat validation (NEW)
+│   ├── fares.gs             # Fare APIs
+│   ├── bookings.gs          # Booking APIs
+│   ├── sheetHelpers.gs      # Google Sheet helper functions
+│   └── utils.gs             # jsonResponse & utility functions
+│
+└── frontend/
+🆕 NEW FEATURE – Route Search API
+🔍 searchRoutes
+
+Searches available routes between two stops for a specific travel date.
+
+✔ What It Does
+
+Converts stop names → stop IDs
+
+Validates route stop sequence order
+
+Checks bus capacity
+
+Counts confirmed bookings
+
+Calculates available seats
+
+Validates required seats
+
+Fetches fare
+
+Returns total amount
+
+Formats departure time correctly (24-hour format)
+
+📡 API Usage
+?action=searchRoutes
+Example:
+https://script.google.com/macros/s/DEPLOYMENT_ID/exec?action=searchRoutes&travel_date=2026-02-25&from_stop=Gurgaon&to_stop=Rewari&seats_required=1
+✅ Sample Response
+{
+  "success": true,
+  "routes": [
+    {
+      "route_id": "R002",
+      "route_name": "Gurgaon to Rewari Evening",
+      "departure_time": "18:00",
+      "available_seats": 30,
+      "fare_per_seat": 60,
+      "total_amount": 60
+    }
+  ]
+}
+❌ If No Routes Available
+{
+  "success": true,
+  "routes": []
+}
+
+Frontend handles this and shows:
+
+No routes available for selected journey.
+
+🕒 Time Handling (Important Fix Done Today)
+
+Google Sheets stores time internally as:
+
+1899-12-30T12:38:50.000Z
+
+We fixed this by formatting time using:
+
+Utilities.formatDate(
+  departureTimeRaw,
+  Session.getScriptTimeZone(),
+  "HH:mm"
+);
+
+Now backend always returns clean 24-hour format:
+
+18:00
+
+No more 1899 date issue.
+
+🧠 Booking Seat Validation Logic
+
+Seat availability is calculated as:
+
+availableSeats = busCapacity - confirmedBookings
+
+Confirmed bookings are filtered by:
+
+travel_date
+
+route_id
+
+booking_status = "CONFIRMED"
+
+If:
+
+availableSeats < seats_required
+
+Route is excluded from results.
+
+🔄 Updated API Routing
+
+Inside Code.gs:
+
+case "searchRoutes":
+  return searchRoutes(e);
+
+If invalid action:
+
+{
+  "success": false,
+  "error": "Invalid action"
+}
+🚀 Current Backend Status (Updated)
+
+✅ Stops API Working
+✅ Routes API Working
+✅ Fare API Working
+✅ Booking API Working
+✅ Razorpay fields integrated
+✅ Action-based routing stable
+✅ Route search with live seat availability working
+✅ 24-hour departure time formatting fixed
+
+🚧 Next Production Enhancements
+
+Seat locking during payment
+
+Razorpay signature verification
+
+Duplicate booking prevention
+
+Booking cancellation API
+
+Admin analytics dashboard
+
+Email confirmation system
+
+Revenue reporting
+
+Pagination for large datasets
+
+🔒 Deployment Reminder
+
+After any backend change:
+
+Deploy
+
+Manage Deployments
+
+Edit deployment
+
+Click New Version
+
+Deploy
+
+⚠ Saving is NOT enough.
+
+If you want, I can now also generate:
+
+🔹 A separate CHANGELOG.md
+
+🔹 A professional production-ready README version
+
+🔹 API documentation in Swagger-style format
+
+You’re building this properly now 👌
+
+in readme format
+
+Here is your proper README.md formatted version (clean, production-ready, directly paste into README.md):
+
+🚌 Shuttle Web App – Backend
+
+Production backend for the Shuttle Booking System, built using:
+
+Google Apps Script (Web App API)
+
+Google Sheets (Database)
+
+This backend powers:
+
+✅ Stop Management
 
 ✅ Route Management
+
+✅ Route Search with Seat Availability
 
 ✅ Fare Calculation
 
@@ -28,6 +228,7 @@ Shuttle-Web-App/
 │   ├── users.gs             # User-related APIs
 │   ├── stops.gs             # Stop APIs
 │   ├── routes.gs            # Route APIs
+│   ├── searchRoutes.gs      # Route search with seat validation
 │   ├── fares.gs             # Fare APIs
 │   ├── bookings.gs          # Booking APIs
 │   ├── sheetHelpers.gs      # Google Sheet helper functions
@@ -40,7 +241,7 @@ Shuttle-Web-App/
         ├── css/
         └── components/
 
-⚠️ Apps Script does NOT execute directly from GitHub.
+⚠ Apps Script does NOT execute directly from GitHub.
 All .gs files must be manually copied into the Google Apps Script editor.
 
 📊 Google Sheets Database Structure
@@ -72,7 +273,7 @@ D	departure_time
 E	stop_sequence (comma-separated stop IDs)
 F	active (TRUE/FALSE)
 
-Example:
+Example stop sequence:
 
 ST001,ST002,ST003,ST004
 4️⃣ Fares (Fares)
@@ -116,7 +317,7 @@ Booking ID format:
 BK + timestamp
 🔗 API Architecture
 
-All APIs use the query parameter:
+All APIs use:
 
 ?action=ACTION_NAME
 
@@ -130,6 +331,7 @@ getStops	Fetch all stops
 🔹 Routes
 Action	Description
 getRoutes	Fetch all active routes
+searchRoutes	Search routes with seat availability
 🔹 Fare
 Action	Description
 getFare	Get fare between two stops
@@ -148,19 +350,70 @@ Action	Description
 validateUser	Validate login credentials
 addUser	Register new user
 getUsers	Fetch all users
+🆕 Route Search API (Seat Availability Engine)
+Action
+?action=searchRoutes
+Required Parameters
+travel_date
+from_stop
+to_stop
+seats_required
+Example
+?action=searchRoutes&travel_date=2026-02-25&from_stop=Gurgaon&to_stop=Rewari&seats_required=1
+✅ Sample Response
+{
+  "success": true,
+  "routes": [
+    {
+      "route_id": "R002",
+      "route_name": "Gurgaon to Rewari Evening",
+      "departure_time": "18:00",
+      "available_seats": 30,
+      "fare_per_seat": 60,
+      "total_amount": 60
+    }
+  ]
+}
+🧠 Seat Availability Logic
+availableSeats = busCapacity - confirmedBookings
+
+Bookings counted only when:
+
+travel_date matches
+
+route_id matches
+
+booking_status = "CONFIRMED"
+
+Routes are excluded if:
+
+availableSeats < seats_required
+🕒 Time Handling Fix
+
+Google Sheets stores time internally as a Date object (e.g., 1899-12-30 base date).
+
+We format departure time using:
+
+Utilities.formatDate(
+  departureTimeRaw,
+  Session.getScriptTimeZone(),
+  "HH:mm"
+);
+
+Now backend returns clean 24-hour format:
+
+18:00
 🧠 API Routing
 
-Routing is handled inside:
+Routing handled inside:
 
 Code.gs
-
-Using:
 
 function doGet(e) {
   const action = e.parameter.action;
 }
 
-If action is invalid:
+If invalid action:
 
 {
   "success": false,
@@ -184,8 +437,8 @@ Click New Version
 
 Deploy
 
-✅ The Web App URL remains the same
-❌ But version must be updated
+✅ Web App URL remains the same
+❌ Version must be updated
 
 🔒 Deployment Settings
 
@@ -194,8 +447,6 @@ Use:
 Execute as: Me
 
 Who has access: Anyone
-
-This allows public frontend access.
 
 🏗 Current System Status
 
@@ -211,11 +462,13 @@ This allows public frontend access.
 
 ✅ Action-based routing stable
 
-🚧 Next Production Enhancements
+✅ Route search with seat availability working
 
-Planned improvements:
+✅ 24-hour departure time formatting fixed
 
-Seat availability validation
+🚧 Planned Enhancements
+
+Seat locking during payment
 
 Razorpay signature verification
 
