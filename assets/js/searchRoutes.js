@@ -207,21 +207,12 @@ window.selectRoute = function (
   // ===============================
 
   document.getElementById("selectedSeatsDisplay").innerText = pax;
-
   document.getElementById("dateDisplay").innerText = travelDate;
-
   document.getElementById("arrivalDisplay").innerText = arrivalTime;
-
-  document.getElementById("journeyTimeDisplay").innerText =
-    `${departureTime} → ${reachingTime}`;
-
-  document.getElementById("totalAmountDisplay").innerText =
-    `₹${totalAmount}`;
-
+  document.getElementById("journeyTimeDisplay").innerText = `${departureTime} → ${reachingTime}`;
+  document.getElementById("totalAmountDisplay").innerText =`₹${totalAmount}`;
   document.getElementById("routeDisplay").innerText = routeName;
-
   console.log("📋 Booking Summary Updated");
-
 
   // ===============================
   // STORE BOOKING GLOBALLY
