@@ -149,7 +149,7 @@ function renderRoutes(routes, travelDate, pax) {
         <h3>${route.route_name}</h3>
 
         <p>
-          <strong>Arrival at Pickup:</strong> ${route.arrivalTime_at_pickup}<br>
+          <strong>Bus arrival at pickup point:</strong> ${route.arrivalTime_at_pickup}<br>
 
           <strong>Journey:</strong>
           ${route.departureTime_from_pickup} → ${route.reachingTime_at_drop}<br>
