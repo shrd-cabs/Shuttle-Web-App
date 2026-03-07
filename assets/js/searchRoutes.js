@@ -47,6 +47,8 @@ async function checkAvailability() {
   const toStop = document.getElementById("tripTo").value;
   const pax = document.getElementById("noOfPAX").value;
 
+  console.log("📌 Search Params:", { travelDate, fromStop, toStop, pax });
+
   const routesContainer = document.getElementById("routesContainer");
 
   if (!routesContainer) {
@@ -62,6 +64,7 @@ async function checkAvailability() {
   // BASIC VALIDATION
   // ===============================
   if (!travelDate || !fromStop || !toStop) {
+    console.warn("⚠️ Missing inputs");
     showAlert("Please select date and stops.", "warning");
     return;
   }
@@ -89,6 +92,8 @@ async function checkAvailability() {
     // ===============================
     if (!data.success || !data.routes || data.routes.length === 0) {
 
+      console.warn("⚠️ No routes returned");
+
       showAlert("No routes available for selected journey.", "warning");
 
       routesContainer.innerHTML = `
@@ -103,6 +108,8 @@ async function checkAvailability() {
     // ===============================
     // ROUTES FOUND
     // ===============================
+    console.log(`✅ ${data.routes.length} routes found`);
+
     showAlert("Routes found successfully.", "success");
 
     renderRoutes(data.routes, travelDate, pax);
@@ -133,16 +140,24 @@ function renderRoutes(routes, travelDate, pax) {
 
   routes.forEach(route => {
 
+    console.log("🚌 Rendering Route:", route);
+
     html += `
       <div class="route-card"
            style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;">
 
-        <h4>${route.route_name}</h4>
+        <h3>${route.route_name}</h3>
 
         <p>
-          <strong>Departure:</strong> ${route.departure_time}<br>
+          <strong>Arrival at Pickup:</strong> ${route.arrivalTime_at_pickup}<br>
+
+          <strong>Journey:</strong>
+          ${route.departureTime_from_pickup} → ${route.reachingTime_at_drop}<br>
+
           <strong>Available Seats:</strong> ${route.available_seats}<br>
+
           <strong>Fare per Seat:</strong> ₹${route.fare_per_seat}<br>
+
           <strong>Total:</strong> ₹${route.total_amount}
         </p>
 
@@ -150,7 +165,9 @@ function renderRoutes(routes, travelDate, pax) {
           onclick="selectRoute(
             '${route.route_id}',
             '${route.route_name}',
-            '${route.departure_time}',
+            '${route.arrivalTime_at_pickup}',
+            '${route.departureTime_from_pickup}',
+            '${route.reachingTime_at_drop}',
             '${travelDate}',
             '${pax}',
             '${route.total_amount}'
@@ -175,7 +192,9 @@ function renderRoutes(routes, travelDate, pax) {
 window.selectRoute = function (
   routeId,
   routeName,
+  arrivalTime,
   departureTime,
+  reachingTime,
   travelDate,
   pax,
   totalAmount
@@ -183,19 +202,42 @@ window.selectRoute = function (
 
   console.log("🟢 Route Selected:", routeId);
 
-  // Update booking summary
-  document.getElementById("routeDisplay").innerText = routeName;
-  document.getElementById("timeDisplay").innerText = departureTime;
-  document.getElementById("dateDisplay").innerText = travelDate;
+  // ===============================
+  // UPDATE BOOKING SUMMARY
+  // ===============================
+
   document.getElementById("selectedSeatsDisplay").innerText = pax;
 
-  // Store globally for payment use
+  document.getElementById("dateDisplay").innerText = travelDate;
+
+  document.getElementById("arrivalDisplay").innerText = arrivalTime;
+
+  document.getElementById("journeyTimeDisplay").innerText =
+    `${departureTime} → ${reachingTime}`;
+
+  document.getElementById("totalAmountDisplay").innerText =
+    `₹${totalAmount}`;
+
+  document.getElementById("routeDisplay").innerText = routeName;
+
+  console.log("📋 Booking Summary Updated");
+
+
+  // ===============================
+  // STORE BOOKING GLOBALLY
+  // ===============================
   window.selectedBooking = {
     routeId,
+    routeName,
+    arrivalTime,
+    departureTime,
+    reachingTime,
     travelDate,
     pax,
     totalAmount
   };
+
+  console.log("📦 Stored Booking Object:", window.selectedBooking);
 
   showAlert("Route selected successfully.", "success");
 };
@@ -205,6 +247,8 @@ window.selectRoute = function (
 // TOGGLE LOADER (Spinner Handling)
 // ===============================================================
 function toggleLoader(show) {
+
+  console.log("⏳ Loader:", show ? "ON" : "OFF");
 
   const text = document.getElementById("checkBtnText");
   const loader = document.getElementById("checkLoader");
@@ -217,12 +261,7 @@ function toggleLoader(show) {
 
 
 // ===============================================================
-// ALERT DISPLAY (Matches Your CSS System)
-// Uses:
-// .alert
-// .alert.success
-// .alert.error
-// .alert.warning
+// ALERT DISPLAY
 // ===============================================================
 function showAlert(message, type) {
 
@@ -235,6 +274,8 @@ function showAlert(message, type) {
     alertBox.innerText = "";
     return;
   }
+
+  console.log(`📢 Alert: ${type} → ${message}`);
 
   alertBox.innerText = message;
   alertBox.className = "alert " + type;
