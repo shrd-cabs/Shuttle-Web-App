@@ -141,17 +141,56 @@ Functions used:
     </div>
   </div>
 
-  <!-- MY TRIPS SECTION -->
+  <!-- ===========================================================
+  MY TRIPS SECTION
+  Displays user's booking history
+  =========================================================== -->
+
   <div class="content-section" id="myTripsSection">
-    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+
+    <h2 style="text-align:center;color:#333;margin-bottom:20px;">
       Your Bookings
     </h2>
 
-    <div class="my-trips" id="myTripsList">
-      <p style="text-align: center; color: #999;">
-        No bookings found. Start by booking a seat!
-      </p>
+    <!-- ===========================================================
+    TRIP FILTER TABS
+    =========================================================== -->
+
+    <div class="trip-tabs">
+
+      <button class="trip-tab active"
+              onclick="showTripsTab('current')"
+              id="tabCurrent">
+        Current Trips
+      </button>
+
+      <button class="trip-tab"
+              onclick="showTripsTab('upcoming')"
+              id="tabUpcoming">
+        Upcoming Trips
+      </button>
+
+      <button class="trip-tab"
+              onclick="showTripsTab('past')"
+              id="tabPast">
+        Past Trips
+      </button>
+
     </div>
+
+
+    <!-- ===========================================================
+    TRIPS LIST CONTAINER
+    =========================================================== -->
+
+    <div class="my-trips" id="myTripsList">
+
+      <p style="text-align:center;color:#999;">
+        Loading bookings...
+      </p>
+
+    </div>
+
   </div>
 
   <!-- CANCEL SECTION -->

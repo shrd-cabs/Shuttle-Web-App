@@ -790,3 +790,51 @@
 .route-card:hover {
   background-color: #f8f8f8;
 }
+
+/* Mytrip css */
+.trip-tabs{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.trip-tab{
+  padding:8px 16px;
+  border:none;
+  background:#eee;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+.trip-tab.active{
+  background:#6B46C1;
+  color:white;
+}
+
+.trip-card{
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:15px;
+  margin-bottom:12px;
+  background:#fafafa;
+}
+
+.trip-route{
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.trip-details{
+  font-size:14px;
+  color:#555;
+}
+
+.info-message{
+  text-align:center;
+  color:#777;
+}
+
+.info-message.error{
+  color:red;
+}

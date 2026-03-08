@@ -1,20 +1,25 @@
 // ===============================================================
 // main.js
 // ---------------------------------------------------------------
-// MAIN entry point of SHRD Shuttle Web App.
+// ENTRY POINT of SHRD Shuttle Web App
 //
-// Responsibilities:
-// 1. Load HTML components dynamically
-// 2. Attach global window functions
-// 3. Register stub functions
-// 4. Listen for component load events
-// 5. Initialize route search AFTER mainContent loads
-// 6. Run autoLogin
+// Responsibilities
+// ---------------------------------------------------------------
+// 1. Import core modules
+// 2. Attach global handlers required by HTML
+// 3. Register development stub functions
+// 4. Load UI components dynamically
+// 5. Initialize Route Search after main content loads
+// 6. Setup login / signup form handlers
+// 7. Run auto-login
+// 8. Load My Trips when user opens the tab
+// 9. Hide initial app loader
 // ===============================================================
 
 
+
 // ===============================================================
-// IMPORT MODULES
+// MODULE IMPORTS
 // ===============================================================
 import { login, signup, logout, autoLogin } from "./auth.js";
 import { toggleSignupForm, switchTabUI } from "./ui.js";
@@ -22,124 +27,237 @@ import { registerStubFunctions } from "./stubs.js";
 import { loadComponent } from "./componentLoader.js";
 import { loadStops } from "./stops.js";
 import { initSearchRoutes } from "./searchRoutes.js";
+import { loadMyTrips } from "./myTrips.js";
 
-console.log("📦 Modules imported successfully");
+console.log("📦 All JS modules imported successfully");
+
 
 
 // ===============================================================
-// GLOBAL LOADER HIDE FUNCTION
+// CONFIGURATION
 // ===============================================================
+
+/**
+ * List of components to be loaded dynamically
+ * Order matters because layout depends on it.
+ */
+const COMPONENTS = [
+  ["headerComponent", "./components/header.html"],
+  ["loginComponent", "./components/login.html"],
+  ["mainContentComponent", "./components/mainContent.html"],
+  ["footerComponent", "./components/footer.html"],
+  ["paymentModalComponent", "./components/paymentModal.html"],
+  ["confirmationModalComponent", "./components/confirmationModal.html"]
+];
+
+
+
+// ===============================================================
+// GLOBAL UTILITIES
+// ===============================================================
+
+/**
+ * Hide initial loading screen once app is ready
+ */
 function hideLoader() {
+
   const loader = document.getElementById("appLoader");
 
-  if (loader) {
-    loader.style.display = "none";
-    console.log("✅ App loader hidden successfully");
-  } else {
-    console.warn("⚠️ appLoader not found");
+  if (!loader) {
+    console.warn("⚠️ Loader element not found");
+    return;
   }
+
+  loader.style.display = "none";
+  console.log("✅ App loader hidden");
+
 }
 
 
-// ===============================================================
-// ATTACH FUNCTIONS TO WINDOW (For HTML onclick support)
-// ===============================================================
-console.log("🔗 Attaching global functions to window...");
-
-window.login = login;
-window.signup = signup;
-window.logout = logout;
-window.toggleSignup = toggleSignupForm;
-
-// switchTab requires event object
-window.switchTab = function (tabName) {
-  console.log(`🟣 Tab switching requested: ${tabName}`);
-  switchTabUI(tabName, event);
-};
-
-console.log("✅ Window functions attached successfully");
-
 
 // ===============================================================
-// REGISTER STUB FUNCTIONS
+// GLOBAL WINDOW FUNCTIONS
+// ---------------------------------------------------------------
+// Some HTML components still rely on inline onclick handlers.
+// These functions are attached to window intentionally.
 // ===============================================================
-console.log("🧩 Registering stub functions...");
-registerStubFunctions();
-console.log("✅ Stub functions registered");
 
+function attachGlobalFunctions() {
 
-// ===============================================================
-// LISTEN FOR COMPONENT LOADED EVENT
-// This ensures route search initializes ONLY after
-// mainContent component is injected into DOM
-// ===============================================================
-document.addEventListener("componentLoaded", async function (e) {
+  console.log("🔗 Attaching global window functions...");
 
-  // We only care about mainContent component
-  if (e.detail.id === "mainContentComponent") {
+  window.login = login;
+  window.signup = signup;
+  window.logout = logout;
+  window.toggleSignup = toggleSignupForm;
 
-    console.log("🔥 mainContent loaded → Preparing Route Search");
+  /**
+   * Global Tab Switch Handler
+   */
+  window.switchTab = function (tabName, event) {
 
-    // Load stops first
-    const stopsLoaded = await loadStops();
+    console.log(`🟣 Switching tab → ${tabName}`);
 
-    if (stopsLoaded) {
-      console.log("✅ Stops loaded → Initializing Route Search");
-      initSearchRoutes();
-    } else {
-      console.warn("⚠️ Stops not loaded → Route search not initialized");
+    // Update UI
+    switchTabUI(tabName, event);
+
+    // Load trips only when user opens My Trips tab
+    if (tabName === "myTrips") {
+
+      console.log("🧳 Loading user trips...");
+      loadMyTrips();
+
     }
-  }
-});
+
+  };
+
+  console.log("✅ Global functions attached");
+
+}
+
 
 
 // ===============================================================
-// MAIN APPLICATION STARTUP
+// COMPONENT LOAD LISTENER
+// ---------------------------------------------------------------
+// Some features must initialize only AFTER specific
+// components finish loading (example: route search UI).
 // ===============================================================
-document.addEventListener("DOMContentLoaded", async function () {
 
-  console.log("🚀 DOMContentLoaded fired");
-  console.log("📌 Starting component loading process...");
+function registerComponentListeners() {
 
-  // -------------------------------------------------------------
-  // Load UI Components Sequentially
-  // -------------------------------------------------------------
-  await loadComponent("headerComponent", "./components/header.html");
-  await loadComponent("loginComponent", "./components/login.html");
-  await loadComponent("mainContentComponent", "./components/mainContent.html");
-  await loadComponent("footerComponent", "./components/footer.html");
-  await loadComponent("paymentModalComponent", "./components/paymentModal.html");
-  await loadComponent("confirmationModalComponent", "./components/confirmationModal.html");
+  document.addEventListener("componentLoaded", async function (e) {
 
-  console.log("🎉 All components loaded successfully!");
+    const componentId = e.detail.id;
 
-  // -------------------------------------------------------------
-  // Setup Enter Key Support
-  // -------------------------------------------------------------
+    if (componentId !== "mainContentComponent") return;
+
+    console.log("🔥 Main content loaded → preparing route search");
+
+    try {
+
+      const stopsLoaded = await loadStops();
+
+      if (!stopsLoaded) {
+        console.warn("⚠️ Stops failed to load");
+        return;
+      }
+
+      console.log("✅ Stops loaded → initializing route search");
+
+      initSearchRoutes();
+
+    } catch (error) {
+
+      console.error("❌ Route search initialization failed", error);
+
+    }
+
+  });
+
+}
+
+
+
+// ===============================================================
+// FORM EVENT HANDLERS
+// ===============================================================
+
+function setupFormHandlers() {
+
   const loginForm = document.getElementById("loginForm");
+
   if (loginForm) {
-    loginForm.addEventListener("submit", async function (e) {
+
+    loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       await login();
     });
+
   }
 
   const signupForm = document.getElementById("signupForm");
+
   if (signupForm) {
-    signupForm.addEventListener("submit", async function (e) {
+
+    signupForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       await signup();
     });
+
   }
 
-  // -------------------------------------------------------------
-  // Run Auto Login
-  // -------------------------------------------------------------
-  autoLogin();
+}
 
-  console.log("✅ SHRD JS MODULES LOADED SUCCESSFULLY");
 
-  // Hide global loader
-  hideLoader();
+
+// ===============================================================
+// LOAD ALL COMPONENTS
+// ===============================================================
+
+async function loadAllComponents() {
+
+  console.log("📌 Loading UI components...");
+
+  for (const [id, path] of COMPONENTS) {
+
+    await loadComponent(id, path);
+
+  }
+
+  console.log("🎉 All components loaded successfully");
+
+}
+
+
+
+// ===============================================================
+// APPLICATION INITIALIZATION
+// ===============================================================
+
+async function initApp() {
+
+  console.log("🚀 Starting SHRD Shuttle Web App...");
+
+  try {
+
+    // 1️⃣ Load UI components
+    await loadAllComponents();
+
+    // 2️⃣ Setup login/signup handlers
+    setupFormHandlers();
+
+    // 3️⃣ Attempt auto login
+    autoLogin();
+
+    console.log("✅ App initialized successfully");
+
+  } catch (error) {
+
+    console.error("❌ App initialization failed", error);
+
+  } finally {
+
+    hideLoader();
+
+  }
+
+}
+
+
+
+// ===============================================================
+// START APPLICATION
+// ===============================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  console.log("📄 DOM ready");
+
+  attachGlobalFunctions();
+  registerStubFunctions();
+  registerComponentListeners();
+
+  initApp();
 
 });
