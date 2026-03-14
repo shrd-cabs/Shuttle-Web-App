@@ -9,7 +9,7 @@ This project runs fully on the frontend and connects to a backend built using Go
 
 Login system
 
-Signup system
+Signup systems
 
 Auto-login using localStorage
 
