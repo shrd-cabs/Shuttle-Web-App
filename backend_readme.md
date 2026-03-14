@@ -22,7 +22,7 @@ Shuttle-Web-App/
 ├── backend/
 │   ├── Code.gs              # Main API router (doGet / doPost)
 │   ├── users.gs             # User-related APIs
-│   ├── stops.gs             # Stop APIs
+│   ├── stops.gs             # Stop API
 │   ├── routes.gs            # Route APIs
 │   ├── searchRoutes.gs      # ✅ Route search with seat validation (NEW)
 │   ├── fares.gs             # Fare APIs
