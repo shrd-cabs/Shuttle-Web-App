@@ -7,8 +7,6 @@
 //
 // Example:
 // - resetBooking()
-// - openPaymentModal()
-// - processPayment()
 //
 // If these functions are not defined, the HTML will break.
 // So we register them safely on window.
@@ -17,9 +15,6 @@
 export function registerStubFunctions() {
   [
     "resetBooking",
-    "openPaymentModal",
-    "processPayment",
-    "closePaymentModal",
     "closeConfirmationModal",
     "cancelBooking",
     "clearCancelForm",

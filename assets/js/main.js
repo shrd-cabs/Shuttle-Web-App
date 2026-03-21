@@ -28,6 +28,7 @@ import { loadComponent } from "./componentLoader.js";
 import { loadStops } from "./stops.js";
 import { initSearchRoutes } from "./searchRoutes.js";
 import { loadMyTrips } from "./myTrips.js";
+import { openPaymentModal } from "./payment.js";
 
 console.log("📦 All JS modules imported successfully");
 
@@ -90,6 +91,7 @@ function attachGlobalFunctions() {
   window.signup = signup;
   window.logout = logout;
   window.toggleSignup = toggleSignupForm;
+  window.openPaymentModal = openPaymentModal;
 
   /**
    * Global Tab Switch Handler
