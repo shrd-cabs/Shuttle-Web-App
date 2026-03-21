@@ -81,7 +81,7 @@ export async function openPaymentModal() {
             `&passenger_email=${currentUser.email}` +
             `&passenger_phone=${currentUser.phone}` +
             `&seats_booked=${booking.pax}` +
-            `&fare_per_seat=${booking.totalAmount}` +
+            `&fare_per_seat=${booking.totalAmount / booking.pax}` +
             `&total_amount=${booking.totalAmount}` +
             `&razorpay_order_id=${response.razorpay_order_id}` +
             `&razorpay_payment_id=${response.razorpay_payment_id}` +
