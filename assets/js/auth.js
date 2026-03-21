@@ -1,28 +1,42 @@
 // ===============================================================
 // auth.js
 // ---------------------------------------------------------------
-// This file handles Authentication features:
+// Handles Authentication:
 //
 // - login()
 // - signup()
 // - logout()
-// - autoLogin() (keeps user logged in using localStorage)
+// - autoLogin()
 //
-// It communicates with Google Apps Script backend using fetch API.
-//
-// NOTE:
-// All UI changes like showing/hiding login page are done using
-// functions imported from ui.js.
+// Improvements:
+// ✅ Uses central API_URL (cleaner)
+// ✅ Stores full user object (name, email, phone, role)
+// ✅ Better error handling
+// ✅ Cleaner loader handling
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
 import { setCurrentUser, clearCurrentUser } from "./state.js";
 import { showMainContent, showLoginContent } from "./ui.js";
 
+
+// ===================================================
+// HELPER: TOGGLE BUTTON LOADER
+// ===================================================
+function toggleButtonLoader(button, textEl, loaderEl, isLoading, loadingText) {
+  if (!button || !textEl || !loaderEl) return;
+
+  button.disabled = isLoading;
+  textEl.textContent = isLoading ? loadingText : textEl.dataset.defaultText;
+  loaderEl.style.display = isLoading ? "inline-block" : "none";
+}
+
+
 // ===================================================
 // LOGIN FUNCTION
 // ===================================================
 export async function login() {
+
   const email = document.getElementById("loginEmail")?.value.trim();
   const password = document.getElementById("loginPassword")?.value.trim();
 
@@ -36,51 +50,68 @@ export async function login() {
   }
 
   try {
-    // ✅ SHOW LOADER
-    if (loginBtn && loginBtnText && loginLoader) {
-      loginBtn.disabled = true;
-      loginBtnText.textContent = "Logging in...";
-      loginLoader.style.display = "inline-block";
+
+    console.log("🔐 Logging in...");
+
+    // Save default text (for reset later)
+    if (loginBtnText && !loginBtnText.dataset.defaultText) {
+      loginBtnText.dataset.defaultText = loginBtnText.textContent;
     }
 
-    // ✅ allow browser repaint before fetch (BEST METHOD)
+    toggleButtonLoader(loginBtn, loginBtnText, loginLoader, true, "Logging in...");
+
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    const url = `https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=validateUser&email=${encodeURIComponent(
-      email
-    )}&password=${encodeURIComponent(password)}`;
+    // ✅ CLEAN API CALL
+    const response = await fetch(
+      `${APP_CONFIG.API_URL}?action=validateUser` +
+      `&email=${encodeURIComponent(email)}` +
+      `&password=${encodeURIComponent(password)}`
+    );
 
-    const res = await fetch(url);
-    const result = await res.json();
+    const result = await response.json();
+
+    console.log("📥 Login Response:", result);
 
     if (result.user) {
-      setCurrentUser(result.user);
-      localStorage.setItem("currentUser", JSON.stringify(result.user));
+
+      // ✅ STORE FULL USER OBJECT
+      const user = {
+        name: result.user.name,
+        email: result.user.email,
+        phone: result.user.phone,
+        role: result.user.role || "user"
+      };
+
+      setCurrentUser(user);
+      localStorage.setItem("currentUser", JSON.stringify(user));
 
       showMainContent();
-      alert(`Welcome ${result.user.name}!`);
+
+      alert(`Welcome ${user.name}!`);
+
     } else {
-      alert("Wrong credentials");
+      alert("❌ Invalid email or password");
     }
 
-  } catch (e) {
-    console.error(e);
-    alert("Network / Script error");
+  } catch (error) {
+
+    console.error("❌ Login Error:", error);
+    alert("Network / server error");
 
   } finally {
-    // ✅ HIDE LOADER
-    if (loginBtn && loginBtnText && loginLoader) {
-      loginBtn.disabled = false;
-      loginBtnText.textContent = "Login";
-      loginLoader.style.display = "none";
-    }
+
+    toggleButtonLoader(loginBtn, loginBtnText, loginLoader, false);
+
   }
 }
+
 
 // ===================================================
 // SIGNUP FUNCTION
 // ===================================================
 export async function signup() {
+
   const name = document.getElementById("signupName")?.value.trim();
   const email = document.getElementById("signupEmail")?.value.trim();
   const phone = document.getElementById("signupPhone")?.value.trim();
@@ -95,70 +126,107 @@ export async function signup() {
     return;
   }
 
-  const newUser = { name, email, phone, password, role: "user" };
-
   try {
-    // ✅ SHOW LOADER
-    if (signupBtn && signupBtnText && signupLoader) {
-      signupBtn.disabled = true;
-      signupBtnText.textContent = "Creating...";
-      signupLoader.style.display = "inline-block";
+
+    console.log("📝 Creating account...");
+
+    // Save default text
+    if (signupBtnText && !signupBtnText.dataset.defaultText) {
+      signupBtnText.dataset.defaultText = signupBtnText.textContent;
     }
 
-    // ✅ allow browser repaint before fetch (BEST METHOD)
+    toggleButtonLoader(signupBtn, signupBtnText, signupLoader, true, "Creating...");
+
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    const params = new URLSearchParams(newUser).toString();
-    const url = `https://script.google.com/macros/s/${APP_CONFIG.SCRIPT_ID}/exec?action=addUser&${params}`;
+    const params = new URLSearchParams({
+      name,
+      email,
+      phone,
+      password,
+      role: "user"
+    });
 
-    const res = await fetch(url);
-    const result = await res.json();
+    const response = await fetch(
+      `${APP_CONFIG.API_URL}?action=addUser&${params}`
+    );
+
+    const result = await response.json();
+
+    console.log("📥 Signup Response:", result);
 
     if (result.success) {
-      setCurrentUser(newUser);
-      localStorage.setItem("currentUser", JSON.stringify(newUser));
+
+      // ✅ STORE USER IMMEDIATELY
+      const user = { name, email, phone, role: "user" };
+
+      setCurrentUser(user);
+      localStorage.setItem("currentUser", JSON.stringify(user));
 
       showMainContent();
-      alert(`Account created! Welcome ${name}`);
 
-      document.getElementById("signupForm").style.display = "none";
+      alert(`🎉 Account created! Welcome ${name}`);
+
+      // Hide signup form
+      const signupForm = document.getElementById("signupForm");
+      if (signupForm) signupForm.style.display = "none";
+
     } else {
-      alert("Signup failed: " + (result.error || "User exists"));
+      alert("Signup failed: " + (result.error || "User already exists"));
     }
 
-  } catch (e) {
-    console.error(e);
-    alert("Signup error – check Apps Script deployment");
+  } catch (error) {
+
+    console.error("❌ Signup Error:", error);
+    alert("Signup error – check backend");
 
   } finally {
-    // ✅ HIDE LOADER
-    if (signupBtn && signupBtnText && signupLoader) {
-      signupBtn.disabled = false;
-      signupBtnText.textContent = "Create Account";
-      signupLoader.style.display = "none";
-    }
+
+    toggleButtonLoader(signupBtn, signupBtnText, signupLoader, false);
+
   }
 }
+
 
 // ===================================================
 // LOGOUT FUNCTION
 // ===================================================
 export function logout() {
+
+  console.log("🚪 Logging out...");
+
   clearCurrentUser();
   localStorage.removeItem("currentUser");
 
   showLoginContent();
-  alert("Logged out");
+
+  alert("Logged out successfully");
+
 }
+
 
 // ===================================================
 // AUTO LOGIN FUNCTION
 // ===================================================
 export function autoLogin() {
+
   const savedUser = localStorage.getItem("currentUser");
 
-  if (savedUser) {
-    setCurrentUser(JSON.parse(savedUser));
+  if (!savedUser) return;
+
+  try {
+
+    const user = JSON.parse(savedUser);
+
+    console.log("🔁 Auto login:", user);
+
+    setCurrentUser(user);
     showMainContent();
+
+  } catch (error) {
+
+    console.error("❌ AutoLogin failed:", error);
+    localStorage.removeItem("currentUser");
+
   }
 }

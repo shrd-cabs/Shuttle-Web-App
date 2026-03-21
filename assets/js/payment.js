@@ -11,6 +11,7 @@
 //  const keySecret = "Lbg218z4qgdfH4jIl2FkYPxw";      // your secret 
 
 import { APP_CONFIG } from "./config.js";
+import { currentUser } from "./state.js";
 
 export async function openPaymentModal() {
   try {
@@ -52,7 +53,7 @@ export async function openPaymentModal() {
     // RAZORPAY OPTIONS
     // ===============================
     const options = {
-      key: "rzp_live_STnSll8AkTlMTl",
+      key: "rzp_test_SToJcqhAImfHOY",
       amount: order.amount,
       currency: "INR",
       order_id: order.id,
@@ -68,21 +69,28 @@ export async function openPaymentModal() {
         // ===============================
         // SAVE BOOKING TO SHEET
         // ===============================
-        await fetch(`${APP_CONFIG.API_URL}?action=saveBooking`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            ...booking,
-            payment_id: response.razorpay_payment_id,
-            order_id: response.razorpay_order_id,
-            status: "SUCCESS",
-            date: new Date().toISOString()
-          })
-        });
+        await fetch(
+            `${APP_CONFIG.API_URL}?action=createBooking` +
+            `&booking_date=${new Date().toISOString().split("T")[0]}` +
+            `&travel_date=${booking.travelDate}` +
+            `&route_id=${booking.routeId}` +
+            `&bus_id=` +
+            `&fromStop=${booking.fromStop}` +
+            `&toStop=${booking.toStop}` +
+            `&passenger_name=${currentUser.name}` +
+            `&passenger_email=${currentUser.email}` +
+            `&passenger_phone=${currentUser.phone}` +
+            `&seats_booked=${booking.pax}` +
+            `&fare_per_seat=${booking.totalAmount}` +
+            `&total_amount=${booking.totalAmount}` +
+            `&razorpay_order_id=${response.razorpay_order_id}` +
+            `&razorpay_payment_id=${response.razorpay_payment_id}` +
+            `&razorpay_signature=${response.razorpay_signature}` +
+            `&payment_status=PAID` +
+            `&booking_status=CONFIRMED`
+        );
 
-        window.location.href = "success.html";
+        alert("Booking confirmed!");
       },
 
       modal: {

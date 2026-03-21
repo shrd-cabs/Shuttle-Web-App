@@ -112,7 +112,7 @@ async function checkAvailability() {
 
     showAlert("Routes found successfully.", "success");
 
-    renderRoutes(data.routes, travelDate, pax);
+    renderRoutes(data.routes, travelDate, pax, fromStop, toStop);
 
   } catch (error) {
 
@@ -130,7 +130,7 @@ async function checkAvailability() {
 // ===============================================================
 // RENDER ROUTES
 // ===============================================================
-function renderRoutes(routes, travelDate, pax) {
+function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
 
   console.log("🎨 Rendering routes...");
 
@@ -149,10 +149,8 @@ function renderRoutes(routes, travelDate, pax) {
         <h3>${route.route_name}</h3>
 
         <p>
-          <strong>Bus arrival at pickup point:</strong> ${route.arrivalTime_at_pickup}<br>
-
           <strong>Journey:</strong>
-          ${route.departureTime_from_pickup} → ${route.reachingTime_at_drop}<br>
+          ${route.arrivalTime_at_pickup} → ${route.reachingTime_at_drop}<br>
 
           <strong>Available Seats:</strong> ${route.available_seats}<br>
 
@@ -166,11 +164,12 @@ function renderRoutes(routes, travelDate, pax) {
             '${route.route_id}',
             '${route.route_name}',
             '${route.arrivalTime_at_pickup}',
-            '${route.departureTime_from_pickup}',
             '${route.reachingTime_at_drop}',
             '${travelDate}',
             '${pax}',
-            '${route.total_amount}'
+            '${route.total_amount}',
+            '${fromStop}',
+            '${toStop}'
           )">
           Select Route
         </button>
@@ -193,11 +192,12 @@ window.selectRoute = function (
   routeId,
   routeName,
   arrivalTime,
-  departureTime,
   reachingTime,
   travelDate,
   pax,
-  totalAmount
+  totalAmount,
+  fromStop,
+  toStop
 ) {
 
   console.log("🟢 Route Selected:", routeId);
@@ -208,8 +208,7 @@ window.selectRoute = function (
 
   document.getElementById("selectedSeatsDisplay").innerText = pax;
   document.getElementById("dateDisplay").innerText = travelDate;
-  document.getElementById("arrivalDisplay").innerText = arrivalTime;
-  document.getElementById("journeyTimeDisplay").innerText = `${departureTime} → ${reachingTime}`;
+  document.getElementById("journeyTimeDisplay").innerText = `${arrivalTime} → ${reachingTime}`;
   document.getElementById("totalAmountDisplay").innerText =`₹${totalAmount}`;
   document.getElementById("routeDisplay").innerText = routeName;
   console.log("📋 Booking Summary Updated");
@@ -221,11 +220,12 @@ window.selectRoute = function (
     routeId,
     routeName,
     arrivalTime,
-    departureTime,
     reachingTime,
     travelDate,
     pax,
-    totalAmount
+    totalAmount,
+    fromStop,
+    toStop
   };
 
   console.log("📦 Stored Booking Object:", window.selectedBooking);
