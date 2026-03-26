@@ -1,0 +1,320 @@
+// ===============================================================
+// tripEngine.gs (FINAL DEBUG + FIXED VERSION)
+// ===============================================================
+
+function searchRoutes(e) {
+
+  let debug = []; // 👈 This will go to frontend (Chrome console)
+
+  try {
+
+    // ==========================================================
+    // 1️⃣ READ PARAMETERS
+    // ==========================================================
+    const travelDate    = e.parameter.travel_date;
+    const fromStopName  = (e.parameter.from_stop || "").toString().trim();
+    const toStopName    = (e.parameter.to_stop || "").toString().trim();
+    const seatsRequired = parseInt(e.parameter.seats_required);
+
+    debug.push("========== NEW SEARCH ==========");
+    debug.push("Travel Date: " + travelDate);
+    debug.push("From Stop: " + fromStopName);
+    debug.push("To Stop: " + toStopName);
+    debug.push("Seats Required: " + seatsRequired);
+
+    if (!travelDate || !fromStopName || !toStopName || !seatsRequired) {
+      return jsonResponse({ success:false, error:"Missing parameters", debug });
+    }
+
+    // ==========================================================
+    // 2️⃣ LOAD DATA
+    // ==========================================================
+    const tripsData    = getAllTripsSheet().getDataRange().getValues();
+    const bookingsData = getBookingsSheet().getDataRange().getValues();
+    const fareData     = getFareSheet().getDataRange().getValues();
+    const busesData    = getBusesSheet().getDataRange().getValues();
+
+    debug.push("Trips Loaded: " + tripsData.length);
+    debug.push("Fare Rows: " + fareData.length);
+    debug.push("Bookings Rows: " + bookingsData.length);
+    debug.push("Buses Rows: " + busesData.length);
+
+    // ==========================================================
+    // 🔧 HELPER → CLEAN TEXT (IMPORTANT)
+    // ==========================================================
+    function cleanText(str){
+      return (str || "")
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g," ");
+    }
+
+    // ==========================================================
+    // 3️⃣ GROUP TRIPS BY trip_id
+    // ==========================================================
+    let tripsMap = {};
+
+    for (let i=1;i<tripsData.length;i++){
+
+      const tripId   = tripsData[i][0];
+      const stopId   = tripsData[i][1];
+      const stopName = (tripsData[i][2] || "").toString().trim();
+      const time     = tripsData[i][3];
+      const order    = parseInt(tripsData[i][4]);
+      const tripName = tripsData[i][5];
+      const busId    = tripsData[i][6];
+      const status   = tripsData[i][7];
+
+      if (!tripId || status !== "ACTIVE") continue;
+
+      if (!tripsMap[tripId]){
+        tripsMap[tripId] = {
+          tripName: tripName,
+          busId: busId,
+          stops: []
+        };
+      }
+
+      tripsMap[tripId].stops.push({
+        stopId,
+        stopName,
+        time,
+        order
+      });
+    }
+
+    debug.push("Total Trips Found: " + Object.keys(tripsMap).length);
+
+    let availableRoutes = [];
+
+    // ==========================================================
+    // 4️⃣ PROCESS EACH TRIP
+    // ==========================================================
+    for (let tripId in tripsMap){
+
+      debug.push("---- Checking Trip: " + tripId + " ----");
+
+      let trip = tripsMap[tripId];
+
+      // Sort stops by order
+      trip.stops.sort((a,b)=>a.order-b.order);
+
+      let fromIndex = -1;
+      let toIndex   = -1;
+
+      // ======================================================
+      // 🔍 MATCH FROM & TO STOPS (BY NAME)
+      // ======================================================
+      for (let i=0;i<trip.stops.length;i++){
+
+        const sheetStop = trip.stops[i].stopName;
+
+        debug.push(
+          "Comparing → " +
+          cleanText(sheetStop) + " | " +
+          cleanText(fromStopName) + " | " +
+          cleanText(toStopName)
+        );
+
+        if (cleanText(sheetStop) === cleanText(fromStopName)){
+          fromIndex = i;
+          debug.push("✅ MATCHED FROM at index " + i);
+        }
+
+        if (cleanText(sheetStop) === cleanText(toStopName)){
+          toIndex = i;
+          debug.push("✅ MATCHED TO at index " + i);
+        }
+      }
+
+      debug.push(`Indexes → From: ${fromIndex}, To: ${toIndex}`);
+
+      if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex){
+        debug.push("❌ Skipping: Invalid route direction");
+        continue;
+      }
+
+      // ======================================================
+      // 🚌 GET BUS CAPACITY
+      // ======================================================
+      let totalSeats = 0;
+
+      for (let b=1;b<busesData.length;b++){
+        if (busesData[b][0] === trip.busId){
+          totalSeats = parseInt(busesData[b][4]) || 0;
+          break;
+        }
+      }
+
+      debug.push("Bus ID: " + trip.busId);
+      debug.push("Total Seats: " + totalSeats);
+
+      if (totalSeats === 0){
+        debug.push("❌ Skipping: No seats found");
+        continue;
+      }
+
+      // ======================================================
+      // 🎫 CALCULATE BOOKED SEATS (FIXED HERE)
+      // ======================================================
+      let bookedSeats = 0;
+
+      for (let j=1;j<bookingsData.length;j++){
+
+        const bookingDateRaw = bookingsData[j][2];
+        const bookingRoute   = bookingsData[j][3];
+        const bookingFrom    = bookingsData[j][5]; // NAME
+        const bookingTo      = bookingsData[j][6]; // NAME
+        const seatsBooked    = parseInt(bookingsData[j][10]) || 0;
+        const status         = (bookingsData[j][17] || "").toString().toUpperCase();
+
+        const searchDate  = new Date(travelDate);
+        const bookingDate = new Date(bookingDateRaw);
+
+        searchDate.setHours(0,0,0,0);
+        bookingDate.setHours(0,0,0,0);
+
+        if (
+          bookingDate.getTime() !== searchDate.getTime() ||
+          bookingRoute !== tripId ||
+          status !== "CONFIRMED"
+        ){
+          continue;
+        }
+
+        // ==================================================
+        // 🔥 FIX: MATCH USING STOP NAMES
+        // ==================================================
+        let bFromIndex = trip.stops.findIndex(
+          s => cleanText(s.stopName) === cleanText(bookingFrom)
+        );
+
+        let bToIndex = trip.stops.findIndex(
+          s => cleanText(s.stopName) === cleanText(bookingTo)
+        );
+
+        debug.push(`Booking Check → ${bookingFrom} → ${bookingTo}`);
+        debug.push(`Booking Indexes → ${bFromIndex} → ${bToIndex}`);
+
+        if (bFromIndex === -1 || bToIndex === -1){
+          debug.push("❌ Booking ignored (stop mismatch)");
+          continue;
+        }
+
+        // ==================================================
+        // SEGMENT OVERLAP LOGIC
+        // ==================================================
+        const overlap =
+          fromIndex < bToIndex &&
+          toIndex   > bFromIndex;
+
+        if (overlap){
+          bookedSeats += seatsBooked;
+          debug.push(`➕ Seats Added: ${seatsBooked}`);
+        }
+      }
+
+      const availableSeats = totalSeats - bookedSeats;
+
+      debug.push("Booked Seats: " + bookedSeats);
+      debug.push("Available Seats: " + availableSeats);
+
+      if (availableSeats < seatsRequired){
+        debug.push("❌ Skipping: Not enough seats");
+        continue;
+      }
+
+      // ======================================================
+      // 💰 FARE LOOKUP
+      // ======================================================
+      let farePerSeat = 0;
+
+      const fromStopId = trip.stops[fromIndex].stopId;
+      const toStopId   = trip.stops[toIndex].stopId;
+
+      for (let f=1;f<fareData.length;f++){
+
+        const active = fareData[f][6];
+
+        if (
+          fareData[f][0] === tripId &&
+          fareData[f][1] === fromStopId &&
+          fareData[f][2] === toStopId &&
+          (active === true || active === "TRUE")
+        ){
+          farePerSeat = parseFloat(fareData[f][3]) || 0;
+          debug.push("✅ Fare Found: " + farePerSeat);
+          break;
+        }
+      }
+
+      if (!farePerSeat){
+        debug.push("❌ Skipping: Fare not found");
+        continue;
+      }
+
+      // ======================================================
+      // ⏱️ TIME FROM TRIPS SHEET
+      // ======================================================
+      const arrivalTime = formatTime(trip.stops[fromIndex].time);
+      const reachTime   = formatTime(trip.stops[toIndex].time);
+
+      debug.push(`Time → ${arrivalTime} → ${reachTime}`);
+
+      // ======================================================
+      // ✅ FINAL RESULT
+      // ======================================================
+      availableRoutes.push({
+        route_id:tripId,
+        route_name:trip.tripName,
+        from_stop:trip.stops[fromIndex].stopName,
+        to_stop:trip.stops[toIndex].stopName,
+        arrivalTime_at_pickup:arrivalTime,
+        reachingTime_at_drop:reachTime,
+        available_seats:availableSeats,
+        fare_per_seat:farePerSeat,
+        total_amount:farePerSeat * seatsRequired
+      });
+
+      debug.push("✅ ROUTE ADDED");
+    }
+
+    debug.push("FINAL ROUTES COUNT: " + availableRoutes.length);
+
+    return jsonResponse({
+      success:true,
+      routes:availableRoutes,
+      debug // 👈 visible in Chrome
+    });
+
+  } catch(error){
+
+    debug.push("🔥 ERROR: " + error.toString());
+
+    return jsonResponse({
+      success:false,
+      error:error.toString(),
+      debug
+    });
+
+  }
+}
+
+
+// ===============================================================
+// ⏱️ TIME FORMATTER
+// ===============================================================
+function formatTime(value){
+
+  if (!value) return "";
+
+  try{
+    if (value instanceof Date){
+      return Utilities.formatDate(value, Session.getScriptTimeZone(), "HH:mm");
+    }
+    return value.toString();
+  } catch(e){
+    return value.toString();
+  }
+}
