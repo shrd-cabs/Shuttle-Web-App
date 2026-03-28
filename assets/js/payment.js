@@ -17,7 +17,7 @@ import { currentUser } from "./state.js";
 // ===============================================================
 // ⏳ CONFIGURABLE HOLD TIMER
 // ===============================================================
-const HOLD_TIME = 1 * 60 * 1000; // 🔥 CHANGE HERE
+const HOLD_TIME = 5 * 60 * 1000; // 🔥 CHANGE HERE and in google sheet as well
 
 let holdBookingId = null;
 let holdTimer = null;
