@@ -1,15 +1,16 @@
 // ===============================================================
-// searchRoutes.js
+// searchRoutes.js (FINAL PRO VERSION 🚀)
 // ---------------------------------------------------------------
 // Handles route searching functionality.
 //
 // Responsibilities:
-// 1. Attach Check Availability button event
-// 2. Validate form inputs
-// 3. Call Apps Script backend
-// 4. Render available routes
-// 5. Update booking summary on route selection
-// 6. Handle loader + alerts cleanly
+// 1. Initialize date (freeze past + default today)
+// 2. Attach Check Availability button event
+// 3. Validate form inputs
+// 4. Call Apps Script backend
+// 5. Render available routes
+// 6. Update booking summary on route selection
+// 7. Handle loader + alerts cleanly
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -23,6 +24,30 @@ export function initSearchRoutes() {
   console.log("🔎 Initializing Route Search Module...");
 
   const checkBtn = document.getElementById("checkAvailabilityBtn");
+  const dateInput = document.getElementById("tripDate");
+
+  // ==========================================================
+  // 📅 FREEZE PAST DATES + SET DEFAULT TODAY
+  // ==========================================================
+  if (dateInput) {
+
+    const todayObj = new Date();
+
+    // Format YYYY-MM-DD (local timezone safe)
+    const year = todayObj.getFullYear();
+    const month = String(todayObj.getMonth() + 1).padStart(2, '0');
+    const day = String(todayObj.getDate()).padStart(2, '0');
+
+    const today = `${year}-${month}-${day}`;
+
+    // ❌ Disable all past dates
+    dateInput.min = today;
+
+    // ✅ Default selected date = today
+    dateInput.value = today;
+
+    console.log("📅 Date initialized →", today);
+  }
 
   if (!checkBtn) {
     console.warn("⚠️ checkAvailabilityBtn not found");
@@ -60,9 +85,9 @@ async function checkAvailability() {
   routesContainer.innerHTML = "";
   showAlert("", "");
 
-  // ===============================
-  // BASIC VALIDATION
-  // ===============================
+  // ==========================================================
+  // ⚠️ BASIC VALIDATION
+  // ==========================================================
   if (!travelDate || !fromStop || !toStop) {
     console.warn("⚠️ Missing inputs");
     showAlert("Please select date and stops.", "warning");
@@ -87,27 +112,27 @@ async function checkAvailability() {
 
     console.log("📥 Backend Response:", data);
 
-    // ===============================
-    // NO ROUTES FOUND
-    // ===============================
+    // ==========================================================
+    // 🚫 NO ROUTES FOUND (includes inactive dates)
+    // ==========================================================
     if (!data.success || !data.routes || data.routes.length === 0) {
 
       console.warn("⚠️ No routes returned");
 
-      showAlert("No routes available for selected journey.", "warning");
+      showAlert("No trips available for selected date.", "warning");
 
       routesContainer.innerHTML = `
         <div class="route-empty">
-          ❌ No routes found.
+          🚫 No trips available for selected date
         </div>
       `;
 
       return;
     }
 
-    // ===============================
-    // ROUTES FOUND
-    // ===============================
+    // ==========================================================
+    // ✅ ROUTES FOUND
+    // ==========================================================
     console.log(`✅ ${data.routes.length} routes found`);
 
     showAlert("Routes found successfully.", "success");
@@ -185,8 +210,7 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
 
 
 // ===============================================================
-// SELECT ROUTE
-// Updates Booking Summary
+// SELECT ROUTE → Updates Booking Summary
 // ===============================================================
 window.selectRoute = function (
   routeId,
@@ -202,20 +226,20 @@ window.selectRoute = function (
 
   console.log("🟢 Route Selected:", routeId);
 
-  // ===============================
-  // UPDATE BOOKING SUMMARY
-  // ===============================
-
+  // ==========================================================
+  // 📋 UPDATE BOOKING SUMMARY
+  // ==========================================================
   document.getElementById("selectedSeatsDisplay").innerText = pax;
   document.getElementById("dateDisplay").innerText = travelDate;
   document.getElementById("journeyTimeDisplay").innerText = `${arrivalTime} → ${reachingTime}`;
-  document.getElementById("totalAmountDisplay").innerText =`₹${totalAmount}`;
+  document.getElementById("totalAmountDisplay").innerText = `₹${totalAmount}`;
   document.getElementById("routeDisplay").innerText = routeName;
+
   console.log("📋 Booking Summary Updated");
 
-  // ===============================
-  // STORE BOOKING GLOBALLY
-  // ===============================
+  // ==========================================================
+  // 📦 STORE BOOKING GLOBALLY
+  // ==========================================================
   window.selectedBooking = {
     routeId,
     routeName,
@@ -235,7 +259,7 @@ window.selectRoute = function (
 
 
 // ===============================================================
-// TOGGLE LOADER (Spinner Handling)
+// ⏳ TOGGLE LOADER
 // ===============================================================
 function toggleLoader(show) {
 
@@ -252,7 +276,7 @@ function toggleLoader(show) {
 
 
 // ===============================================================
-// ALERT DISPLAY
+// 📢 ALERT DISPLAY
 // ===============================================================
 function showAlert(message, type) {
 
