@@ -1,28 +1,60 @@
 <!-- ===========================================================
 header.html
 ---------------------------------------------------------------
-This component contains the top header section of the app.
-It includes:
-- Logo + Title
-- Logout button
+Top header section of the app.
 
-Functions used:
+Includes:
+- Logo + Title
+- Wallet Balance (NEW)
+- Logout Button
+
+Wallet Notes:
+- Wallet updates dynamically after login
+- Uses currentUser from state.js
+
+Functions Used:
 - logout()
 =========================================================== -->
 
+<!-- ===========================================================
+HEADER WITH WALLET
+=========================================================== -->
 <div class="header">
-  <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0px;">
+
+  <!-- LEFT: LOGO + TITLE -->
+  <div style="display: flex; align-items: center; justify-content: center;">
+    
     <img src="./assets/images/img1.jpeg"
-      alt="Shri Radhey Logo"
-      class="logo-img">
+         alt="Shri Radhey Logo"
+         class="logo-img">
 
     <div>
-      <h1 style="margin: 0; font-size: 2.2em;">SHRD Shuttle Booking</h1>
-      <p style="margin: 5px 0; font-size: 1em;">Shri Radhey Travel Services</p>
+      <h1 style="margin: 0; font-size: 2.2em;">
+        SHRD Shuttle Booking
+      </h1>
+      <p style="margin: 5px 0; font-size: 1em;">
+        Shri Radhey Travel Services
+      </p>
     </div>
+
   </div>
 
-  <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">
-    Logout
-  </button>
+  <!-- RIGHT: WALLET + LOGOUT -->
+  <div class="header-right">
+
+    <!-- WALLET -->
+    <div class="wallet-box" id="walletBox" style="display:none;">
+      💰 <span id="walletAmount">₹0</span>
+    </div>
+
+    <!-- LOGOUT -->
+    <button class="logout-btn"
+            id="logoutBtn"
+            style="display:none;"
+            onclick="logout()">
+      Logout
+    </button>
+
+  </div>
+
 </div>

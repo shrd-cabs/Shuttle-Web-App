@@ -18,10 +18,6 @@ export function registerStubFunctions() {
     "closeConfirmationModal",
     "cancelBooking",
     "clearCancelForm",
-    "syncAllBookingsToSheets",
-    "syncAllUsersToSheets",
-    "importRoutesFromSheets",
-    "generateAnalytics"
   ].forEach((name) => {
     window[name] = function () {
       alert(`${name} – Coming soon!`);
