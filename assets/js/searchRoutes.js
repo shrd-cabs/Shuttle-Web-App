@@ -194,7 +194,11 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
             '${pax}',
             '${route.total_amount}',
             '${fromStop}',
-            '${toStop}'
+            '${toStop}',
+            '${route.bus_id}',
+            '${route.bus_number}',
+            '${route.driver_name}',
+            '${route.driver_phone}'
           )">
           Select Route
         </button>
@@ -221,7 +225,11 @@ window.selectRoute = function (
   pax,
   totalAmount,
   fromStop,
-  toStop
+  toStop,
+  busId,
+  busNumber,
+  driverName,
+  driverPhone
 ) {
 
   console.log("🟢 Route Selected:", routeId);
@@ -249,7 +257,11 @@ window.selectRoute = function (
     pax,
     totalAmount,
     fromStop,
-    toStop
+    toStop,
+    busId,
+    busNumber,
+    driverName,
+    driverPhone
   };
 
   console.log("📦 Stored Booking Object:", window.selectedBooking);

@@ -838,3 +838,135 @@
 .info-message.error{
   color:red;
 }
+/* ===========================================================
+   TRIP CARD STYLING (FIXED + PROFESSIONAL)
+   =========================================================== */
+
+.trip-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e5e5;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.trip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.trip-card:active {
+  transform: scale(0.98);
+}
+
+
+/* ===========================================================
+   ROUTE TEXT (LEFT SIDE)
+   =========================================================== */
+.trip-route {
+  font-size: 18px;
+  font-weight: 600;
+  max-width: 55%;
+}
+
+
+/* ===========================================================
+   DETAILS SECTION (RIGHT SIDE FIXED GRID)
+   =========================================================== */
+.trip-details {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 6px 20px;
+  text-align: right;
+  font-size: 14px;
+  color: #555;
+
+  min-width: 230px; /* prevents layout shift */
+}
+
+
+/* ===========================================================
+   STATUS COLORS
+   =========================================================== */
+.trip-status {
+  font-weight: 600;
+}
+
+.trip-status.CONFIRMED {
+  color: green;
+}
+
+.trip-status.HOLD {
+  color: orange;
+}
+
+.trip-status.CANCELLED {
+  color: red;
+}
+
+
+/* ===========================================================
+   MODAL OVERLAY
+   =========================================================== */
+.trip-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0, 0, 0, 0.6);
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+
+/* ===========================================================
+   MODAL CONTENT BOX
+   =========================================================== */
+.trip-modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+
+  width: 90%;
+  max-width: 700px;
+
+  max-height: 85vh;
+  overflow-y: auto;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+
+/* ===========================================================
+   POPUP GRID
+   =========================================================== */
+.trip-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+
+/* ===========================================================
+   POPUP ACTION BUTTONS
+   =========================================================== */
+.trip-popup-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

@@ -148,10 +148,9 @@ Functions used:
       Your Bookings
     </h2>
 
-    <!-- ===========================================================
+<!-- ===========================================================
     TRIP FILTER TABS
     =========================================================== -->
-
     <div class="trip-tabs">
 
       <button class="trip-tab active"
@@ -174,16 +173,30 @@ Functions used:
 
     </div>
 
-
     <!-- ===========================================================
     TRIPS LIST CONTAINER
     =========================================================== -->
-
     <div class="my-trips" id="myTripsList">
-
       <p style="text-align:center;color:#999;">
         Loading bookings...
       </p>
+    </div>
+
+  </div>
+
+
+  <!-- ===========================================================
+  TRIP DETAILS MODAL
+  =========================================================== -->
+  <div id="tripDetailsModal" class="trip-modal">
+
+    <div class="trip-modal-content">
+
+      <!-- CLOSE ICON -->
+      <span class="trip-modal-close" onclick="closeTripDetails()">✖</span>
+
+      <!-- DYNAMIC CONTENT -->
+      <div id="tripDetailsContent"></div>
 
     </div>
 

@@ -109,7 +109,10 @@ export async function openPaymentModal() {
       `&booking_date=${new Date().toISOString().split("T")[0]}` +
       `&travel_date=${booking.travelDate}` +
       `&route_id=${booking.routeId}` +
-      `&bus_id=` +
+      `&bus_id=${booking.busId}` +
+      `&bus_number=${booking.busNumber}` +
+      `&driver_name=${booking.driverName}` +
+      `&driver_phone=${booking.driverPhone}` +
       `&fromStop=${booking.fromStop}` +
       `&toStop=${booking.toStop}` +
       `&passenger_name=${currentUser.name}` +
