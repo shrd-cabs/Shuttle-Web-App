@@ -789,80 +789,7 @@
 }
 
 /* ===========================================================
-   MY TRIPS - PROFESSIONAL + RESPONSIVE
-   =========================================================== */
-
-/* Tabs */
-.trip-tabs {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* ✅ FIX: prevents overflow on mobile */
-}
-
-.trip-tab {
-  padding: 10px 16px;
-  border: none;
-  background: #eee;
-  cursor: pointer;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.trip-tab.active {
-  background: #6B46C1;
-  color: white;
-}
-
-.trip-tab:hover {
-  background: #ddd;
-}
-
-
-/* ===========================================================
-   LEFT SIDE (ROUTE)
-   =========================================================== */
-.trip-route {
-  font-weight: 600;
-  font-size: 16px;
-  max-width: 55%;
-}
-
-
-/* ===========================================================
-   RIGHT SIDE (DETAILS)
-   =========================================================== */
-.trip-details {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 6px 15px;
-
-  font-size: 13px;
-  color: #555;
-
-  text-align: right;
-  min-width: 200px;
-}
-
-
-/* ===========================================================
-   INFO MESSAGE
-   =========================================================== */
-.info-message {
-  text-align: center;
-  color: #777;
-  padding: 15px;
-}
-
-.info-message.error {
-  color: red;
-}
-
-/* ===========================================================
-   MY TRIPS - PROFESSIONAL + RESPONSIVE
+   MY TRIPS - CLEAN + PREMIUM + RESPONSIVE
    =========================================================== */
 
 /* ===========================================================
@@ -898,7 +825,7 @@
 
 
 /* ===========================================================
-   TRIP CARD (FINAL CLEAN)
+   TRIP CARD
    =========================================================== */
 .trip-card {
   background: #fff;
@@ -947,15 +874,41 @@
   min-width: 220px;
 }
 
-/* ✅ IMPORTANT: label-left, value-right */
 .trip-details div {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
 
+
 /* ===========================================================
-   🔥 MOBILE FIX
+   INFO MESSAGE
+   =========================================================== */
+.info-message {
+  text-align: center;
+  color: #777;
+  padding: 15px;
+}
+
+.info-message.error {
+  color: red;
+}
+
+
+/* ===========================================================
+   STATUS COLORS
+   =========================================================== */
+.trip-status {
+  font-weight: 600;
+}
+
+.trip-status.CONFIRMED { color: green; }
+.trip-status.HOLD { color: orange; }
+.trip-status.CANCELLED { color: red; }
+
+
+/* ===========================================================
+   🔥 MOBILE RESPONSIVE
    =========================================================== */
 @media (max-width: 768px) {
 
@@ -971,14 +924,11 @@
     font-size: 15px;
   }
 
-  /* ✅ FIX HERE */
   .trip-details {
     width: 100%;
     text-align: left;
-
-    grid-template-columns: 1fr 1fr; /* ✅ 2 per row */
+    grid-template-columns: 1fr 1fr;
     gap: 8px 12px;
-
     margin-top: 6px;
   }
 
@@ -987,10 +937,6 @@
   }
 }
 
-
-/* ===========================================================
-   EXTRA SMALL DEVICES
-   =========================================================== */
 @media (max-width: 480px) {
 
   .trip-tab {
@@ -1000,42 +946,17 @@
     font-size: 13px;
   }
 
-  .trip-card {
-    padding: 14px;
-  }
-
-  .trip-route {
-    font-size: 14px;
-  }
-
-  .trip-details {
-    font-size: 13px;
-  }
-}
-
-/* ===========================================================
-   STATUS COLORS
-   =========================================================== */
-.trip-status {
-  font-weight: 600;
-}
-
-.trip-status.CONFIRMED {
-  color: green;
-}
-
-.trip-status.HOLD {
-  color: orange;
-}
-
-.trip-status.CANCELLED {
-  color: red;
+  .trip-card { padding: 14px; }
+  .trip-route { font-size: 14px; }
+  .trip-details { font-size: 13px; }
 }
 
 
 /* ===========================================================
-   MODAL OVERLAY
+   🔥 PREMIUM MODAL
    =========================================================== */
+
+/* Overlay */
 .trip-modal {
   position: fixed;
   top: 0;
@@ -1043,53 +964,183 @@
   width: 100%;
   height: 100%;
 
-  background: rgba(0, 0, 0, 0.6);
-
   display: none;
   align-items: center;
   justify-content: center;
 
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+
   z-index: 999;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 
-/* ===========================================================
-   MODAL CONTENT BOX
-   =========================================================== */
+/* Modal Box */
 .trip-modal-content {
   background: #fff;
   padding: 25px;
-  border-radius: 12px;
+  border-radius: 16px;
 
   width: 90%;
   max-width: 700px;
-
   max-height: 85vh;
   overflow-y: auto;
 
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* ===========================================================
+   MODAL HEADER (CENTER + CLOSE)
+   =========================================================== */
+.trip-modal-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 15px;
+  padding-top: 5px;
+}
+
+.trip-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ✅ FIXED CLOSE BUTTON (slightly above) */
+.trip-close {
+  position: absolute;
+  right: 0;
+  top: -8px; /* 🔥 THIS FIXES ALIGNMENT */
+
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  cursor: pointer;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.trip-close:hover {
+  background: #f5f5f5;
+  color: red;
 }
 
 
 /* ===========================================================
    POPUP GRID
    =========================================================== */
+/* ===========================================================
+   GRID FIX (2 PER ROW DESKTOP)
+   =========================================================== */
 .trip-popup-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 15px;
+  grid-template-columns: repeat(2, 1fr); /* ✅ FORCE 2 columns */
+  gap: 12px 20px;
+  margin-top: 10px;
+}
+
+/* each item */
+.trip-popup-grid div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.trip-popup-grid strong {
+  color: #000;
 }
 
 
 /* ===========================================================
-   POPUP ACTION BUTTONS
+   POPUP BUTTONS
    =========================================================== */
 .trip-popup-actions {
-  margin-top: 20px;
+  margin-top: 22px;
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
+}
+
+.trip-popup-actions .btn {
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.trip-popup-actions .btn:hover {
+  transform: translateY(-1px);
+}
+
+
+/* ===========================================================
+   🔥 MOBILE FIX (ONE LINE PER DETAIL)
+   =========================================================== */
+@media (max-width: 768px) {
+
+  .trip-popup-grid {
+    grid-template-columns: 1fr; /* 1 per row */
+    gap: 10px;
+  }
+
+  .trip-popup-grid div {
+    display: flex;
+    justify-content: space-between; /* label left, value right */
+    align-items: center;
+
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f9f9f9;
+
+    font-size: 14px;
+  }
+
+  .trip-popup-grid strong {
+    color: #555;
+    font-weight: 500;
+  }
+
+  /* value styling */
+  .trip-popup-grid div span,
+  .trip-popup-grid div {
+    color: #222;
+    font-weight: 600;
+  }
+
+  /* header spacing */
+  .trip-close {
+    top: -6px;
+    right: -4px;
+  }
 }
 
 /* ===========================================================

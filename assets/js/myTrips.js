@@ -223,37 +223,44 @@ window.openTripDetails = function(trip) {
   if (!modal || !content) return;
 
   content.innerHTML = `
-    <h2>Trip Details</h2>
 
+    <div class="trip-modal-header">
+      <h2 class="trip-title">Trip Details</h2>
+      <span class="trip-close" onclick="closeTripDetails()">✖</span>
+    </div>
+
+    <!-- ✅ IMPORTANT WRAPPER ADDED -->
     <div class="trip-popup-grid">
 
       <div><strong>Booking ID:</strong> ${trip.booking_id}</div>
-      <!-- <div><strong>Booking Date:</strong> ${formatDateOnly(trip.booking_date)}</div> -->
-
       <div><strong>Travel Date:</strong> ${trip.travel_date}</div>
-      <!-- <div><strong>Route ID:</strong> ${trip.route_id}</div> -->
-      
-      <!-- <div><strong>Bus ID:</strong> ${trip.bus_id}</div> -->
+
       <div><strong>Bus Number:</strong> ${trip.bus_number}</div>
-
       <div><strong>Driver:</strong> ${trip.driver_name}</div>
+
       <div><strong>Driver Phone:</strong> ${trip.driver_phone}</div>
-
       <div><strong>From:</strong> ${trip.from_stop}</div>
-      <div><strong>To:</strong> ${trip.to_stop}</div>
 
+      <div><strong>To:</strong> ${trip.to_stop}</div>
       <div><strong>Passenger:</strong> ${trip.passenger_name}</div>
+
       <div><strong>Email:</strong> ${trip.passenger_email}</div>
       <div><strong>Phone:</strong> ${trip.passenger_phone}</div>
 
       <div><strong>Seats:</strong> ${trip.seats_booked}</div>
       <div><strong>Fare/Seat:</strong> ₹${trip.fare_per_seat}</div>
+
       <div><strong>Total:</strong> ₹${trip.total_amount}</div>
-
       <div><strong>Payment:</strong> ${trip.payment_status}</div>
-      <div><strong>Status:</strong> ${trip.booking_status}</div>
 
+      <div>
+        <strong>Status:</strong> 
+        <span class="trip-status ${trip.booking_status}">
+          ${trip.booking_status}
+        </span>
+      </div>
       <div><strong>Created At:</strong> ${formatDateTime(trip.created_at)}</div>
+
     </div>
 
     <div class="trip-popup-actions">
