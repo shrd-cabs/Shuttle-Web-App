@@ -186,6 +186,7 @@ function buildTripCard(trip) {
 
       <div class="trip-details">
         <div><strong>Date:</strong> ${trip.travel_date}</div>
+        <div><strong>Timings:</strong> ${trip.scheduled_pickup_time} → ${trip.scheduled_drop_time}</div>
         <div><strong>Seats:</strong> ${trip.seats_booked}</div>
         <div><strong>Total:</strong> ₹${trip.total_amount}</div>
         <div><strong>Status:</strong> ${trip.booking_status}</div>
@@ -239,6 +240,7 @@ window.openTripDetails = function(trip) {
       <div><strong>Driver:</strong> ${trip.driver_name}</div>
 
       <div><strong>Driver Phone:</strong> ${trip.driver_phone}</div>
+      <div><strong>Timings:</strong> ${trip.scheduled_pickup_time} → ${trip.scheduled_drop_time}</div>
       <div><strong>From:</strong> ${trip.from_stop}</div>
 
       <div><strong>To:</strong> ${trip.to_stop}</div>

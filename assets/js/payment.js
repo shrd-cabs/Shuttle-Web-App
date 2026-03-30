@@ -115,6 +115,8 @@ export async function openPaymentModal() {
       `&driver_phone=${booking.driverPhone}` +
       `&fromStop=${booking.fromStop}` +
       `&toStop=${booking.toStop}` +
+      `&scheduled_pickup_time=${booking.arrivalTime}` +
+      `&scheduled_drop_time=${booking.reachingTime}` +
       `&passenger_name=${currentUser.name}` +
       `&passenger_email=${currentUser.email}` +
       `&passenger_phone=${currentUser.phone}` +
@@ -181,8 +183,10 @@ export async function openPaymentModal() {
       // ✅ PAYMENT SUCCESS
       // ======================================================
       handler: async function (response) {
-
         console.log("✅ Payment Success:", response);
+
+        // 🔥 START LOADER AGAIN AFTER RAZORPAY CLOSE
+        togglePayLoader(true);
 
         clearTimeout(holdTimer);
 
@@ -201,15 +205,24 @@ export async function openPaymentModal() {
           console.log("📥 Confirm Response:", confirmData);
 
           if (!confirmData.success) {
+            togglePayLoader(false); // ❗ stop loader on fail
             alert("❌ Booking confirmation failed");
             return;
           }
 
           console.log("🎉 Booking Confirmed!");
+
+          // 🔥 STOP LOADER AFTER SUCCESS
+          togglePayLoader(false);
+
           alert("✅ Booking Confirmed!");
 
         } catch (err) {
+
           console.error("❌ Confirm Error:", err);
+
+          togglePayLoader(false); // ❗ stop loader on error
+
           alert("Booking confirmation failed");
         }
       },
