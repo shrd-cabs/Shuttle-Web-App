@@ -1,5 +1,5 @@
 // ===============================================================
-// payment.js (ULTIMATE PRO VERSION 🚀🔥)
+// payment.js (UPDATED CONFIG VERSION 🚀🔥)
 // ---------------------------------------------------------------
 // Features:
 // ✅ Seat HOLD before payment
@@ -9,6 +9,7 @@
 // ✅ Loader UI (UX improved)
 // ✅ Safe API handling (no silent failures)
 // ✅ Full debug logs (Chrome console)
+// ✅ Razorpay public key now comes from config.js
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -27,21 +28,27 @@ let holdTimer = null;
 // 🎨 LOADER CONTROL (BUTTON UX)
 // ===============================================================
 function togglePayLoader(show) {
+  console.log("🎛️ togglePayLoader() called with:", show);
 
   const btnText = document.getElementById("payBtnText");
-  const loader  = document.getElementById("payLoader");
-  const btn     = document.getElementById("payBtn");
+  const loader = document.getElementById("payLoader");
+  const btn = document.getElementById("payBtn");
 
-  if (!btn || !btnText || !loader) return;
+  if (!btn || !btnText || !loader) {
+    console.warn("⚠️ Payment loader elements not found");
+    return;
+  }
 
   if (show) {
     btnText.innerText = "Processing...";
     loader.style.display = "inline-block";
     btn.disabled = true;
+    console.log("✅ Payment loader shown");
   } else {
     btnText.innerText = "Proceed to Payment";
     loader.style.display = "none";
     btn.disabled = false;
+    console.log("✅ Payment loader hidden");
   }
 }
 
@@ -51,9 +58,9 @@ function togglePayLoader(show) {
 // Prevents blank responses breaking your app
 // ===============================================================
 async function safeFetch(url) {
+  console.log("🌐 safeFetch() URL:", url);
 
   try {
-
     const res = await fetch(url);
     const text = await res.text();
 
@@ -77,12 +84,10 @@ async function safeFetch(url) {
 // 💳 MAIN PAYMENT FUNCTION
 // ===============================================================
 export async function openPaymentModal() {
-
   try {
-
     console.log("💳 Starting payment flow...");
 
-    togglePayLoader(true); // ✅ START LOADER
+    togglePayLoader(true);
 
     // ==========================================================
     // 1️⃣ GET BOOKING DATA
@@ -90,6 +95,7 @@ export async function openPaymentModal() {
     const booking = window.selectedBooking;
 
     if (!booking) {
+      console.warn("⚠️ No booking selected");
       togglePayLoader(false);
       alert("⚠️ Please select a route first");
       return;
@@ -97,7 +103,8 @@ export async function openPaymentModal() {
 
     console.log("📦 Booking Data:", booking);
 
-    const amount = parseInt(booking.totalAmount) * 100;
+    const amount = parseInt(booking.totalAmount, 10) * 100;
+    console.log("💵 Booking amount in paise:", amount);
 
     // ==========================================================
     // 2️⃣ CREATE HOLD BOOKING
@@ -128,13 +135,13 @@ export async function openPaymentModal() {
     console.log("📥 HOLD Response:", holdData);
 
     if (!holdData.success) {
+      console.error("❌ Failed to create booking hold");
       togglePayLoader(false);
       alert("❌ Failed to create booking hold");
       return;
     }
 
     holdBookingId = holdData.booking_id;
-
     console.log("🧾 HOLD Booking Created:", holdBookingId);
 
     // ==========================================================
@@ -154,6 +161,7 @@ export async function openPaymentModal() {
     console.log("📥 Order Response:", order);
 
     if (!order.success) {
+      console.error("❌ Failed to create order");
       togglePayLoader(false);
       alert("❌ Failed to create order");
       return;
@@ -170,8 +178,7 @@ export async function openPaymentModal() {
     // 6️⃣ RAZORPAY OPTIONS
     // ==========================================================
     const options = {
-
-      key: "rzp_test_SToJcqhAImfHOY",
+      key: APP_CONFIG.RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: "INR",
       order_id: order.id,
@@ -185,13 +192,10 @@ export async function openPaymentModal() {
       handler: async function (response) {
         console.log("✅ Payment Success:", response);
 
-        // 🔥 START LOADER AGAIN AFTER RAZORPAY CLOSE
         togglePayLoader(true);
-
         clearTimeout(holdTimer);
 
         try {
-
           console.log("🔄 Confirming booking...");
 
           const confirmData = await safeFetch(
@@ -205,24 +209,19 @@ export async function openPaymentModal() {
           console.log("📥 Confirm Response:", confirmData);
 
           if (!confirmData.success) {
-            togglePayLoader(false); // ❗ stop loader on fail
+            console.error("❌ Booking confirmation failed");
+            togglePayLoader(false);
             alert("❌ Booking confirmation failed");
             return;
           }
 
           console.log("🎉 Booking Confirmed!");
-
-          // 🔥 STOP LOADER AFTER SUCCESS
           togglePayLoader(false);
-
           alert("✅ Booking Confirmed!");
 
         } catch (err) {
-
           console.error("❌ Confirm Error:", err);
-
-          togglePayLoader(false); // ❗ stop loader on error
-
+          togglePayLoader(false);
           alert("Booking confirmation failed");
         }
       },
@@ -232,11 +231,9 @@ export async function openPaymentModal() {
       // ======================================================
       modal: {
         ondismiss: async function () {
-
           console.log("❌ Payment cancelled by user");
 
           clearTimeout(holdTimer);
-
           await cancelHoldBooking();
         }
       },
@@ -249,15 +246,14 @@ export async function openPaymentModal() {
     // ==========================================================
     // 7️⃣ OPEN RAZORPAY
     // ==========================================================
+    console.log("💳 Opening Razorpay with config key:", APP_CONFIG.RAZORPAY_KEY_ID);
+
     const rzp = new Razorpay(options);
     rzp.open();
 
   } catch (error) {
-
     console.error("❌ Payment error:", error);
-
     togglePayLoader(false);
-
     alert("Payment failed");
   }
 }
@@ -267,15 +263,11 @@ export async function openPaymentModal() {
 // ⏳ HOLD TIMER
 // ===============================================================
 function startHoldTimer() {
-
   console.log(`⏳ HOLD TIMER STARTED (${HOLD_TIME / 1000}s)`);
 
   holdTimer = setTimeout(async () => {
-
     console.log("⌛ HOLD TIME EXPIRED");
-
     await cancelHoldBooking();
-
   }, HOLD_TIME);
 }
 
@@ -284,13 +276,14 @@ function startHoldTimer() {
 // ❌ CANCEL HOLD BOOKING
 // ===============================================================
 async function cancelHoldBooking() {
-
-  if (!holdBookingId) return;
+  if (!holdBookingId) {
+    console.warn("⚠️ No holdBookingId present, skipping cancel");
+    return;
+  }
 
   console.log("🚫 Cancelling HOLD booking:", holdBookingId);
 
   try {
-
     const data = await safeFetch(
       `${APP_CONFIG.API_URL}?action=cancelBooking` +
       `&booking_id=${holdBookingId}`

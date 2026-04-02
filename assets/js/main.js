@@ -1,5 +1,5 @@
 // ===============================================================
-// main.js (FINAL FIXED VERSION)
+// main.js
 // ---------------------------------------------------------------
 // ENTRY POINT of SHRD Shuttle Web App
 //
@@ -14,9 +14,9 @@
 //
 // FIXES INCLUDED
 // ---------------------------------------------------------------
-// ✅ SAFE DOM handling (no crashes)
-// ✅ Wallet sync only when element exists
-// ✅ Works on refresh + first login
+// ✅ wallet.js imported properly
+// ✅ Wallet sync delegated to wallet.js only
+// ✅ No duplicate wallet logic in main.js
 // ===============================================================
 
 
@@ -31,6 +31,8 @@ import { loadStops } from "./stops.js";
 import { initSearchRoutes } from "./searchRoutes.js";
 import { loadMyTrips } from "./myTrips.js";
 import { openPaymentModal } from "./payment.js";
+import { syncWalletFromStorage } from "./wallet.js";
+import "./wallet.js";
 
 console.log("📦 Modules loaded");
 
@@ -38,10 +40,6 @@ console.log("📦 Modules loaded");
 // ===============================================================
 // CONFIG: COMPONENT LIST
 // ===============================================================
-/**
- * List of components to be loaded dynamically
- * Order matters because layout depends on it.
- */
 const COMPONENTS = [
   ["headerComponent", "./components/header.html"],
   ["loginComponent", "./components/login.html"],
@@ -53,55 +51,13 @@ const COMPONENTS = [
 
 
 // ===============================================================
-// UTIL: SAFE WALLET SYNC (FIXED)
+// UTIL: SAFE WALLET SYNC
 // ---------------------------------------------------------------
-// This function safely updates wallet UI
-// - No crash if element not found
-// - Works after refresh + autoLogin
+// Delegates wallet rendering to wallet.js
 // ===============================================================
 function syncWalletUI() {
-
-  console.log("🔄 Syncing wallet from main.js...");
-
-  const userData = localStorage.getItem("currentUser");
-
-  if (!userData) {
-    console.log("ℹ️ No user found in storage");
-    return;
-  }
-
-  try {
-
-    const user = JSON.parse(userData);
-
-    if (user.wallet_balance === undefined) {
-      console.warn("⚠️ Wallet balance missing in user");
-      return;
-    }
-
-    // ✅ FIX: Properly get element
-    const walletAmountEl = document.getElementById("walletAmount");
-    const walletBox = document.getElementById("walletBox");
-
-    if (!walletAmountEl) {
-      console.warn("⚠️ walletAmount element not found");
-      return;
-    }
-
-    // ✅ Update UI
-    walletAmountEl.textContent = user.wallet_balance;
-
-    // Show wallet if hidden
-    if (walletBox) {
-      walletBox.style.display = "flex";
-    }
-
-    console.log("💰 Wallet synced successfully:", user.wallet_balance);
-
-  } catch (error) {
-    console.error("❌ Wallet sync failed:", error);
-  }
-
+  console.log("🔄 syncWalletUI() called from main.js");
+  syncWalletFromStorage();
 }
 
 
@@ -109,7 +65,6 @@ function syncWalletUI() {
 // UTIL: HIDE LOADER
 // ===============================================================
 function hideLoader() {
-
   const loader = document.getElementById("appLoader");
 
   if (loader) {
@@ -118,7 +73,6 @@ function hideLoader() {
   } else {
     console.warn("⚠️ Loader not found");
   }
-
 }
 
 
@@ -126,7 +80,6 @@ function hideLoader() {
 // GLOBAL FUNCTIONS (USED IN HTML)
 // ===============================================================
 function attachGlobalFunctions() {
-
   console.log("🔗 Attaching global functions");
 
   Object.assign(window, {
@@ -137,7 +90,6 @@ function attachGlobalFunctions() {
     openPaymentModal,
 
     switchTab: (tabName, event) => {
-
       console.log(`🟣 Tab switch → ${tabName}`);
 
       switchTabUI(tabName, event);
@@ -148,19 +100,14 @@ function attachGlobalFunctions() {
       }
     }
   });
-
 }
 
 
 // ===============================================================
 // COMPONENT EVENT LISTENER
-// ---------------------------------------------------------------
-// Runs when ANY component is loaded
 // ===============================================================
 function registerComponentListeners() {
-
   document.addEventListener("componentLoaded", async ({ detail }) => {
-
     const { id } = detail;
 
     console.log(`📦 Component loaded: ${id}`);
@@ -169,19 +116,15 @@ function registerComponentListeners() {
     // HEADER LOADED → SYNC WALLET
     // ===========================================================
     if (id === "headerComponent") {
-
       console.log("🏦 Header ready → syncing wallet");
       syncWalletUI();
-
     }
 
     // ===========================================================
     // MAIN CONTENT → INIT ROUTES
     // ===========================================================
     if (id === "mainContentComponent") {
-
       try {
-
         console.log("🛣️ Initializing routes...");
 
         const stopsLoaded = await loadStops();
@@ -197,11 +140,8 @@ function registerComponentListeners() {
       } catch (err) {
         console.error("❌ Route init failed", err);
       }
-
     }
-
   });
-
 }
 
 
@@ -209,23 +149,23 @@ function registerComponentListeners() {
 // FORM HANDLERS
 // ===============================================================
 function setupFormHandlers() {
-
   const bindForm = (id, handler) => {
-
     const form = document.getElementById(id);
 
-    if (!form) return;
+    if (!form) {
+      console.warn(`⚠️ Form not found: #${id}`);
+      return;
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      console.log(`📨 Form submitted: #${id}`);
       await handler();
     });
-
   };
 
   bindForm("loginForm", login);
   bindForm("signupForm", signup);
-
 }
 
 
@@ -233,15 +173,14 @@ function setupFormHandlers() {
 // LOAD ALL COMPONENTS
 // ===============================================================
 async function loadAllComponents() {
-
   console.log("📌 Loading components...");
 
   for (const [id, path] of COMPONENTS) {
+    console.log(`📦 Loading component: ${id}`);
     await loadComponent(id, path);
   }
 
   console.log("🎉 Components loaded");
-
 }
 
 
@@ -249,11 +188,9 @@ async function loadAllComponents() {
 // APP INITIALIZATION
 // ===============================================================
 async function initApp() {
-
   console.log("🚀 Initializing App...");
 
   try {
-
     // 1️⃣ Load UI components
     await loadAllComponents();
 
@@ -263,24 +200,20 @@ async function initApp() {
     // 3️⃣ Auto login
     autoLogin();
 
-    // 4️⃣ Extra safety wallet sync (after everything)
+    // 4️⃣ Extra safety wallet sync
     setTimeout(() => {
-      console.log("🔁 Final wallet sync (fallback)");
+      console.log("🔁 Final wallet sync fallback");
       syncWalletUI();
     }, 300);
 
     console.log("✅ App ready");
 
   } catch (error) {
-
     console.error("❌ App initialization failed:", error);
 
   } finally {
-
     hideLoader();
-
   }
-
 }
 
 
@@ -288,7 +221,6 @@ async function initApp() {
 // START APP
 // ===============================================================
 document.addEventListener("DOMContentLoaded", () => {
-
   console.log("📄 DOM Ready");
 
   attachGlobalFunctions();
@@ -296,5 +228,4 @@ document.addEventListener("DOMContentLoaded", () => {
   registerComponentListeners();
 
   initApp();
-
 });
