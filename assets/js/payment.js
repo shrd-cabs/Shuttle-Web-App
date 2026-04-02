@@ -1,31 +1,39 @@
 // ===============================================================
-// payment.js (UPDATED CONFIG VERSION 🚀🔥)
+// payment.js (WALLET SELECTION + SUMMARY POPUP VERSION 🚀🔥)
 // ---------------------------------------------------------------
-// Features:
+// FEATURES:
 // ✅ Seat HOLD before payment
-// ✅ Configurable timer
-// ✅ Auto cancel on timeout
-// ✅ Update booking after success
-// ✅ Loader UI (UX improved)
-// ✅ Safe API handling (no silent failures)
-// ✅ Full debug logs (Chrome console)
-// ✅ Razorpay public key now comes from config.js
+// ✅ Wallet balance check
+// ✅ Payment summary popup
+// ✅ Wallet usage only if checkbox selected
+// ✅ Full wallet / partial wallet / full online all supported
+// ✅ Safe API handling
+// ✅ Full debug logs
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
 import { currentUser } from "./state.js";
 
-// ===============================================================
-// ⏳ CONFIGURABLE HOLD TIMER
-// ===============================================================
-const HOLD_TIME = 5 * 60 * 1000; // 🔥 CHANGE HERE and in google sheet as well
+const HOLD_TIME = 5 * 60 * 1000;
 
 let holdBookingId = null;
 let holdTimer = null;
 
+// ===============================================================
+// PAYMENT SUMMARY STATE
+// ===============================================================
+let paymentSummaryState = {
+  booking: null,
+  totalAmount: 0,
+  walletBalance: 0,
+  useWallet: false,
+  walletUsed: 0,
+  onlineAmount: 0
+};
+
 
 // ===============================================================
-// 🎨 LOADER CONTROL (BUTTON UX)
+// BUTTON LOADER
 // ===============================================================
 function togglePayLoader(show) {
   console.log("🎛️ togglePayLoader() called with:", show);
@@ -43,19 +51,16 @@ function togglePayLoader(show) {
     btnText.innerText = "Processing...";
     loader.style.display = "inline-block";
     btn.disabled = true;
-    console.log("✅ Payment loader shown");
   } else {
     btnText.innerText = "Proceed to Payment";
     loader.style.display = "none";
     btn.disabled = false;
-    console.log("✅ Payment loader hidden");
   }
 }
 
 
 // ===============================================================
-// 🔐 SAFE FETCH (VERY IMPORTANT 🔥)
-// Prevents blank responses breaking your app
+// SAFE FETCH
 // ===============================================================
 async function safeFetch(url) {
   console.log("🌐 safeFetch() URL:", url);
@@ -81,7 +86,190 @@ async function safeFetch(url) {
 
 
 // ===============================================================
-// 💳 MAIN PAYMENT FUNCTION
+// FETCH WALLET BALANCE
+// ===============================================================
+async function fetchWalletBalance(email) {
+  console.log("💰 fetchWalletBalance() called for:", email);
+
+  const result = await safeFetch(
+    `${APP_CONFIG.API_URL}?action=getWalletBalance&email=${encodeURIComponent(email)}`
+  );
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to fetch wallet balance");
+  }
+
+  return Number(result.wallet_balance || 0);
+}
+
+
+// ===============================================================
+// FORMAT AMOUNT
+// ===============================================================
+function formatAmount(amount) {
+  return `₹${Number(amount || 0)}`;
+}
+
+// ===============================================================
+// INJECT PAYMENT SUMMARY MODAL HTML
+// ---------------------------------------------------------------
+// Creates summary modal dynamically from JS
+// ===============================================================
+function injectPaymentSummaryModal() {
+  console.log("🧩 injectPaymentSummaryModal() called");
+
+  if (document.getElementById("paymentSummaryOverlay")) {
+    console.log("ℹ️ Payment summary modal already exists");
+    return;
+  }
+
+  const modalHtml = `
+    <div class="payment-summary-overlay" id="paymentSummaryOverlay" style="display:none;">
+      <div class="payment-summary-modal">
+        <div class="payment-summary-header">
+          <h2>Payment Summary</h2>
+          <button type="button" class="payment-summary-close" onclick="closePaymentSummaryModal()">×</button>
+        </div>
+
+        <div class="payment-summary-body">
+          <div class="payment-summary-row">
+            <span>Total Fare</span>
+            <strong id="summaryTotalFare">₹0</strong>
+          </div>
+
+          <div class="payment-summary-row">
+            <span>Wallet Balance</span>
+            <strong id="summaryWalletBalance">₹0</strong>
+          </div>
+
+          <label class="payment-wallet-checkbox">
+            <input type="checkbox" id="useWalletCheckbox" onchange="handleWalletCheckboxChange()">
+            <span>Use wallet balance for this booking</span>
+          </label>
+
+          <div class="payment-summary-row">
+            <span>Wallet Used</span>
+            <strong id="summaryWalletUsed">₹0</strong>
+          </div>
+
+          <div class="payment-summary-row">
+            <span>Pay Online</span>
+            <strong id="summaryOnlineAmount">₹0</strong>
+          </div>
+        </div>
+
+        <div class="payment-summary-footer">
+          <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
+            Cancel
+          </button>
+
+          <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
+            Proceed
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+  console.log("✅ Payment summary modal injected into DOM");
+}
+
+// ===============================================================
+// OPEN PAYMENT SUMMARY MODAL
+// ===============================================================
+function openPaymentSummaryModal() {
+  console.log("🧾 openPaymentSummaryModal() called");
+
+  const overlay = document.getElementById("paymentSummaryOverlay");
+  if (!overlay) {
+    console.error("❌ paymentSummaryOverlay not found");
+    return;
+  }
+
+  overlay.style.display = "flex";
+  updatePaymentSummaryUI();
+}
+
+
+// ===============================================================
+// CLOSE PAYMENT SUMMARY MODAL
+// ===============================================================
+function closePaymentSummaryModal() {
+  console.log("❌ closePaymentSummaryModal() called");
+
+  const overlay = document.getElementById("paymentSummaryOverlay");
+  if (overlay) {
+    overlay.style.display = "none";
+  }
+}
+
+
+// ===============================================================
+// UPDATE PAYMENT SUMMARY UI
+// ===============================================================
+function updatePaymentSummaryUI() {
+  console.log("🔄 updatePaymentSummaryUI() called");
+  console.log("📦 paymentSummaryState:", paymentSummaryState);
+
+  const totalFareEl = document.getElementById("summaryTotalFare");
+  const walletBalanceEl = document.getElementById("summaryWalletBalance");
+  const walletUsedEl = document.getElementById("summaryWalletUsed");
+  const onlineAmountEl = document.getElementById("summaryOnlineAmount");
+  const checkbox = document.getElementById("useWalletCheckbox");
+  const confirmBtn = document.getElementById("paymentSummaryConfirmBtn");
+
+  if (totalFareEl) totalFareEl.textContent = formatAmount(paymentSummaryState.totalAmount);
+  if (walletBalanceEl) walletBalanceEl.textContent = formatAmount(paymentSummaryState.walletBalance);
+
+  if (checkbox) {
+    checkbox.checked = paymentSummaryState.useWallet;
+  }
+
+  if (paymentSummaryState.useWallet) {
+    paymentSummaryState.walletUsed = Math.min(
+      paymentSummaryState.walletBalance,
+      paymentSummaryState.totalAmount
+    );
+  } else {
+    paymentSummaryState.walletUsed = 0;
+  }
+
+  paymentSummaryState.onlineAmount =
+    paymentSummaryState.totalAmount - paymentSummaryState.walletUsed;
+
+  if (walletUsedEl) walletUsedEl.textContent = formatAmount(paymentSummaryState.walletUsed);
+  if (onlineAmountEl) onlineAmountEl.textContent = formatAmount(paymentSummaryState.onlineAmount);
+
+  if (confirmBtn) {
+    if (paymentSummaryState.onlineAmount === 0 && paymentSummaryState.walletUsed > 0) {
+      confirmBtn.textContent = `Pay ${formatAmount(paymentSummaryState.totalAmount)} via Wallet`;
+    } else if (paymentSummaryState.onlineAmount > 0 && paymentSummaryState.walletUsed > 0) {
+      confirmBtn.textContent = `Pay ${formatAmount(paymentSummaryState.onlineAmount)} Online`;
+    } else {
+      confirmBtn.textContent = `Pay ${formatAmount(paymentSummaryState.totalAmount)} via Razorpay`;
+    }
+  }
+}
+
+
+// ===============================================================
+// CHECKBOX CHANGE HANDLER
+// ===============================================================
+function handleWalletCheckboxChange() {
+  console.log("☑️ handleWalletCheckboxChange() called");
+
+  const checkbox = document.getElementById("useWalletCheckbox");
+  paymentSummaryState.useWallet = checkbox ? checkbox.checked : false;
+
+  console.log("✅ Wallet checkbox state:", paymentSummaryState.useWallet);
+
+  updatePaymentSummaryUI();
+}
+
+
+// ===============================================================
+// MAIN PAYMENT FUNCTION
 // ===============================================================
 export async function openPaymentModal() {
   try {
@@ -89,13 +277,9 @@ export async function openPaymentModal() {
 
     togglePayLoader(true);
 
-    // ==========================================================
-    // 1️⃣ GET BOOKING DATA
-    // ==========================================================
     const booking = window.selectedBooking;
 
     if (!booking) {
-      console.warn("⚠️ No booking selected");
       togglePayLoader(false);
       alert("⚠️ Please select a route first");
       return;
@@ -103,11 +287,8 @@ export async function openPaymentModal() {
 
     console.log("📦 Booking Data:", booking);
 
-    const amount = parseInt(booking.totalAmount, 10) * 100;
-    console.log("💵 Booking amount in paise:", amount);
-
     // ==========================================================
-    // 2️⃣ CREATE HOLD BOOKING
+    // CREATE HOLD BOOKING
     // ==========================================================
     console.log("⏳ Creating HOLD booking...");
 
@@ -135,7 +316,6 @@ export async function openPaymentModal() {
     console.log("📥 HOLD Response:", holdData);
 
     if (!holdData.success) {
-      console.error("❌ Failed to create booking hold");
       togglePayLoader(false);
       alert("❌ Failed to create booking hold");
       return;
@@ -144,39 +324,178 @@ export async function openPaymentModal() {
     holdBookingId = holdData.booking_id;
     console.log("🧾 HOLD Booking Created:", holdBookingId);
 
-    // ==========================================================
-    // 3️⃣ START HOLD TIMER
-    // ==========================================================
     startHoldTimer();
 
     // ==========================================================
-    // 4️⃣ CREATE RAZORPAY ORDER
+    // FETCH WALLET BALANCE
     // ==========================================================
-    console.log("🌐 Creating Razorpay order...");
+    const walletBalance = await fetchWalletBalance(currentUser.email);
+    console.log("💰 Wallet balance fetched:", walletBalance);
+
+    paymentSummaryState = {
+      booking,
+      totalAmount: Number(booking.totalAmount || 0),
+      walletBalance,
+      useWallet: false,
+      walletUsed: 0,
+      onlineAmount: Number(booking.totalAmount || 0)
+    };
+
+    togglePayLoader(false);
+    openPaymentSummaryModal();
+
+  } catch (error) {
+    console.error("❌ Payment flow start failed:", error);
+    togglePayLoader(false);
+    alert("Unable to start payment");
+  }
+}
+
+
+// ===============================================================
+// CONFIRM PAYMENT SUMMARY
+// ===============================================================
+async function confirmPaymentSummary() {
+  console.log("✅ confirmPaymentSummary() called");
+  console.log("📦 Current summary state:", paymentSummaryState);
+
+  try {
+    closePaymentSummaryModal();
+    togglePayLoader(true);
+
+    const booking = paymentSummaryState.booking;
+    const totalAmount = paymentSummaryState.totalAmount;
+    const walletUsed = paymentSummaryState.walletUsed;
+    const onlineAmount = paymentSummaryState.onlineAmount;
+
+    // ==========================================================
+    // CASE 1: FULL WALLET PAYMENT
+    // ==========================================================
+    if (walletUsed > 0 && onlineAmount === 0) {
+      console.log("💰 Full wallet payment selected");
+
+      const walletPayResult = await safeFetch(
+        `${APP_CONFIG.API_URL}?action=processWalletBookingPayment` +
+        `&booking_id=${encodeURIComponent(holdBookingId)}` +
+        `&email=${encodeURIComponent(currentUser.email)}` +
+        `&amount=${encodeURIComponent(totalAmount)}`
+      );
+
+      console.log("📥 processWalletBookingPayment response:", walletPayResult);
+
+      clearTimeout(holdTimer);
+      togglePayLoader(false);
+
+      if (!walletPayResult.success) {
+        alert(walletPayResult.error || "Wallet payment failed");
+        return;
+      }
+
+      alert("✅ Booking Confirmed using Wallet!");
+      return;
+    }
+
+    // ==========================================================
+    // CASE 2: PARTIAL WALLET + RAZORPAY
+    // ==========================================================
+    if (walletUsed > 0 && onlineAmount > 0) {
+      console.log("🟡 Partial wallet + Razorpay selected");
+
+      const order = await safeFetch(
+        `${APP_CONFIG.API_URL}?action=createOrder&amount=${encodeURIComponent(onlineAmount * 100)}`
+      );
+
+      console.log("📥 Mixed payment order response:", order);
+
+      if (!order.success) {
+        togglePayLoader(false);
+        alert("❌ Failed to create online payment order");
+        return;
+      }
+
+      togglePayLoader(false);
+
+      const options = {
+        key: APP_CONFIG.RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        order_id: order.id,
+        name: "SHRD Shuttle",
+        description: booking.routeName + " (Wallet + Online)",
+
+        handler: async function (response) {
+          console.log("✅ Mixed payment success:", response);
+
+          togglePayLoader(true);
+          clearTimeout(holdTimer);
+
+          try {
+            const verifyData = await safeFetch(
+              `${APP_CONFIG.API_URL}?action=verifyMixedBookingPayment` +
+              `&booking_id=${encodeURIComponent(holdBookingId)}` +
+              `&email=${encodeURIComponent(currentUser.email)}` +
+              `&wallet_amount=${encodeURIComponent(walletUsed)}` +
+              `&online_amount=${encodeURIComponent(onlineAmount)}` +
+              `&razorpay_order_id=${encodeURIComponent(response.razorpay_order_id)}` +
+              `&razorpay_payment_id=${encodeURIComponent(response.razorpay_payment_id)}` +
+              `&razorpay_signature=${encodeURIComponent(response.razorpay_signature)}`
+            );
+
+            console.log("📥 verifyMixedBookingPayment response:", verifyData);
+
+            togglePayLoader(false);
+
+            if (!verifyData.success) {
+              alert(verifyData.error || "Mixed payment verification failed");
+              return;
+            }
+
+            alert("✅ Booking Confirmed! Wallet + Online payment used");
+
+          } catch (err) {
+            console.error("❌ Mixed payment verify error:", err);
+            togglePayLoader(false);
+            alert("Mixed payment verification failed");
+          }
+        },
+
+        modal: {
+          ondismiss: async function () {
+            console.log("❌ Mixed payment cancelled by user");
+            clearTimeout(holdTimer);
+            await cancelHoldBooking();
+          }
+        },
+
+        theme: {
+          color: "#6f42c1"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+      return;
+    }
+
+    // ==========================================================
+    // CASE 3: FULL RAZORPAY ONLY
+    // ==========================================================
+    console.log("🔴 Wallet not selected, full Razorpay payment");
 
     const order = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=createOrder&amount=${amount}`
+      `${APP_CONFIG.API_URL}?action=createOrder&amount=${encodeURIComponent(totalAmount * 100)}`
     );
 
-    console.log("📥 Order Response:", order);
+    console.log("📥 Full payment order response:", order);
 
     if (!order.success) {
-      console.error("❌ Failed to create order");
       togglePayLoader(false);
       alert("❌ Failed to create order");
       return;
     }
 
-    console.log("🧾 Order Created:", order);
-
-    // ==========================================================
-    // 5️⃣ STOP LOADER BEFORE OPENING RAZORPAY
-    // ==========================================================
     togglePayLoader(false);
 
-    // ==========================================================
-    // 6️⃣ RAZORPAY OPTIONS
-    // ==========================================================
     const options = {
       key: APP_CONFIG.RAZORPAY_KEY_ID,
       amount: order.amount,
@@ -186,53 +505,42 @@ export async function openPaymentModal() {
       name: "SHRD Shuttle",
       description: booking.routeName,
 
-      // ======================================================
-      // ✅ PAYMENT SUCCESS
-      // ======================================================
       handler: async function (response) {
-        console.log("✅ Payment Success:", response);
+        console.log("✅ Full payment success:", response);
 
         togglePayLoader(true);
         clearTimeout(holdTimer);
 
         try {
-          console.log("🔄 Confirming booking...");
-
           const confirmData = await safeFetch(
             `${APP_CONFIG.API_URL}?action=confirmBooking` +
-            `&booking_id=${holdBookingId}` +
-            `&razorpay_order_id=${response.razorpay_order_id}` +
-            `&razorpay_payment_id=${response.razorpay_payment_id}` +
-            `&razorpay_signature=${response.razorpay_signature}`
+            `&booking_id=${encodeURIComponent(holdBookingId)}` +
+            `&razorpay_order_id=${encodeURIComponent(response.razorpay_order_id)}` +
+            `&razorpay_payment_id=${encodeURIComponent(response.razorpay_payment_id)}` +
+            `&razorpay_signature=${encodeURIComponent(response.razorpay_signature)}`
           );
 
-          console.log("📥 Confirm Response:", confirmData);
+          console.log("📥 confirmBooking response:", confirmData);
+
+          togglePayLoader(false);
 
           if (!confirmData.success) {
-            console.error("❌ Booking confirmation failed");
-            togglePayLoader(false);
             alert("❌ Booking confirmation failed");
             return;
           }
 
-          console.log("🎉 Booking Confirmed!");
-          togglePayLoader(false);
           alert("✅ Booking Confirmed!");
 
         } catch (err) {
-          console.error("❌ Confirm Error:", err);
+          console.error("❌ Full payment confirm error:", err);
           togglePayLoader(false);
           alert("Booking confirmation failed");
         }
       },
 
-      // ======================================================
-      // ❌ USER CANCELLED
-      // ======================================================
       modal: {
         ondismiss: async function () {
-          console.log("❌ Payment cancelled by user");
-
+          console.log("❌ Full payment cancelled by user");
           clearTimeout(holdTimer);
           await cancelHoldBooking();
         }
@@ -243,24 +551,19 @@ export async function openPaymentModal() {
       }
     };
 
-    // ==========================================================
-    // 7️⃣ OPEN RAZORPAY
-    // ==========================================================
-    console.log("💳 Opening Razorpay with config key:", APP_CONFIG.RAZORPAY_KEY_ID);
-
     const rzp = new Razorpay(options);
     rzp.open();
 
   } catch (error) {
-    console.error("❌ Payment error:", error);
+    console.error("❌ confirmPaymentSummary() failed:", error);
     togglePayLoader(false);
-    alert("Payment failed");
+    alert("Unable to continue payment");
   }
 }
 
 
 // ===============================================================
-// ⏳ HOLD TIMER
+// HOLD TIMER
 // ===============================================================
 function startHoldTimer() {
   console.log(`⏳ HOLD TIMER STARTED (${HOLD_TIME / 1000}s)`);
@@ -273,7 +576,7 @@ function startHoldTimer() {
 
 
 // ===============================================================
-// ❌ CANCEL HOLD BOOKING
+// CANCEL HOLD BOOKING
 // ===============================================================
 async function cancelHoldBooking() {
   if (!holdBookingId) {
@@ -285,8 +588,7 @@ async function cancelHoldBooking() {
 
   try {
     const data = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=cancelBooking` +
-      `&booking_id=${holdBookingId}`
+      `${APP_CONFIG.API_URL}?action=cancelBooking&booking_id=${encodeURIComponent(holdBookingId)}`
     );
 
     console.log("📥 Cancel Response:", data);
@@ -297,3 +599,19 @@ async function cancelHoldBooking() {
 
   console.log("❌ HOLD booking cancelled");
 }
+
+
+// ===============================================================
+// GLOBAL BINDINGS
+// ===============================================================
+window.closePaymentSummaryModal = closePaymentSummaryModal;
+window.handleWalletCheckboxChange = handleWalletCheckboxChange;
+window.confirmPaymentSummary = confirmPaymentSummary;
+
+// ===============================================================
+// INIT PAYMENT MODAL HTML
+// ===============================================================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("📄 payment.js DOMContentLoaded");
+  injectPaymentSummaryModal();
+});

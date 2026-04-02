@@ -1699,3 +1699,102 @@
     height: 90px;
   }
 }
+
+/* ===========================================================
+   PAYMENT SUMMARY MODAL
+=========================================================== */
+.payment-summary-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.payment-summary-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.payment-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
+  color: #fff;
+}
+
+.payment-summary-header h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.payment-summary-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.payment-summary-body {
+  padding: 20px;
+}
+
+.payment-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+}
+
+.payment-wallet-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-wallet-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.payment-summary-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+}
+
+.payment-summary-cancel-btn,
+.payment-summary-confirm-btn {
+  flex: 1;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.payment-summary-cancel-btn {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.payment-summary-confirm-btn {
+  background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
+  color: white;
+}
