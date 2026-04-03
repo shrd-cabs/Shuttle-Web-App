@@ -1,706 +1,809 @@
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(107, 70, 193, 0.3);
-            overflow: hidden;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-            }
-
-            body {
-                padding: 10px;
-            }
-
-            .header {
-                padding: 20px 15px !important;
-            }
-
-            .header h1 {
-                font-size: 1.8em !important;
-            }
-
-            .nav-tabs {
-                flex-wrap: wrap;
-            }
-
-            .nav-tabs button {
-                padding: 12px !important;
-                font-size: 0.9em;
-            }
-
-            .login-form, .booking-form {
-                max-width: 100% !important;
-                padding: 0 !important;
-            }
-
-            .bus-layout {
-                max-width: 100% !important;
-                grid-template-columns: repeat(4, 1fr) !important;
-                gap: 8px !important;
-            }
-
-            .seat {
-                width: 40px !important;
-                height: 40px !important;
-                font-size: 0.7em !important;
-            }
-
-            .seat.aisle {
-                width: 15px !important;
-            }
-
-            .my-trips {
-                max-width: 100% !important;
-            }
-
-            .trip-card {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-            }
-
-            .trip-actions {
-                width: 100%;
-                margin-top: 15px;
-            }
-
-            .trip-actions button {
-                width: 100%;
-            }
-
-            .button-group {
-                flex-direction: column !important;
-            }
-
-            .button-group button {
-                width: 100% !important;
-                margin-right: 0 !important;
-            }
-
-            .btn-secondary {
-                margin-right: 0 !important;
-            }
-
-            div[style*="display: flex; align-items: center"] {
-                flex-direction: column !important;
-            }
-
-            .logo-img {
-                margin-right: 0 !important;
-                margin-bottom: 10px !important;
-            }
-
-            .logout-btn {
-                position: static !important;
-                width: 100%;
-                margin-top: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.4em !important;
-            }
-
-            .header p {
-                font-size: 0.8em !important;
-            }
-
-            .nav-tabs button {
-                padding: 10px !important;
-                font-size: 0.8em;
-            }
-
-            .bus-layout {
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 6px !important;
-                padding: 15px !important;
-            }
-
-            .seat {
-                width: 35px !important;
-                height: 35px !important;
-            }
-
-            .booking-details {
-                padding: 15px !important;
-            }
-
-            .detail-row {
-                font-size: 0.9em;
-            }
-
-            .form-group input, .form-group select {
-                padding: 10px !important;
-                font-size: 0.95em;
-            }
-        }
-
-        .header {
-            background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-bottom: 5px solid #9F7AEA;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-
-        .nav-tabs {
-            display: flex;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
-            gap: 0;
-        }
-
-        .nav-tabs button {
-            flex: 1;
-            padding: 15px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .nav-tabs button.active {
-            background: white;
-            color: #6B46C1;
-            border-bottom-color: #6B46C1;
-            font-weight: bold;
-        }
-
-        .nav-tabs button:hover {
-            background: white;
-        }
-
-        .login-section, .content-section {
-            display: none;
-            padding: 30px;
-        }
-
-        .login-section.active, .content-section.active {
-            display: block;
-        }
-
-        .login-form, .booking-form, .trip-form {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #6B46C1;
-            box-shadow: 0 0 5px rgba(107, 70, 193, 0.3);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
-            color: white;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(107, 70, 193, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .bus-layout {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-        }
-
-        .seat {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 0.8em;
-        }
-
-        .seat.available {
-            background: #2ecc71;
-            color: white;
-            border-color: #27ae60;
-        }
-
-        .seat.available:hover {
-            transform: scale(1.1);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .seat.booked {
-            background: #95a5a6;
-            color: white;
-            border-color: #7f8c8d;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        .seat.selected {
-            background: #6B46C1;
-            color: white;
-            border-color: #553C9A;
-            box-shadow: 0 0 10px rgba(107, 70, 193, 0.5);
-        }
-
-        .seat.aisle {
-            background: transparent;
-            border: none;
-            cursor: default;
-            width: 20px;
-            height: 50px;
-        }
-
-        .booking-details {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .booking-details h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-row strong {
-            color: #6B46C1;
-        }
-
-        .alert {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            display: none;
-        }
-
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        .alert.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            display: block;
-        }
-
-        .my-trips {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .trip-card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .trip-info h4 {
-            margin-bottom: 8px;
-            color: #333;
-        }
-
-        .trip-info p {
-            margin: 4px 0;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .trip-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .trip-actions button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
-        }
-
-        .trip-actions .btn-cancel {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .trip-actions .btn-cancel:hover {
-            background: #c0392b;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background: #f5f5f5;
-            color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid #ddd;
-        }
-
-        .logout-btn {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-        }
-
-        .logo-img {
-            height: 70px;
-            margin-right: 20px;
-        }
-
-        .logout-btn:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .button-group button {
-            flex: 1;
-        }
-
-        .error-text {
-            color: #e74c3c;
-            font-size: 0.85em;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .payment-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            overflow: auto;
-        }
-
-        .payment-modal.show {
-            display: block;
-        }
-
-        .payment-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .payment-content h2 {
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-
-        .payment-info {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #6B46C1;
-        }
-
-        .payment-info p {
-            margin: 8px 0;
-            color: #666;
-        }
-
-        .price-display {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #6B46C1;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .payment-methods {
-            margin: 20px 0;
-        }
-
-        .payment-method {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .payment-method:hover {
-            border-color: #6B46C1;
-            background: #f9f9f9;
-        }
-
-        .payment-method input {
-            margin-right: 10px;
-        }
-
-        .payment-method label {
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .modal-buttons .btn-pay {
-            background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
-            color: white;
-        }
-
-        .modal-buttons .btn-pay:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(107, 70, 193, 0.4);
-        }
-
-        .modal-buttons .btn-cancel {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .modal-buttons .btn-cancel:hover {
-            background: #e0e0e0;
-        }
-
-        .confirmation-modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            overflow: auto;
-        }
-
-        .confirmation-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .confirmation-content {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-        }
-
-        .confirmation-icon {
-            font-size: 3em;
-            color: #2ecc71;
-            margin-bottom: 20px;
-        }
-
-        .confirmation-content h2 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .confirmation-content p {
-            color: #666;
-            margin-bottom: 10px;
-            line-height: 1.6;
-        }
-
-        .confirmation-details {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: left;
-        }
-
-        .confirmation-details p {
-            margin: 8px 0;
-        }
-
-        .close-confirmation {
-            background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-
-        .close-confirmation:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(107, 70, 193, 0.4);
-        }
-
-        @media (max-width: 768px) {
-            .payment-content {
-                margin: 30% auto;
-                width: 95%;
-            }
-
-            .confirmation-content {
-                margin: 20px;
-                padding: 25px;
-            }
-        }
-
+/* ===========================================================
+   BASE / RESET
+   =========================================================== */
+:root {
+  --color-primary: #6B46C1;
+  --color-primary-dark: #553C9A;
+  --color-primary-light: #9F7AEA;
+
+  --color-text: #333333;
+  --color-text-muted: #666666;
+  --color-text-soft: #777777;
+
+  --color-white: #ffffff;
+  --color-bg-soft: #f5f5f5;
+  --color-bg-softer: #f9f9f9;
+  --color-bg-muted: #f0f0f0;
+
+  --color-border: #dddddd;
+  --color-border-soft: #e0e0e0;
+
+  --color-danger: #e74c3c;
+  --color-danger-dark: #c0392b;
+  --color-success-bg: #d4edda;
+  --color-success-text: #155724;
+  --color-success-border: #c3e6cb;
+  --color-error-bg: #f8d7da;
+  --color-error-text: #721c24;
+  --color-error-border: #f5c6cb;
+  --color-warning-bg: #fff3cd;
+  --color-warning-text: #856404;
+  --color-warning-border: #ffeeba;
+
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  --shadow-primary: 0 5px 15px rgba(107, 70, 193, 0.4);
+  --shadow-container: 0 10px 40px rgba(107, 70, 193, 0.3);
+  --shadow-modal: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-pill: 25px;
+
+  --space-xs: 5px;
+  --space-sm: 8px;
+  --space-md: 10px;
+  --space-lg: 12px;
+  --space-xl: 15px;
+  --space-2xl: 20px;
+  --space-3xl: 30px;
+
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* ===========================================================
+   PAGE LAYOUT
+   =========================================================== */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--gradient-primary);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-container);
+  overflow: hidden;
+}
+
+
+/* ===========================================================
+   HEADER - FINAL VERSION (GRID + CENTERED)
+   =========================================================== */
+.header {
+  display: grid;
+  grid-template-columns: 160px 1fr 160px;
+
+  align-items: center;      /* vertical center */
+  justify-items: center;    /* horizontal center */
+
+  column-gap: 24px;
+
+  padding: 28px 32px;
+  box-sizing: border-box;
+
+  background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
+  color: #ffffff;
+  border-bottom: 5px solid #9F7AEA;
+}
+
+/* Ensure each column fills height */
+.header > * {
+  height: 100%;
+}
+
+
+/* ===========================================================
+   LOGO
+   =========================================================== */
+.logo-img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+
+  justify-self: center;
+  align-self: center;
+}
+
+
+/* ===========================================================
+   TITLE BLOCK (CENTER COLUMN)
+   =========================================================== */
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 2.2em;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.header-subtitle {
+  margin: 6px 0 0;
+  font-size: 1em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+
+/* ===========================================================
+   RIGHT SIDE (ACTIONS)
+   =========================================================== */
+.header-right {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+/* ===========================================================
+   COMMON BUTTON STYLE (WALLET + LOGOUT)
+   =========================================================== */
+.wallet-box,
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  max-width: 180px;
+  height: 44px;
+  padding: 0 18px;
+
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+
+  border: 2px solid rgba(255, 255, 255, 0.30);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+
+/* ===========================================================
+   WALLET BUTTON
+   =========================================================== */
+.wallet-box {
+  user-select: none;
+}
+
+.wallet-box:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+}
+
+.wallet-box:active {
+  transform: translateY(0);
+}
+
+.wallet-icon {
+  font-size: 16px;
+}
+
+#walletAmount {
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+
+/* ===========================================================
+   LOGOUT BUTTON
+   =========================================================== */
+.logout-btn {
+  position: static;
+}
+
+.logout-btn:hover {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  transform: translateY(-2px);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+
+/* ===========================================================
+   MOBILE RESPONSIVE
+   =========================================================== */
+@media (max-width: 768px) {
+  .header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 16px;
+
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .logo-img {
+    width: 75px;
+    height: 75px;
+  }
+
+  .header-title {
+    font-size: 1.8em;
+  }
+
+  .header-subtitle {
+    font-size: 0.9em;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .wallet-box,
+  .logout-btn {
+    max-width: 240px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 1.5em;
+  }
+
+  .header-subtitle {
+    font-size: 0.85em;
+  }
+
+  .wallet-box,
+  .logout-btn {
+    height: 42px;
+    font-size: 14px;
+  }
+}
+
+/* ===========================================================
+   NAVIGATION TABS
+   =========================================================== */
+.nav-tabs {
+  display: flex;
+  background: var(--color-bg-soft);
+  border-bottom: 1px solid var(--color-border);
+  gap: 0;
+}
+
+.nav-tabs button {
+  flex: 1;
+  padding: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  color: var(--color-text-muted);
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-base);
+}
+
+.nav-tabs button.active {
+  background: var(--color-white);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 700;
+}
+
+.nav-tabs button:hover {
+  background: var(--color-white);
+}
+
+
+/* ===========================================================
+   SECTIONS
+   =========================================================== */
+.login-section,
+.content-section {
+  display: none;
+  padding: 30px;
+}
+
+.login-section.active,
+.content-section.active {
+  display: block;
+}
+
+
+/* ===========================================================
+   FORMS
+   =========================================================== */
+.login-form,
+.booking-form,
+.trip-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1em;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 5px rgba(107, 70, 193, 0.3);
+}
+
+.error-text {
+  color: var(--color-danger);
+  font-size: 0.85em;
+  margin-top: var(--space-xs);
+  display: none;
+}
+
+
+/* ===========================================================
+   BUTTONS
+   =========================================================== */
+.btn,
+.modal-buttons button,
+.close-confirmation {
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition-base);
+}
+
+.btn {
+  width: 100%;
+  padding: var(--space-lg);
+  font-size: 1em;
+}
+
+.btn-primary,
+.modal-buttons .btn-pay,
+.close-confirmation {
+  background: var(--gradient-primary);
+  color: var(--color-white);
+}
+
+.btn-primary {
+  margin-bottom: var(--space-md);
+}
+
+.btn-primary:hover,
+.modal-buttons .btn-pay:hover,
+.close-confirmation:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-secondary,
+.modal-buttons .btn-cancel {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.btn-secondary {
+  margin-bottom: var(--space-md);
+}
+
+.btn-secondary:hover,
+.modal-buttons .btn-cancel:hover {
+  background: var(--color-border-soft);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-white);
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-dark);
+}
+
+.button-group {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: 20px;
+}
+
+.button-group button {
+  flex: 1;
+}
+
+
+/* ===========================================================
+   BUS LAYOUT / BOOKING DETAILS
+   =========================================================== */
+.bus-layout {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 20px;
+  background: var(--color-bg-softer);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+}
+
+.booking-details,
+.confirmation-details {
+  background: var(--color-bg-soft);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  margin: 20px 0;
+}
+
+.booking-details h3 {
+  margin-bottom: 15px;
+  color: var(--color-text);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row strong {
+  color: var(--color-primary);
+}
+
+
+/* ===========================================================
+   ALERTS
+   =========================================================== */
+.alert {
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: var(--radius-sm);
+  display: none;
+}
+
+.alert.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+  display: block;
+}
+
+.alert.error {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
+  display: block;
+}
+
+.alert.warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+  display: block;
+}
+
+
+/* ===========================================================
+   FOOTER
+   =========================================================== */
+.footer {
+  text-align: center;
+  padding: 20px;
+  background: var(--color-bg-soft);
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  border-top: 1px solid var(--color-border);
+}
+
+
+/* ===========================================================
+   PAYMENT / CONFIRMATION MODALS
+   =========================================================== */
+.payment-modal,
+.confirmation-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow: auto;
+}
+
+.payment-modal {
+  z-index: 1000;
+}
+
+.confirmation-modal {
+  z-index: 1001;
+}
+
+.payment-modal.show {
+  display: block;
+}
+
+.confirmation-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-content,
+.confirmation-content {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+}
+
+.payment-content {
+  margin: 10% auto;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.confirmation-content {
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+}
+
+.payment-content h2,
+.confirmation-content h2 {
+  color: var(--color-text);
+}
+
+.payment-content h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.confirmation-content h2 {
+  margin-bottom: 15px;
+}
+
+.confirmation-content p {
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.confirmation-icon {
+  font-size: 3em;
+  color: #2ecc71;
+  margin-bottom: 20px;
+}
+
+.confirmation-details {
+  text-align: left;
+}
+
+.confirmation-details p {
+  margin: var(--space-sm) 0;
+}
+
+
+/* ===========================================================
+   PAYMENT SECTION
+   =========================================================== */
+.payment-info {
+  background: var(--color-bg-soft);
+  padding: 15px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--color-primary);
+}
+
+.payment-info p {
+  margin: var(--space-sm) 0;
+  color: var(--color-text-muted);
+}
+
+.price-display {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  margin: 15px 0;
+}
+
+.payment-methods {
+  margin: 20px 0;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.payment-method:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-softer);
+}
+
+.payment-method input {
+  margin-right: var(--space-md);
+}
+
+.payment-method label {
+  cursor: pointer;
+  flex: 1;
+}
+
+
+/* ===========================================================
+   MODAL BUTTON ROW
+   =========================================================== */
+.modal-buttons {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px;
+}
+
+
+/* ===========================================================
+   RESPONSIVE
+   =========================================================== */
+@media (max-width: 768px) {
+  body {
+    padding: var(--space-md);
+  }
+
+  .container {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 20px 15px;
+  }
+
+  .header h1 {
+    font-size: 1.8em;
+  }
+
+  .nav-tabs {
+    flex-wrap: wrap;
+  }
+
+  .nav-tabs button {
+    padding: 12px;
+    font-size: 0.9em;
+  }
+
+  .login-form,
+  .booking-form {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .button-group,
+  .modal-buttons {
+    flex-direction: column;
+  }
+
+  .button-group button,
+  .modal-buttons button {
+    width: 100%;
+  }
+
+  .logo-img {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .logout-btn {
+    position: static;
+    width: 100%;
+    margin-top: 15px;
+  }
+
+  .payment-content {
+    margin: 30% auto;
+    width: 95%;
+  }
+
+  .confirmation-content {
+    margin: 20px;
+    padding: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.4em;
+  }
+
+  .header p {
+    font-size: 0.8em;
+  }
+
+  .nav-tabs button {
+    padding: 10px;
+    font-size: 0.8em;
+  }
+
+  .booking-details {
+    padding: 15px;
+  }
+
+  .detail-row {
+    font-size: 0.9em;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 10px;
+    font-size: 0.95em;
+  }
+}
 /* ===============================
    FULL PAGE LOADER
 ================================ */
@@ -1402,160 +1505,6 @@
     padding: 11px;
   }
 }
-/* ===========================================================
-   HEADER MAIN LAYOUT
-   -----------------------------------------------------------
-   Uses flex layout so right-side buttons do NOT overlap title.
-   =========================================================== */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-
-  padding: 28px 32px;
-  box-sizing: border-box;
-  position: relative;
-}
-
-
-/* ===========================================================
-   HEADER LEFT SIDE
-   -----------------------------------------------------------
-   Logo + title block
-   =========================================================== */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex: 1;
-  min-width: 0;
-}
-
-.logo-img {
-  width: 110px;
-  height: 110px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.header-title-block {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.header-title {
-  margin: 0;
-  font-size: 2.2em;
-  line-height: 1.1;
-  font-weight: 800;
-  color: #fff;
-  word-break: break-word;
-}
-
-.header-subtitle {
-  margin: 6px 0 0;
-  font-size: 1em;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-
-/* ===========================================================
-   HEADER RIGHT SECTION (Wallet + Logout)
-   -----------------------------------------------------------
-   FIXED: Removed absolute positioning to avoid overlap.
-   =========================================================== */
-.header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-
-  width: 170px;
-  flex-shrink: 0;
-}
-
-
-/* ===========================================================
-   SHARED BUTTON STYLE (Wallet + Logout)
-   =========================================================== */
-.wallet-box,
-.logout-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  width: 100%;
-  height: 44px;
-  padding: 0 18px;
-
-  border-radius: 25px;
-  font-size: 15px;
-  font-weight: 600;
-
-  border: 2px solid rgba(255, 255, 255, 0.30);
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
-}
-
-
-/* ===========================================================
-   WALLET BUTTON
-   =========================================================== */
-.wallet-box {
-  user-select: none;
-}
-
-.wallet-box:hover {
-  background: rgba(255, 255, 255, 0.28);
-  transform: translateY(-2px);
-}
-
-.wallet-box:active {
-  transform: translateY(0);
-}
-
-
-/* ===========================================================
-   LOGOUT BUTTON
-   =========================================================== */
-.logout-btn {
-  position: static;
-}
-
-.logout-btn:hover {
-  background: #e74c3c;
-  border-color: #e74c3c;
-  transform: translateY(-2px);
-}
-
-.logout-btn:active {
-  transform: translateY(0);
-}
-
-
-/* ===========================================================
-   WALLET TEXT
-   =========================================================== */
-.wallet-icon {
-  font-size: 16px;
-}
-
-#walletAmount {
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
 
 /* ===========================================================
    WALLET MODAL OVERLAY
@@ -1867,43 +1816,6 @@
    MOBILE RESPONSIVE
    =========================================================== */
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 20px 16px;
-    gap: 18px;
-  }
-
-  .header-left {
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .header-title-block {
-    align-items: center;
-  }
-
-  .header-title {
-    font-size: 1.8em;
-  }
-
-  .header-subtitle {
-    font-size: 0.95em;
-  }
-
-  .header-right {
-    width: 100%;
-    align-items: center;
-    margin-top: 0;
-  }
-
-  .wallet-box,
-  .logout-btn {
-    width: 90%;
-    max-width: 280px;
-  }
 
   .wallet-modal-overlay {
     padding: 14px;
@@ -1951,11 +1863,6 @@
 
   .wallet-transaction-right {
     min-width: 90px;
-  }
-
-  .logo-img {
-    width: 90px;
-    height: 90px;
   }
 }
 
