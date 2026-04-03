@@ -789,8 +789,19 @@
 }
 
 /* ===========================================================
-   MY TRIPS - CLEAN + PREMIUM + RESPONSIVE
+   MY TRIPS - FULLY UPDATED + OPTIMIZED + RESPONSIVE
+   -----------------------------------------------------------
+   PURPOSE
+   -----------------------------------------------------------
+   1. Top trip tabs
+   2. Trip cards with clean compact layout
+   3. Status shown first with colored badge
+   4. Mobile-friendly details grid
+   5. Premium trip modal
+   6. Policy and cancellation preview sections
+   7. Better spacing, wrapping, and responsiveness
    =========================================================== */
+
 
 /* ===========================================================
    TABS
@@ -806,78 +817,22 @@
 .trip-tab {
   padding: 10px 16px;
   border: none;
-  background: #eee;
+  background: #eeeeee;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
+  color: #333333;
   transition: all 0.2s ease;
 }
 
 .trip-tab.active {
   background: #6B46C1;
-  color: white;
+  color: #ffffff;
 }
 
 .trip-tab:hover {
-  background: #ddd;
-}
-
-
-/* ===========================================================
-   TRIP CARD
-   =========================================================== */
-.trip-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 14px;
-  border: 1px solid #e5e5e5;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-
-  transition: all 0.25s ease;
-  cursor: pointer;
-}
-
-.trip-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-}
-
-
-/* ===========================================================
-   ROUTE (LEFT)
-   =========================================================== */
-.trip-route {
-  font-weight: 600;
-  font-size: 16px;
-  max-width: 55%;
-}
-
-
-/* ===========================================================
-   DETAILS (RIGHT)
-   =========================================================== */
-.trip-details {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 6px 20px;
-
-  font-size: 14px;
-  color: #555;
-
-  text-align: right;
-  min-width: 220px;
-}
-
-.trip-details div {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  background: #dddddd;
 }
 
 
@@ -886,59 +841,198 @@
    =========================================================== */
 .info-message {
   text-align: center;
-  color: #777;
-  padding: 15px;
+  color: #777777;
+  padding: 16px;
+  font-size: 14px;
 }
 
 .info-message.error {
-  color: red;
+  color: #dc2626;
 }
 
 
 /* ===========================================================
-   STATUS COLORS
+   TRIP CARD
+   -----------------------------------------------------------
+   Compact premium card with route on top and details below
+   =========================================================== */
+.trip-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.trip-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+}
+
+
+/* ===========================================================
+   ROUTE
+   =========================================================== */
+.trip-route {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.35;
+  color: #111827;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+
+
+/* ===========================================================
+   CARD DETAILS GRID
+   -----------------------------------------------------------
+   Layout:
+   - Status full width first row
+   - Date + Timings
+   - Seats + Total
+   =========================================================== */
+.trip-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.trip-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.trip-detail-item strong {
+  color: #444444;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.trip-detail-item span {
+  min-width: 0;
+  text-align: right;
+  word-break: break-word;
+}
+
+.trip-detail-full {
+  grid-column: 1 / -1;
+}
+
+
+/* ===========================================================
+   STATUS ROW IN CARD
+   -----------------------------------------------------------
+   Appears first and stays highlighted
+   =========================================================== */
+.trip-status-row {
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+}
+
+
+/* ===========================================================
+   STATUS BADGES
+   -----------------------------------------------------------
+   IMPORTANT:
+   JS should pass uppercase classes like:
+   CONFIRMED / HOLD / CANCELLED / REFUNDED / NO_REFUND
    =========================================================== */
 .trip-status {
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
 }
 
-.trip-status.CONFIRMED { color: green; }
-.trip-status.HOLD { color: orange; }
-.trip-status.CANCELLED { color: red; }
+.trip-status.CONFIRMED {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.trip-status.HOLD {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.trip-status.CANCELLED {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.trip-status.REFUNDED {
+  color: #1e3a8a;
+  background: #dbeafe;
+}
+
+.trip-status.NO_REFUND {
+  color: #7c2d12;
+  background: #ffedd5;
+}
+
+.trip-status.SUCCESS {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.trip-status.PAID {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
 
 
 /* ===========================================================
-   🔥 MOBILE RESPONSIVE
+   MOBILE - CARD SECTION
    =========================================================== */
 @media (max-width: 768px) {
-
   .trip-card {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 15px;
   }
 
   .trip-route {
-    max-width: 100%;
-    width: 100%;
-    margin-bottom: 8px;
-    font-size: 15px;
+    font-size: 16px;
+    margin-bottom: 12px;
   }
 
   .trip-details {
-    width: 100%;
-    text-align: left;
     grid-template-columns: 1fr 1fr;
-    gap: 8px 12px;
-    margin-top: 6px;
+    gap: 10px 14px;
   }
 
-  .trip-details div {
-    width: 100%;
+  .trip-detail-item {
+    font-size: 13px;
+  }
+
+  .trip-detail-item strong {
+    font-size: 13px;
+  }
+
+  .trip-detail-item span {
+    font-size: 13px;
+  }
+
+  .trip-status-row {
+    padding: 10px 12px;
   }
 }
 
 @media (max-width: 480px) {
-
   .trip-tab {
     flex: 1;
     text-align: center;
@@ -946,29 +1040,44 @@
     font-size: 13px;
   }
 
-  .trip-card { padding: 14px; }
-  .trip-route { font-size: 14px; }
-  .trip-details { font-size: 13px; }
+  .trip-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .trip-route {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .trip-details {
+    gap: 9px 12px;
+  }
+
+  .trip-detail-item {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .trip-status {
+    font-size: 11px;
+    padding: 4px 9px;
+  }
 }
 
 
 /* ===========================================================
-   🔥 PREMIUM MODAL
+   TRIP MODAL OVERLAY
    =========================================================== */
-
-/* Overlay */
 .trip-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
+  inset: 0;
   display: none;
   align-items: center;
   justify-content: center;
+  padding: 16px;
 
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(6px);
 
   z-index: 999;
@@ -981,18 +1090,20 @@
 }
 
 
-/* Modal Box */
+/* ===========================================================
+   MODAL BOX
+   =========================================================== */
 .trip-modal-content {
-  background: #fff;
-  padding: 25px;
-  border-radius: 16px;
-
-  width: 90%;
-  max-width: 700px;
+  background: #ffffff;
+  width: 100%;
+  max-width: 720px;
   max-height: 85vh;
   overflow-y: auto;
 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.20);
+
   animation: slideUp 0.3s ease;
 }
 
@@ -1009,29 +1120,29 @@
 
 
 /* ===========================================================
-   MODAL HEADER (CENTER + CLOSE)
+   MODAL HEADER
    =========================================================== */
 .trip-modal-header {
   position: relative;
   text-align: center;
-  margin-bottom: 15px;
-  padding-top: 5px;
+  margin-bottom: 18px;
+  padding-top: 4px;
 }
 
 .trip-title {
   margin: 0;
   font-size: 22px;
   font-weight: 700;
+  color: #111827;
 }
 
-/* ✅ FIXED CLOSE BUTTON (slightly above) */
 .trip-close {
   position: absolute;
+  top: -6px;
   right: 0;
-  top: -8px; /* 🔥 THIS FIXES ALIGNMENT */
 
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
 
   display: flex;
   align-items: center;
@@ -1042,58 +1153,149 @@
 
   font-size: 18px;
   font-weight: bold;
+  color: #555555;
 
-  color: #555;
   transition: all 0.2s ease;
 }
 
 .trip-close:hover {
   background: #f5f5f5;
-  color: red;
+  color: #dc2626;
 }
 
 
 /* ===========================================================
-   POPUP GRID
-   =========================================================== */
-/* ===========================================================
-   GRID FIX (2 PER ROW DESKTOP)
+   MODAL DETAILS GRID
+   -----------------------------------------------------------
+   Desktop: 2 columns
+   Mobile: 1 column
    =========================================================== */
 .trip-popup-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* ✅ FORCE 2 columns */
-  gap: 12px 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
   margin-top: 10px;
 }
 
-/* each item */
-.trip-popup-grid div {
+.trip-popup-grid > div {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 11px 12px;
+
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 10px;
+
+  min-width: 0;
   font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .trip-popup-grid strong {
-  color: #000;
+  color: #111827;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Special modal row for timings */
+.trip-timings-cell {
+  min-width: 0;
 }
 
 
 /* ===========================================================
-   POPUP BUTTONS
+   POLICY VIEW
+   =========================================================== */
+.trip-policy-wrapper {
+  margin-top: 8px;
+}
+
+.trip-policy-highlight {
+  background: #f5f0ff;
+  border-left: 4px solid #6B46C1;
+  color: #2d1b69;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.trip-policy-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trip-policy-card {
+  background: #f9fafb;
+  border: 1px solid #eceff3;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.trip-policy-card-danger {
+  background: #fff5f5;
+  border: 1px solid #ffd6d6;
+}
+
+.trip-policy-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.trip-policy-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+
+/* ===========================================================
+   CANCELLATION PREVIEW NOTE
+   =========================================================== */
+.trip-preview-note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/* ===========================================================
+   MODAL ACTION BUTTONS
+   -----------------------------------------------------------
+   All buttons same width and same height
    =========================================================== */
 .trip-popup-actions {
   margin-top: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .trip-popup-actions .btn {
-  padding: 12px;
-  border-radius: 10px;
+  width: 100%;
+  min-height: 54px;
+  height: 54px;
+  padding: 0 14px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
   transition: all 0.2s ease;
 }
 
@@ -1101,48 +1303,105 @@
   transform: translateY(-1px);
 }
 
+.trip-popup-actions .btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* ===========================================================
-   🔥 MOBILE FIX (ONE LINE PER DETAIL)
+   MOBILE - MODAL SECTION
    =========================================================== */
 @media (max-width: 768px) {
+  .trip-modal {
+    padding: 12px;
+    padding-top: 28px;
+    align-items: flex-start;
+  }
+
+  .trip-modal-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .trip-title {
+    font-size: 20px;
+    padding: 0 28px;
+  }
+
+  .trip-close {
+    top: -4px;
+    right: -2px;
+  }
 
   .trip-popup-grid {
-    grid-template-columns: 1fr; /* 1 per row */
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
-  .trip-popup-grid div {
-    display: flex;
-    justify-content: space-between; /* label left, value right */
-    align-items: center;
-
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: #f9f9f9;
-
+  .trip-popup-grid > div {
+    padding: 11px 12px;
     font-size: 14px;
   }
 
   .trip-popup-grid strong {
-    color: #555;
-    font-weight: 500;
-  }
-
-  /* value styling */
-  .trip-popup-grid div span,
-  .trip-popup-grid div {
-    color: #222;
+    color: #555555;
     font-weight: 600;
   }
 
-  /* header spacing */
-  .trip-close {
-    top: -6px;
-    right: -4px;
+  .trip-timings-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .trip-popup-actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .trip-popup-actions .btn {
+    min-height: 50px;
+    height: 50px;
+    font-size: 14px;
+  }
+
+  .trip-policy-card,
+  .trip-policy-highlight,
+  .trip-preview-note {
+    padding: 12px 14px;
   }
 }
 
+@media (max-width: 480px) {
+  .trip-modal-content {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .trip-title {
+    font-size: 18px;
+  }
+
+  .trip-popup-grid > div,
+  .trip-policy-text,
+  .trip-preview-note,
+  .trip-policy-highlight {
+    font-size: 13px;
+  }
+
+  .trip-policy-heading {
+    font-size: 14px;
+  }
+
+  .trip-popup-actions .btn {
+    font-size: 13px;
+    padding: 11px;
+  }
+}
 /* ===========================================================
    HEADER MAIN LAYOUT
    -----------------------------------------------------------
