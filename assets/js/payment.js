@@ -383,6 +383,50 @@ function closePaymentSummaryModal() {
   }
 }
 
+// ---------------------------------------------------------------
+// FORMAT DISPLAY DATE TIME
+// ---------------------------------------------------------------
+// Converts values like:
+//   2026-04-03T18:30:00.000Z
+// into:
+//   2026-04-03 Time - 18:30
+//
+// Notes:
+// - Keeps "-" unchanged
+// - Supports ISO strings directly
+// - Supports general Date-parsable strings as fallback
+// ---------------------------------------------------------------
+function formatDisplayDateTime(value) {
+  if (!value || value === "-") {
+    return "-";
+  }
+
+  const str = String(value).trim();
+  console.log("🕒 formatDisplayDateTime() input:", str);
+
+  const isoMatch = str.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  if (isoMatch) {
+    const formatted = `${isoMatch[1]} Time - ${isoMatch[2]}`;
+    console.log("✅ ISO formatted date-time:", formatted);
+    return formatted;
+  }
+
+  const parsedDate = new Date(str);
+  if (!isNaN(parsedDate.getTime())) {
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(parsedDate.getDate()).padStart(2, "0");
+    const hours = String(parsedDate.getHours()).padStart(2, "0");
+    const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+
+    const formatted = `${year}-${month}-${day} Time - ${hours}:${minutes}`;
+    console.log("✅ Parsed formatted date-time:", formatted);
+    return formatted;
+  }
+
+  console.warn("⚠️ Could not parse date-time, returning raw value:", str);
+  return str;
+}
 
 // ===============================================================
 // UPDATE PAYMENT SUMMARY UI
@@ -446,7 +490,9 @@ function updatePaymentSummaryUI() {
 
     if (passNameEl) passNameEl.textContent = p.pass_name || "Pass Applied";
     if (passDiscountEl) passDiscountEl.textContent = `- ${formatAmount(paymentSummaryState.passDiscountAmount)}`;
-    if (passExpiryEl) passExpiryEl.textContent = p.expiry_date || "-";
+    if (passExpiryEl) {
+      passExpiryEl.textContent = formatDisplayDateTime(p.expiry_date || "-");
+    }    
     if (passRemainingEl) passRemainingEl.textContent = p.remaining_trips ?? "-";
     if (fareAfterPassEl) fareAfterPassEl.textContent = formatAmount(paymentSummaryState.totalAmount);
 
@@ -708,6 +754,8 @@ async function confirmPaymentSummary() {
     // ==========================================================
     if (walletUsed > 0 && onlineAmount === 0) {
       console.log("💰 Full wallet payment selected");
+
+      const passQueryString = buildPassQueryString();
 
       const walletPayResult = await safeFetch(
         `${APP_CONFIG.API_URL}?action=processWalletBookingPayment` +

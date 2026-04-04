@@ -45,9 +45,7 @@ const COMPONENTS = [
   ["headerComponent", "./components/header.html"],
   ["loginComponent", "./components/login.html"],
   ["mainContentComponent", "./components/mainContent.html"],
-  ["footerComponent", "./components/footer.html"],
-  ["paymentModalComponent", "./components/paymentModal.html"],
-  ["confirmationModalComponent", "./components/confirmationModal.html"]
+  ["footerComponent", "./components/footer.html"]
 ];
 
 

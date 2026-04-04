@@ -461,7 +461,7 @@ function renderCancelPreviewView(content, trip, previewData) {
       Refund, if applicable, will be credited to your wallet after cancellation.
     </div>
 
-    <div class="trip-popup-actions">
+    <div class="trip-popup-actions trip-popup-actions--cancel-preview">
       <button class="btn btn-secondary" onclick="goBackToTripDetails()">Back</button>
       <button class="btn btn-danger" onclick="confirmCancellation()">Confirm Cancel</button>
       <button class="btn btn-primary" onclick="closeTripDetails()">Close</button>

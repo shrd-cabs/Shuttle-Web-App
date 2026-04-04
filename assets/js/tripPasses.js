@@ -551,8 +551,7 @@ async function openPassDetails(userPassId) {
   }
 
   content.innerHTML = `<p class="info-message">Loading pass details...</p>`;
-  modal.style.display = "block";
-
+  modal.style.display = "flex";
   try {
     const data = await fetchPassDetails(userPassId, currentUser.email);
     console.log("📥 Pass details response:", data);
