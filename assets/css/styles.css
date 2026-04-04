@@ -383,6 +383,17 @@ body {
   box-shadow: 0 0 5px rgba(107, 70, 193, 0.3);
 }
 
+/* iOS Safari fix for date input overflow */
+.form-group input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: block;
+  box-sizing: border-box;
+}
+
 .error-text {
   color: var(--color-danger);
   font-size: 0.85em;
