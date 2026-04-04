@@ -1964,3 +1964,715 @@ body {
   background: linear-gradient(135deg, #6B46C1 0%, #553C9A 100%);
   color: white;
 }
+
+/* ===========================================================
+   CONTENT SECTION VISIBILITY
+   -----------------------------------------------------------
+   Ensures only active dashboard section is visible
+   =========================================================== */
+.content-section {
+  display: none;
+}
+
+.content-section.active {
+  display: block;
+}
+
+
+/* ===========================================================
+   TRAVEL PASS
+   =========================================================== */
+.travel-pass-wrap {
+  padding: 20px;
+}
+
+.travel-pass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.travel-pass-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  color: #4b2aad;
+}
+
+.travel-pass-subtitle {
+  margin: 6px 0 0;
+  color: #666;
+  font-size: 15px;
+}
+
+.active-pass-card,
+.no-pass-card {
+  background: linear-gradient(135deg, #6f42c1, #8b63d2);
+  color: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  margin-bottom: 22px;
+}
+
+.no-pass-card h3,
+.active-pass-card h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.no-pass-card p {
+  margin: 0;
+  opacity: 0.95;
+}
+
+.active-pass-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.active-pass-label {
+  margin: 0 0 6px;
+  font-size: 13px;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.active-pass-badge {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.active-pass-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.active-pass-item {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.active-pass-item span {
+  display: block;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.active-pass-item strong {
+  font-size: 16px;
+}
+
+.pass-section-header h3 {
+  margin: 0 0 14px;
+  color: #333;
+  font-size: 22px;
+}
+
+.pass-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.pass-card {
+  background: #fff;
+  border: 1px solid #e8e3f7;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 6px 20px rgba(92, 53, 177, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+.pass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(92, 53, 177, 0.14);
+}
+
+.pass-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.pass-card-name {
+  margin: 0;
+  font-size: 22px;
+  color: #4b2aad;
+  font-weight: 800;
+}
+
+.pass-card-code {
+  font-size: 12px;
+  color: #7d6ea8;
+  background: #f3effc;
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pass-card-desc {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 16px;
+  min-height: 38px;
+  line-height: 1.4;
+}
+
+.pass-price {
+  font-size: 30px;
+  font-weight: 800;
+  color: #222;
+  margin-bottom: 14px;
+}
+
+.pass-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.pass-feature {
+  background: #faf8ff;
+  border: 1px solid #eee7ff;
+  border-radius: 12px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.pass-feature span {
+  display: block;
+  font-size: 12px;
+  color: #7a7a7a;
+  margin-bottom: 4px;
+}
+
+.pass-feature strong {
+  font-size: 15px;
+  color: #333;
+  word-break: break-word;
+}
+
+.pass-card .btn {
+  width: 100%;
+}
+
+.pass-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #777;
+  padding: 30px 0;
+}
+
+#tripPassAlert {
+  display: none;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+
+/* ===========================================================
+   TABLET
+   =========================================================== */
+@media (max-width: 900px) {
+  .pass-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .active-pass-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ===========================================================
+   MOBILE
+   =========================================================== */
+@media (max-width: 600px) {
+  .travel-pass-wrap {
+    padding: 14px;
+  }
+
+  .travel-pass-title {
+    font-size: 24px;
+  }
+
+  .travel-pass-subtitle {
+    font-size: 14px;
+  }
+
+  .active-pass-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pass-features {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pass-card {
+    padding: 16px;
+  }
+
+  .pass-price {
+    font-size: 26px;
+  }
+
+  .pass-card-name {
+    font-size: 20px;
+  }
+}
+
+/* ===========================================================
+   TRAVEL PASS - EXTRA UI
+   Uses same trip-tabs / container style as My Trips
+   =========================================================== */
+
+.pass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.pass-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.pass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.pass-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pass-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5b3cc4;
+  margin: 0;
+}
+
+.pass-code {
+  font-size: 12px;
+  background: #f2edff;
+  color: #5b3cc4;
+  padding: 5px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pass-desc {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.pass-price {
+  font-size: 28px;
+  font-weight: 800;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.pass-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pass-info-box {
+  background: #faf8ff;
+  border: 1px solid #ece6ff;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.pass-info-box span {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.pass-info-box strong {
+  display: block;
+  font-size: 14px;
+  color: #333;
+}
+
+.pass-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pass-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pass-status.active {
+  background: #e8f7ec;
+  color: #1b7f3b;
+}
+
+.pass-status.expired {
+  background: #fff1f1;
+  color: #c0392b;
+}
+
+.pass-status.cancelled {
+  background: #f3f4f6;
+  color: #555;
+}
+
+.pass-table-wrap {
+  overflow-x: auto;
+}
+
+.pass-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pass-table th,
+.pass-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+.pass-table th {
+  background: #f7f7fb;
+  color: #444;
+  font-weight: 700;
+}
+
+.pass-empty {
+  text-align: center;
+  color: #999;
+  padding: 30px 0;
+}
+
+.pass-detail-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #5b3cc4;
+  margin-bottom: 14px;
+}
+
+.pass-detail-section {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.pass-detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.pass-detail-section h4 {
+  margin: 0 0 10px;
+  color: #333;
+  font-size: 16px;
+}
+
+.pass-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+.pass-detail-item span {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 3px;
+}
+
+.pass-detail-item strong {
+  display: block;
+  color: #222;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .pass-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pass-info-grid,
+  .pass-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pass-name {
+    font-size: 18px;
+  }
+
+  .pass-price {
+    font-size: 24px;
+  }
+}
+/* ===========================================================
+   TRAVEL PASS UI
+   Matches overall card + tab style of My Trips
+   =========================================================== */
+
+.pass-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.pass-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.pass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.pass-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pass-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5b3cc4;
+  margin: 0;
+}
+
+.pass-code {
+  font-size: 12px;
+  background: #f2edff;
+  color: #5b3cc4;
+  padding: 5px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pass-desc {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.pass-price {
+  font-size: 28px;
+  font-weight: 800;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.pass-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pass-info-box {
+  background: #faf8ff;
+  border: 1px solid #ece6ff;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.pass-info-box span {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.pass-info-box strong {
+  display: block;
+  font-size: 14px;
+  color: #333;
+}
+
+.pass-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pass-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pass-status.active {
+  background: #e8f7ec;
+  color: #1b7f3b;
+}
+
+.pass-status.expired {
+  background: #fff1f1;
+  color: #c0392b;
+}
+
+.pass-status.cancelled {
+  background: #f3f4f6;
+  color: #555;
+}
+
+.pass-table-wrap {
+  overflow-x: auto;
+}
+
+.pass-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pass-table th,
+.pass-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+.pass-table th {
+  background: #f7f7fb;
+  color: #444;
+  font-weight: 700;
+}
+
+.pass-empty {
+  text-align: center;
+  color: #999;
+  padding: 30px 0;
+}
+
+.pass-detail-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #5b3cc4;
+  margin-bottom: 14px;
+}
+
+.pass-detail-section {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.pass-detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.pass-detail-section h4 {
+  margin: 0 0 10px;
+  color: #333;
+  font-size: 16px;
+}
+
+.pass-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+.pass-detail-item span {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 3px;
+}
+
+.pass-detail-item strong {
+  display: block;
+  color: #222;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .pass-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pass-info-grid,
+  .pass-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pass-name {
+    font-size: 18px;
+  }
+
+  .pass-price {
+    font-size: 24px;
+  }
+}

@@ -33,6 +33,7 @@ import { loadMyTrips } from "./myTrips.js";
 import { openPaymentModal } from "./payment.js";
 import { syncWalletFromStorage } from "./wallet.js";
 import "./wallet.js";
+import { initTravelPass } from "./tripPasses.js";
 
 console.log("📦 Modules loaded");
 
@@ -89,19 +90,27 @@ function attachGlobalFunctions() {
     toggleSignup: toggleSignupForm,
     openPaymentModal,
 
-    switchTab: (tabName, event) => {
+    switchTab: async (tabName, event) => {
       console.log(`🟣 Tab switch → ${tabName}`);
 
+      // Existing UI tab switch
       switchTabUI(tabName, event);
 
+      // Existing My Trips behavior - unchanged
       if (tabName === "myTrips") {
         console.log("🧳 Loading trips...");
         loadMyTrips();
       }
+
+      // NEW: Travel Pass init
+      // This is additive and does not affect existing functions
+      if (tabName === "travelPass") {
+        console.log("🎫 Loading travel pass module...");
+        await initTravelPass();
+      }
     }
   });
 }
-
 
 // ===============================================================
 // COMPONENT EVENT LISTENER

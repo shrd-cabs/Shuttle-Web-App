@@ -7,21 +7,8 @@ Includes:
 - Navigation Tabs
 - Booking Section
 - My Trips Section
-- Cancel Booking Section
-- Admin Panel Section
-
-Functions used:
-- switchTab()
-- openPaymentModal()
-- resetBooking()
-- cancelBooking()
-- clearCancelForm()
-- saveGoogleSheetsConfig()
-- testGoogleSheetsConnection()
-- syncAllBookingsToSheets()
-- syncAllUsersToSheets()
-- importRoutesFromSheets()
-- generateAnalytics()
+- Travel Pass Section
+- Live Tracking Section
 =========================================================== -->
 
 <div id="mainContent" style="display: none;">
@@ -36,12 +23,12 @@ Functions used:
       My Trips
     </button>
 
-    <button class="nav-tab" onclick="switchTab('cancel')" data-tab="cancel">
-      Live Tracking (Under Progress)
+    <button class="nav-tab" onclick="switchTab('travelPass')" data-tab="travelPass">
+      Travel Pass
     </button>
 
-    <button class="nav-tab" onclick="switchTab('admin')" data-tab="admin">
-      Travel Pass (Under Progress)
+    <button class="nav-tab" onclick="switchTab('liveTracking')" data-tab="liveTracking">
+      Live Tracking
     </button>
   </div>
 
@@ -77,22 +64,15 @@ Functions used:
         </select>
       </div>
 
-      <!-- CHECK AVAILABILITY BUTTON -->           
       <div class="form-group">
         <button class="btn btn-primary" type="button" id="checkAvailabilityBtn">
           <span id="checkBtnText">Check Availability</span>
           <span id="checkLoader" class="btn-loader" style="display:none;"></span>
         </button>
       </div>
-
     </div>
 
     <div id="routesContainer" style="margin-top:20px;"></div>
-
-    <!-- <div style="text-align: center; margin: 20px 0;">
-      <h3>Select Your Seats (Tap a seat)</h3>
-      <div class="bus-layout" id="busLayout"></div>
-    </div> -->
 
     <div class="booking-details">
       <h3>Booking Summary</h3>
@@ -137,70 +117,93 @@ Functions used:
     </div>
   </div>
 
-  <!-- ===========================================================
-  MY TRIPS SECTION
-  Displays user's booking history
-  =========================================================== -->
-
+  <!-- MY TRIPS SECTION -->
   <div class="content-section" id="myTripsSection">
-
     <h2 style="text-align:center;color:#333;margin-bottom:20px;">
       Your Bookings
     </h2>
 
-<!-- ===========================================================
-    TRIP FILTER TABS
-    =========================================================== -->
     <div class="trip-tabs">
-
-      <button class="trip-tab active"
-              onclick="showTripsTab('current')"
-              id="tabCurrent">
+      <button class="trip-tab active" onclick="showTripsTab('current')" id="tabCurrent">
         Current Trips
       </button>
 
-      <button class="trip-tab"
-              onclick="showTripsTab('upcoming')"
-              id="tabUpcoming">
+      <button class="trip-tab" onclick="showTripsTab('upcoming')" id="tabUpcoming">
         Upcoming Trips
       </button>
 
-      <button class="trip-tab"
-              onclick="showTripsTab('past')"
-              id="tabPast">
+      <button class="trip-tab" onclick="showTripsTab('past')" id="tabPast">
         Past Trips
       </button>
-
     </div>
 
-    <!-- ===========================================================
-    TRIPS LIST CONTAINER
-    =========================================================== -->
     <div class="my-trips" id="myTripsList">
       <p style="text-align:center;color:#999;">
         Loading bookings...
       </p>
     </div>
-
   </div>
 
+  <!-- TRIP DETAILS MODAL -->
+  <div id="tripDetailsModal" class="trip-modal">
+    <div class="trip-modal-content">
+      <div id="tripDetailsContent"></div>
+    </div>
+  </div>
 
   <!-- ===========================================================
-  TRIP DETAILS MODAL
+  TRAVEL PASS SECTION
+  Uniform structure similar to My Trips section
   =========================================================== -->
-  <div id="tripDetailsModal" class="trip-modal">
+  <div class="content-section" id="travelPassSection">
 
-    <div class="trip-modal-content">
+    <h2 style="text-align:center;color:#333;margin-bottom:20px;">
+      Travel Pass
+    </h2>
 
-      <!-- DYNAMIC CONTENT -->
-      <div id="tripDetailsContent"></div>
+    <!-- PASS FILTER TABS -->
+    <div class="trip-tabs">
 
+      <button class="trip-tab active"
+              onclick="showPassTab('available')"
+              id="tabPassAvailable">
+        Available Passes
+      </button>
+
+      <button class="trip-tab"
+              onclick="showPassTab('myPasses')"
+              id="tabPassMyPasses">
+        My Passes
+      </button>
+
+      <button class="trip-tab"
+              onclick="showPassTab('usage')"
+              id="tabPassUsage">
+        Usage History
+      </button>
+
+    </div>
+
+    <!-- PASS CONTENT CONTAINER -->
+    <div class="my-trips" id="travelPassContent">
+      <p style="text-align:center;color:#999;">
+        Loading travel pass data...
+      </p>
     </div>
 
   </div>
 
-  <!-- CANCEL SECTION -->
-  <div class="content-section" id="cancelSection">
+  <!-- ===========================================================
+  PASS DETAILS MODAL
+  =========================================================== -->
+  <div id="passDetailsModal" class="trip-modal">
+    <div class="trip-modal-content">
+      <div id="passDetailsContent"></div>
+    </div>
+  </div>
+
+  <!-- LIVE TRACKING SECTION -->
+  <div class="content-section" id="liveTrackingSection">
     <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
       Live Tracking (Under Progress)
     </h2>
@@ -223,90 +226,6 @@ Functions used:
       <button class="btn btn-secondary" onclick="clearCancelForm()">
         Clear
       </button>
-    </div>
-  </div>
-
-  <!-- ADMIN PANEL SECTION -->
-  <div class="content-section" id="adminSection">
-    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
-      Travel Pass (Under Progress)
-    </h2>
-
-    <div class="booking-form">
-      <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #6B46C1;">
-        <h3 style="color: #6B46C1; margin-bottom: 15px;">📊 Setup Instructions </h3>
-      </div>
-
-      <div class="button-group">
-        <button class="btn btn-primary" onclick="saveGoogleSheetsConfig()">
-          💾 Save Details
-        </button>
-
-        <button class="btn btn-secondary" onclick="testGoogleSheetsConnection()">
-          🔗 Cancel
-        </button>
-      </div>
-
-      <div id="adminAlert" class="alert" style="margin-top: 20px;"></div>
-
-      <div id="connectionStatus" style="display: none; margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
-        <h3 style="color: #333; margin-bottom: 15px;">📊 Integration Status</h3>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
-            <p style="color: #999; font-size: 0.85em; margin-bottom: 5px;">API Status</p>
-            <p id="apiStatus" style="font-weight: bold; color: #6B46C1; font-size: 1.2em;">
-              Not Connected
-            </p>
-          </div>
-
-          <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
-            <p style="color: #999; font-size: 0.85em; margin-bottom: 5px;">Last Sync</p>
-            <p id="lastSync" style="font-weight: bold; color: #6B46C1; font-size: 1.2em;">
-              Never
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
-        <h3 style="color: #333; margin-bottom: 15px;">🔄 Buy Pass</h3>
-        <!--
-        <div class="button-group">
-          <button class="btn btn-secondary" onclick="syncAllBookingsToSheets()">
-            📤 Sync All Bookings
-          </button>
-
-          <button class="btn btn-secondary" onclick="syncAllUsersToSheets()">
-            👥 Sync All Users
-          </button>
-        </div>
-
-        <div class="button-group" style="margin-top: 10px;">
-          <button class="btn btn-secondary" onclick="importRoutesFromSheets()">
-            📥 Import Routes
-          </button>
-
-          <button class="btn btn-secondary" onclick="generateAnalytics()">
-            📊 Generate Analytics
-          </button>
-        </div>
-        -->
-      </div>
-
-      <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
-        <h3 style="color: #2e7d32; margin-bottom: 15px;">✨ What This Pass Does</h3>
-        <!--
-        <ul style="color: #666; line-height: 2;">
-          <li>✅ <strong>Auto-sync bookings</strong> to Google Sheets in real-time</li>
-          <li>✅ <strong>Backup user data</strong> to cloud spreadsheet</li>
-          <li>✅ <strong>Import routes & pricing</strong> from Google Sheets</li>
-          <li>✅ <strong>Generate analytics</strong> (revenue, seat occupancy, popular routes)</li>
-          <li>✅ <strong>Email notifications</strong> with booking confirmations</li>
-          <li>✅ <strong>Dashboard insights</strong> for business decisions</li>
-        </ul>
-        -->
-      </div>
     </div>
   </div>
 
