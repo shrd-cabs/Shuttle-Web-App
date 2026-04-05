@@ -391,34 +391,56 @@ function renderAvailablePasses(container) {
           <div class="pass-card-header">
             <div>
               <h3 class="pass-name">${escapeHtml(pass.pass_name)}</h3>
+              <div class="pass-desc">${escapeHtml(pass.description || "-")}</div>
             </div>
             <div class="pass-code">${escapeHtml(pass.pass_code || "-")}</div>
           </div>
 
-          <div class="pass-desc">${escapeHtml(pass.description || "-")}</div>
-
           <div class="pass-price">₹${Number(pass.pass_price || 0)}</div>
 
+          <!-- Primary Information -->
           <div class="pass-info-grid">
             <div class="pass-info-box">
               <span>Discount</span>
               <strong>${Number(pass.discount_value || 0)}%</strong>
             </div>
+
             <div class="pass-info-box">
               <span>Validity</span>
               <strong>${Number(pass.validity_days || 0)} Days</strong>
             </div>
+
+            <div class="pass-info-box">
+              <span>Total Trips</span>
+              <strong>${pass.max_usage_total ? Number(pass.max_usage_total) : "Unlimited"}</strong>
+            </div>
+
+            <div class="pass-info-box">
+              <span>Trips / Day</span>
+              <strong>${pass.max_usage_per_day ? Number(pass.max_usage_per_day) : "Unlimited"}</strong>
+            </div>
+          </div>
+
+          <!-- Secondary Information -->
+          <div class="pass-info-grid" style="margin-top: 14px;">
             <div class="pass-info-box">
               <span>Min Fare</span>
               <strong>₹${Number(pass.min_fare_amount || 0)}</strong>
             </div>
+
             <div class="pass-info-box">
               <span>Max Discount</span>
               <strong>₹${Number(pass.max_discount_amount || 0)}</strong>
             </div>
           </div>
 
-          <div class="pass-card-actions">
+          <!-- Full Width Route Info -->
+          <div class="pass-info-box" style="margin-top: 14px;">
+            <span>Applicable Routes</span>
+            <strong>${escapeHtml(pass.applicable_routes || "ALL")}</strong>
+          </div>
+
+          <div class="pass-card-actions" style="margin-top: 18px;">
             <button class="btn btn-primary" onclick="buyTripPass('${escapeAttr(pass.pass_type_id)}')">
               Buy Pass
             </button>
@@ -449,8 +471,8 @@ function renderMyPasses(container) {
             <div>
               <h3 class="pass-name">${escapeHtml(pass.pass_name)}</h3>
             </div>
-            <div class="pass-status ${String(pass.status || "").toLowerCase()}">
-              ${escapeHtml(pass.status || "-")}
+            <div class="pass-status ${String(pass.computed_status || pass.status || "").toLowerCase()}">
+              ${escapeHtml(pass.computed_status || pass.status || "-")}
             </div>
           </div>
 
@@ -458,26 +480,49 @@ function renderMyPasses(container) {
             Purchased on ${escapeHtml(formatDisplayDateTime(pass.purchase_date || "-"))} • Valid till ${escapeHtml(formatDisplayDateTime(pass.expiry_date || "-"))}
           </div>
 
+          <!-- Primary Info -->
           <div class="pass-info-grid">
             <div class="pass-info-box">
               <span>Purchase Amount</span>
               <strong>₹${Number(pass.purchase_amount || 0)}</strong>
             </div>
+
             <div class="pass-info-box">
               <span>Discount</span>
               <strong>${Number(pass.discount_value || 0)}%</strong>
             </div>
+          </div>
+
+          <!-- Usage Info -->
+          <div class="pass-info-grid" style="margin-top: 14px;">
             <div class="pass-info-box">
-              <span>Usage Count</span>
+              <span>Total Usage</span>
               <strong>${Number(pass.usage_count || 0)}</strong>
             </div>
+
             <div class="pass-info-box">
-              <span>Payment Type</span>
-              <strong>${escapeHtml(pass.payment_type || "-")}</strong>
+              <span>Remaining Trips</span>
+              <strong>${escapeHtml(String(pass.remaining_trips ?? "-"))}</strong>
+            </div>
+
+            <div class="pass-info-box">
+              <span>Today's Usage</span>
+              <strong>${Number(pass.today_usage_count || 0)}</strong>
+            </div>
+
+            <div class="pass-info-box">
+              <span>Today's Remaining</span>
+              <strong>${escapeHtml(String(pass.remaining_trips_today ?? "-"))}</strong>
             </div>
           </div>
 
-          <div class="pass-card-actions">
+          <!-- Full Width Info -->
+          <div class="pass-info-box" style="margin-top: 14px;">
+            <span>Payment Type</span>
+            <strong>${escapeHtml(pass.payment_type || "-")}</strong>
+          </div>
+
+          <div class="pass-card-actions" style="margin-top: 18px;">
             <button class="btn btn-primary" onclick="openPassDetails('${escapeAttr(pass.user_pass_id)}')">
               View Details
             </button>
@@ -570,7 +615,10 @@ async function openPassDetails(userPassId) {
         <div class="pass-detail-grid">
           <div class="pass-detail-item"><span>User Pass ID</span><strong>${escapeHtml(pass.user_pass_id || "-")}</strong></div>
           <div class="pass-detail-item"><span>Pass Type ID</span><strong>${escapeHtml(pass.pass_type_id || "-")}</strong></div>
-          <div class="pass-detail-item"><span>Status</span><strong>${escapeHtml(pass.status || "-")}</strong></div>
+          <div class="pass-detail-item">
+            <span>Status</span>
+            <strong>${escapeHtml(pass.computed_status || pass.status || "-")}</strong>
+          </div>
           <div class="pass-detail-item"><span>Pass Code</span><strong>${escapeHtml(pass.pass_code || "-")}</strong></div>
           <div class="pass-detail-item"><span>Description</span><strong>${escapeHtml(pass.description || "-")}</strong></div>
           <div class="pass-detail-item"><span>User Email</span><strong>${escapeHtml(pass.user_email || "-")}</strong></div>
@@ -608,6 +656,9 @@ async function openPassDetails(userPassId) {
           <div class="pass-detail-item"><span>Min Fare Amount</span><strong>₹${Number(pass.min_fare_amount || 0)}</strong></div>
           <div class="pass-detail-item"><span>Applicable Routes</span><strong>${escapeHtml(pass.applicable_routes || "-")}</strong></div>
           <div class="pass-detail-item"><span>Usage Count</span><strong>${Number(pass.usage_count || 0)}</strong></div>
+          <div class="pass-detail-item"><span>Remaining Trips</span><strong>${escapeHtml(String(pass.remaining_trips ?? "-"))}</strong></div>
+          <div class="pass-detail-item"><span>Today's Usage</span><strong>${Number(pass.today_usage_count || 0)}</strong></div>
+          <div class="pass-detail-item"><span>Today's Remaining</span><strong>${escapeHtml(String(pass.remaining_trips_today ?? "-"))}</strong></div>
         </div>
       </div>
 
@@ -919,9 +970,10 @@ async function buyTripPass(passTypeId) {
       throw new Error("Pass not found");
     }
 
-    const hasActivePass = (tripPassState.myPasses || []).some(
-      p => String(p.status || "").toUpperCase() === "ACTIVE"
-    );
+    const hasActivePass = (tripPassState.myPasses || []).some(p => {
+      const effectiveStatus = String(p.computed_status || p.status || "").toUpperCase();
+      return effectiveStatus === "ACTIVE" || effectiveStatus === "DAILY_LIMIT_REACHED";
+    });
 
     if (hasActivePass) {
       console.warn("⚠️ User already has an active pass");
