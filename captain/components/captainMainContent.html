@@ -1,0 +1,164 @@
+<div id="captainDashboard" style="display: none;">
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs">
+
+    <button class="nav-tab active" onclick="switchCaptainTab('dashboard')" data-tab="dashboard">
+      Dashboard
+    </button>
+
+    <button class="nav-tab" onclick="switchCaptainTab('trips')" data-tab="trips">
+      Today's Trips
+    </button>
+
+    <button class="nav-tab" onclick="switchCaptainTab('history')" data-tab="history">
+      Trip History
+    </button>
+
+    <button class="nav-tab" onclick="switchCaptainTab('support')" data-tab="support">
+      Support
+    </button>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- DASHBOARD SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section active" id="captainDashboardSection">
+
+    <h2 style="text-align:center; margin-bottom:20px;">
+      Captain Dashboard
+    </h2>
+
+    <!-- Driver Info -->
+    <div class="booking-details">
+      <h3>Driver Details</h3>
+
+      <div class="detail-row">
+        <strong>Name:</strong>
+        <span id="captainName">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Mobile:</strong>
+        <span id="captainMobileDisplay">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Bus Number:</strong>
+        <span id="captainBus">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Status:</strong>
+        <span id="captainStatus">-</span>
+      </div>
+    </div>
+
+    <!-- Current Trip -->
+    <div class="booking-details" style="margin-top:20px;">
+      <h3>Current Trip</h3>
+
+      <div class="detail-row">
+        <strong>Route:</strong>
+        <span id="captainRoute">Not Assigned</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Trip ID:</strong>
+        <span id="captainTripId">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Status:</strong>
+        <span id="captainTripStatus">Not Started</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+      <button class="btn btn-primary" onclick="startTrip()">
+        Start Trip
+      </button>
+
+      <button class="btn btn-secondary" onclick="completeTrip()">
+        Complete Trip
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- TODAY'S TRIPS SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section" id="captainTripsSection">
+
+    <h2 style="text-align:center; margin-bottom:20px;">
+      Today's Trips
+    </h2>
+
+    <div id="captainTripsList">
+      <p style="text-align:center;color:#999;">
+        Loading trips...
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- HISTORY SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section" id="captainHistorySection">
+
+    <h2 style="text-align:center; margin-bottom:20px;">
+      Trip History
+    </h2>
+
+    <div id="captainHistoryList">
+      <p style="text-align:center;color:#999;">
+        Loading history...
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- SUPPORT SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section" id="captainSupportSection">
+
+    <h2 style="text-align:center; margin-bottom:20px;">
+      Support
+    </h2>
+
+    <div class="booking-form">
+
+      <div class="form-group">
+        <label>Issue Type</label>
+        <select id="issueType">
+          <option value="delay">Delay</option>
+          <option value="breakdown">Breakdown</option>
+          <option value="route_issue">Route Issue</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="issueDescription" placeholder="Describe issue">
+      </div>
+
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-danger" onclick="submitIssue()">
+        Submit Issue
+      </button>
+    </div>
+
+  </div>
+
+</div>

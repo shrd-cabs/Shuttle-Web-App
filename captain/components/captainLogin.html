@@ -1,0 +1,55 @@
+<!-- ===========================================================
+captainLogin.html
+---------------------------------------------------------------
+Captain Login ONLY (No Signup)
+
+Functions used:
+- loginCaptain()
+=========================================================== -->
+
+<div class="login-section active" id="captainLoginSection">
+  <div class="login-form">
+
+    <h2 style="margin-bottom: 30px; text-align: center; color: #333;">
+      Welcome Back, Captain!
+    </h2>
+
+    <!-- CAPTAIN LOGIN FORM -->
+    <form id="captainLoginForm">
+
+      <div class="form-group">
+        <label for="captainMobile">Mobile Number</label>
+        <input
+          type="tel"
+          id="captainMobile"
+          placeholder="Enter your mobile number"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="captainPin">Login PIN</label>
+        <input
+          type="password"
+          id="captainPin"
+          placeholder="Enter your PIN"
+          required
+        >
+      </div>
+
+      <button class="btn btn-primary" type="submit" id="captainLoginBtn">
+        <span id="captainLoginBtnText">Login</span>
+        <span id="captainLoginLoader" class="btn-loader" style="display:none;"></span>
+      </button>
+
+    </form>
+
+    <p style="text-align: center; margin-top: 15px; color: #666;">
+      Need access?
+      <span style="color: #6B46C1; font-weight: 600;">
+        Contact Transport Admin
+      </span>
+    </p>
+
+  </div>
+</div>
