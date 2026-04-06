@@ -1,22 +1,50 @@
+<!-- ===========================================================
+captainMainContent.html
+---------------------------------------------------------------
+Captain panel main content after login.
+
+SECTIONS:
+1. Dashboard
+2. Trip Details
+
+PURPOSE:
+- Dashboard shows captain info + assigned trips
+- Trip Details shows selected trip summary
+- Left side shows Stops
+- Right side shows Passengers
+
+IMPORTANT:
+- IDs must match captainDashboard.js exactly
+- Inline onclick handlers require global functions:
+  - switchCaptainTab()
+=========================================================== -->
+
 <div id="captainDashboard" style="display: none;">
 
+  <!-- ========================================================= -->
   <!-- NAVIGATION TABS -->
+  <!-- --------------------------------------------------------- -->
+  <!-- Dashboard    -> captainDashboardSection
+       Trip Details -> captainManifestSection
+  ========================================================== -->
   <div class="nav-tabs">
 
-    <button class="nav-tab active" onclick="switchCaptainTab('dashboard')" data-tab="dashboard">
+    <button
+      class="nav-tab active"
+      onclick="switchCaptainTab('dashboard')"
+      data-tab="dashboard"
+      type="button"
+    >
       Dashboard
     </button>
 
-    <button class="nav-tab" onclick="switchCaptainTab('trips')" data-tab="trips">
-      Today's Trips
-    </button>
-
-    <button class="nav-tab" onclick="switchCaptainTab('history')" data-tab="history">
-      Trip History
-    </button>
-
-    <button class="nav-tab" onclick="switchCaptainTab('support')" data-tab="support">
-      Support
+    <button
+      class="nav-tab"
+      onclick="switchCaptainTab('manifest')"
+      data-tab="manifest"
+      type="button"
+    >
+      Trip Details
     </button>
 
   </div>
@@ -30,7 +58,9 @@
       Captain Dashboard
     </h2>
 
-    <!-- Driver Info -->
+    <!-- ======================================================= -->
+    <!-- DRIVER DETAILS -->
+    <!-- ======================================================= -->
     <div class="booking-details">
       <h3>Driver Details</h3>
 
@@ -55,9 +85,11 @@
       </div>
     </div>
 
-    <!-- Current Trip -->
+    <!-- ======================================================= -->
+    <!-- SELECTED / CURRENT TRIP SUMMARY -->
+    <!-- ======================================================= -->
     <div class="booking-details" style="margin-top:20px;">
-      <h3>Current Trip</h3>
+      <h3>Selected Trip Summary</h3>
 
       <div class="detail-row">
         <strong>Route:</strong>
@@ -75,88 +107,90 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="button-group">
-      <button class="btn btn-primary" onclick="startTrip()">
-        Start Trip
-      </button>
+    <!-- ======================================================= -->
+    <!-- ASSIGNED TRIPS LIST -->
+    <!-- ======================================================= -->
+    <div class="booking-details" style="margin-top:20px;">
+      <h3>Assigned Trips</h3>
 
-      <button class="btn btn-secondary" onclick="completeTrip()">
-        Complete Trip
-      </button>
+      <div id="captainTripsList">
+        <p style="text-align:center;color:#999;">
+          Loading trips...
+        </p>
+      </div>
     </div>
 
   </div>
 
-
   <!-- ========================================================= -->
-  <!-- TODAY'S TRIPS SECTION -->
-  <!-- ========================================================= -->
-  <div class="content-section" id="captainTripsSection">
+  <!-- TRIP DETAILS SECTION -->
+  <!-- --------------------------------------------------------- -->
+  <!-- NOTE:
+       Section ID kept as captainManifestSection so current JS
+       continues working without change.
+  ========================================================== -->
+  <div class="content-section" id="captainManifestSection">
 
     <h2 style="text-align:center; margin-bottom:20px;">
-      Today's Trips
+      Trip Details
     </h2>
 
-    <div id="captainTripsList">
-      <p style="text-align:center;color:#999;">
-        Loading trips...
-      </p>
-    </div>
+    <!-- ======================================================= -->
+    <!-- SELECTED TRIP INFO -->
+    <!-- ======================================================= -->
+    <div class="booking-details">
+      <h3>Trip Info</h3>
 
-  </div>
-
-
-  <!-- ========================================================= -->
-  <!-- HISTORY SECTION -->
-  <!-- ========================================================= -->
-  <div class="content-section" id="captainHistorySection">
-
-    <h2 style="text-align:center; margin-bottom:20px;">
-      Trip History
-    </h2>
-
-    <div id="captainHistoryList">
-      <p style="text-align:center;color:#999;">
-        Loading history...
-      </p>
-    </div>
-
-  </div>
-
-
-  <!-- ========================================================= -->
-  <!-- SUPPORT SECTION -->
-  <!-- ========================================================= -->
-  <div class="content-section" id="captainSupportSection">
-
-    <h2 style="text-align:center; margin-bottom:20px;">
-      Support
-    </h2>
-
-    <div class="booking-form">
-
-      <div class="form-group">
-        <label>Issue Type</label>
-        <select id="issueType">
-          <option value="delay">Delay</option>
-          <option value="breakdown">Breakdown</option>
-          <option value="route_issue">Route Issue</option>
-          <option value="other">Other</option>
-        </select>
+      <div class="detail-row">
+        <strong>Trip ID:</strong>
+        <span id="manifestTripId">-</span>
       </div>
 
-      <div class="form-group">
-        <label>Description</label>
-        <input type="text" id="issueDescription" placeholder="Describe issue">
+      <div class="detail-row">
+        <strong>Trip Name:</strong>
+        <span id="manifestTripName">-</span>
       </div>
 
+      <div class="detail-row">
+        <strong>Travel Date:</strong>
+        <span id="manifestTravelDate">-</span>
+      </div>
     </div>
 
-    <div class="button-group">
-      <button class="btn btn-danger" onclick="submitIssue()">
-        Submit Issue
-      </button>
+    <!-- ======================================================= -->
+    <!-- 2 COLUMN LAYOUT -->
+    <!-- ------------------------------------------------------- -->
+    <!-- LEFT  -> Stops
+         RIGHT -> Passengers
+    ======================================================== -->
+    <div class="captain-grid" style="margin-top:20px;">
+
+      <!-- ===================================================== -->
+      <!-- LEFT COLUMN: STOPS -->
+      <!-- ===================================================== -->
+      <div class="booking-details">
+        <h3>Stops</h3>
+
+        <div id="captainStopsList">
+          <p style="text-align:center;color:#999;">
+            Select a trip to view stops.
+          </p>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- RIGHT COLUMN: PASSENGERS -->
+      <!-- ===================================================== -->
+      <div class="booking-details">
+        <h3>Passengers</h3>
+
+        <div id="captainPassengersList">
+          <p style="text-align:center;color:#999;">
+            Select a trip to view passengers.
+          </p>
+        </div>
+      </div>
+
     </div>
 
   </div>

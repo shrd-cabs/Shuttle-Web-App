@@ -1,21 +1,16 @@
 // ===============================================================
 // captainMain.js
 // ---------------------------------------------------------------
-// ENTRY POINT of SHRD Captain Panel
+// Entry point for SHRD Captain Panel
 //
-// RESPONSIBILITIES
-// ---------------------------------------------------------------
-// 1. Load captain UI components dynamically
-// 2. Attach global functions (if needed for HTML onclick)
-// 3. Initialize captain auth
-// 4. Handle auto-login
-// 5. Manage captain app lifecycle safely
+// RESPONSIBILITIES:
+// 1. Load captain HTML components
+// 2. Attach global functions
+// 3. Setup login form handler
+// 4. Restore captain session if available
+// 5. Hide loader after app init
 // ===============================================================
 
-
-// ===============================================================
-// MODULE IMPORTS
-// ===============================================================
 import { loadCaptainComponent } from "./captainComponentLoader.js";
 import {
   loginCaptain,
@@ -23,12 +18,13 @@ import {
   autoLoginCaptain,
   initCaptainAuth
 } from "./captainAuth.js";
+import "./captainDashboard.js";
 
 console.log("📦 Captain modules loaded");
 
 
 // ===============================================================
-// CONFIG: COMPONENT LIST
+// COMPONENT CONFIG
 // ===============================================================
 const CAPTAIN_COMPONENTS = [
   ["captainHeaderComponent", "./components/captainHeader.html"],
@@ -39,7 +35,7 @@ const CAPTAIN_COMPONENTS = [
 
 
 // ===============================================================
-// UTIL: HIDE LOADER
+// HIDE LOADER
 // ===============================================================
 function hideCaptainLoader() {
   const loader = document.getElementById("appLoader");
@@ -54,7 +50,7 @@ function hideCaptainLoader() {
 
 
 // ===============================================================
-// GLOBAL FUNCTIONS (USED IN HTML IF NEEDED)
+// ATTACH GLOBAL FUNCTIONS
 // ===============================================================
 function attachCaptainGlobalFunctions() {
   console.log("🔗 Attaching captain global functions");
@@ -67,36 +63,25 @@ function attachCaptainGlobalFunctions() {
 
 
 // ===============================================================
-// COMPONENT EVENT LISTENER
-// ===============================================================
-function registerCaptainComponentListeners() {
-  document.addEventListener("captainComponentLoaded", ({ detail }) => {
-    const { id } = detail;
-    console.log(`📦 Captain component loaded: ${id}`);
-  });
-}
-
-
-// ===============================================================
 // FORM HANDLERS
 // ===============================================================
 function setupCaptainFormHandlers() {
-  const bindForm = (id, handler) => {
-    const form = document.getElementById(id);
+  console.log("🛠️ setupCaptainFormHandlers() called");
 
-    if (!form) {
-      console.warn(`⚠️ Captain form not found: #${id}`);
-      return;
-    }
+  const form = document.getElementById("captainLoginForm");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      console.log(`📨 Captain form submitted: #${id}`);
-      await handler();
-    });
-  };
+  if (!form) {
+    console.warn("⚠️ Captain login form not found: #captainLoginForm");
+    return;
+  }
 
-  bindForm("captainLoginForm", loginCaptain);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    console.log("📨 Captain login form submitted");
+    await loginCaptain();
+  });
+
+  console.log("✅ Captain login form handler attached");
 }
 
 
@@ -107,34 +92,32 @@ async function loadAllCaptainComponents() {
   console.log("📌 Loading captain components...");
 
   for (const [id, path] of CAPTAIN_COMPONENTS) {
-    console.log(`📦 Loading captain component: ${id}`);
+    console.log(`📦 Loading captain component: ${id} from ${path}`);
     await loadCaptainComponent(id, path);
   }
 
-  console.log("🎉 Captain components loaded");
+  console.log("🎉 All captain components loaded");
 }
 
 
 // ===============================================================
-// APP INITIALIZATION
+// INIT APP
 // ===============================================================
 async function initCaptainApp() {
   console.log("🚀 Initializing Captain App...");
 
   try {
-    // 1️⃣ Load UI components
     await loadAllCaptainComponents();
 
-    // 2️⃣ Setup captain auth
     initCaptainAuth();
+    console.log("✅ initCaptainAuth() completed");
 
-    // 3️⃣ Setup forms
     setupCaptainFormHandlers();
 
-    // 4️⃣ Auto login
-    autoLoginCaptain();
+    await autoLoginCaptain();
+    console.log("✅ autoLoginCaptain() completed");
 
-    console.log("✅ Captain App ready");
+    console.log("🎉 Captain App ready");
 
   } catch (error) {
     console.error("❌ Captain App initialization failed:", error);
@@ -152,7 +135,5 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("📄 Captain DOM Ready");
 
   attachCaptainGlobalFunctions();
-  registerCaptainComponentListeners();
-
   initCaptainApp();
 });
