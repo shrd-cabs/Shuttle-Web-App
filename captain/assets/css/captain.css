@@ -1,0 +1,29 @@
+.captain-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.captain-login-section,
+.captain-main-section {
+  margin-top: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.captain-login-section input {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.captain-login-section button {
+  width: 100%;
+  padding: 12px;
+  cursor: pointer;
+}
