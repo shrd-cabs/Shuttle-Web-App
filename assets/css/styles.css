@@ -111,12 +111,24 @@ body {
 .logo-img {
   width: 110px;
   height: 110px;
-  object-fit: contain;
+  border-radius: 50%;
+  object-fit: cover;
+
+  border: 3px solid rgba(255,255,255,0.6);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+/* Simple Circular logo with no border */
+/* .logo-img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;    
+  object-fit: cover;     
   display: block;
 
   justify-self: center;
   align-self: center;
-}
+} */
 
 
 /* ===========================================================

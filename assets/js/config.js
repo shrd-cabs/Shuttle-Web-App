@@ -38,6 +38,10 @@ export const APP_CONFIG = {
   // ============================================================
   // 💳 RAZORPAY CONFIG (PUBLIC ONLY)
   // ============================================================
-  RAZORPAY_KEY_ID: "rzp_test_SToJcqhAImfHOY"
+  //Test key
+  //RAZORPAY_KEY_ID: "rzp_test_SToJcqhAImfHOY"
+
+  //Live key
+  RAZORPAY_KEY_ID: "rzp_live_STnSll8AkTlMTl"
 
 };
