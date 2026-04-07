@@ -337,13 +337,24 @@ function injectPaymentSummaryModal() {
         </div>
 
         <div class="payment-summary-footer">
-          <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
-            Cancel
-          </button>
 
-          <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
-            Proceed
-          </button>
+          <!-- Warning -->
+          <div class="payment-warning-note">
+            ⚠️ <strong>Do not close or refresh this page</strong><br>
+            Please wait until you receive the <strong>booking confirmation message on the web app</strong>.<br>
+          </div>
+
+          <!-- BUTTON WRAPPER -->
+          <div class="payment-footer-buttons">
+            <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
+              Cancel
+            </button>
+
+            <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
+              Proceed
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -598,48 +609,6 @@ export async function openPaymentModal() {
     console.log("📦 Booking Data:", booking);
 
     // ==========================================================
-    // CREATE HOLD BOOKING
-    // ----------------------------------------------------------
-    // HOLD is still created on original booking amount.
-    // Pass details are finalized at payment confirmation step.
-    // ==========================================================
-    console.log("⏳ Creating HOLD booking...");
-
-    const holdData = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=createHoldBooking` +
-      `&booking_date=${new Date().toISOString().split("T")[0]}` +
-      `&travel_date=${booking.travelDate}` +
-      `&route_id=${booking.routeId}` +
-      `&bus_id=${booking.busId}` +
-      `&bus_number=${booking.busNumber}` +
-      `&driver_name=${booking.driverName}` +
-      `&driver_phone=${booking.driverPhone}` +
-      `&fromStop=${booking.fromStop}` +
-      `&toStop=${booking.toStop}` +
-      `&scheduled_pickup_time=${booking.arrivalTime}` +
-      `&scheduled_drop_time=${booking.reachingTime}` +
-      `&passenger_name=${encodeURIComponent(currentUser.name)}` +
-      `&passenger_email=${encodeURIComponent(currentUser.email)}` +
-      `&passenger_phone=${encodeURIComponent(currentUser.phone)}` +
-      `&seats_booked=${booking.pax}` +
-      `&fare_per_seat=${booking.totalAmount / booking.pax}` +
-      `&total_amount=${booking.totalAmount}`
-    );
-
-    console.log("📥 HOLD Response:", holdData);
-
-    if (!holdData.success) {
-      togglePayLoader(false);
-      alert(holdData.error || "❌ Failed to create booking hold");
-      return;
-    }
-
-    holdBookingId = holdData.booking_id;
-    console.log("🧾 HOLD Booking Created:", holdBookingId);
-
-    startHoldTimer();
-
-    // ==========================================================
     // FETCH APPLICABLE PASS
     // ==========================================================
     let passData = null;
@@ -739,7 +708,50 @@ async function confirmPaymentSummary() {
     togglePayLoader(true);
 
     const booking = paymentSummaryState.booking;
-    const totalAmount = Number(paymentSummaryState.totalAmount || 0);       // after pass
+
+    // ==========================================================
+    // CREATE HOLD BOOKING (MOVED HERE)
+    // ----------------------------------------------------------
+    // Now HOLD entry will be created only when user clicks
+    // Proceed inside payment summary modal.
+    // ==========================================================
+    console.log("⏳ Creating HOLD booking (on final confirm)...");
+
+    const holdData = await safeFetch(
+      `${APP_CONFIG.API_URL}?action=createHoldBooking` +
+      `&booking_date=${new Date().toISOString().split("T")[0]}` +
+      `&travel_date=${booking.travelDate}` +
+      `&route_id=${booking.routeId}` +
+      `&bus_id=${booking.busId}` +
+      `&bus_number=${booking.busNumber}` +
+      `&driver_name=${booking.driverName}` +
+      `&driver_phone=${booking.driverPhone}` +
+      `&fromStop=${booking.fromStop}` +
+      `&toStop=${booking.toStop}` +
+      `&scheduled_pickup_time=${booking.arrivalTime}` +
+      `&scheduled_drop_time=${booking.reachingTime}` +
+      `&passenger_name=${encodeURIComponent(currentUser.name)}` +
+      `&passenger_email=${encodeURIComponent(currentUser.email)}` +
+      `&passenger_phone=${encodeURIComponent(currentUser.phone)}` +
+      `&seats_booked=${booking.pax}` +
+      `&fare_per_seat=${booking.totalAmount / booking.pax}` +
+      `&total_amount=${booking.totalAmount}`
+    );
+
+    console.log("📥 HOLD Response:", holdData);
+
+    if (!holdData.success) {
+      togglePayLoader(false);
+      alert(holdData.error || "❌ Failed to create booking hold");
+      return;
+    }
+
+    holdBookingId = holdData.booking_id;
+    console.log("🧾 HOLD Booking Created:", holdBookingId);
+
+    startHoldTimer();
+
+    const totalAmount = Number(paymentSummaryState.totalAmount || 0); // after pass
     const walletUsed = Number(paymentSummaryState.walletUsed || 0);
     const onlineAmount = Number(paymentSummaryState.onlineAmount || 0);
     const passQueryString = buildPassQueryString();
@@ -754,8 +766,6 @@ async function confirmPaymentSummary() {
     // ==========================================================
     if (walletUsed > 0 && onlineAmount === 0) {
       console.log("💰 Full wallet payment selected");
-
-      const passQueryString = buildPassQueryString();
 
       const walletPayResult = await safeFetch(
         `${APP_CONFIG.API_URL}?action=processWalletBookingPayment` +

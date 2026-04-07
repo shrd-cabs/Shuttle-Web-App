@@ -715,6 +715,29 @@ body {
   flex: 1;
 }
 
+.payment-summary-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Fix warning width */
+.payment-warning-note {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Buttons row */
+.payment-footer-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Make buttons equal */
+.payment-footer-buttons button {
+  flex: 1;
+}
 
 /* ===========================================================
    MODAL BUTTON ROW
