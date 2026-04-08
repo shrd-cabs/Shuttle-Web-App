@@ -1,21 +1,27 @@
 // ===============================================================
-// searchRoutes.js (FINAL PRODUCTION-SAFE VERSION)
+// searchRoutes.js (OPTIMIZED + SAFE VERSION)
 // ---------------------------------------------------------------
 // Handles route searching functionality.
 //
-// Responsibilities:
+// RESPONSIBILITIES:
 // 1. Initialize trip date input
 //    - Freeze past dates
-//    - Allow only today to next 15 days
+//    - Allow only today to next MAX_ADVANCE_DAYS
 //    - Set default date = today
-// 2. Attach Check Availability button event safely
+// 2. Attach Check Availability button safely
 // 3. Validate form inputs
 // 4. Call Apps Script backend
 // 5. Render available routes
 // 6. Handle route selection safely
-// 7. Update booking summary
-// 8. Store selected booking globally
-// 9. Handle loader + alerts cleanly
+// 7. Highlight selected route card
+// 8. Update booking summary
+// 9. Store selected booking globally
+// 10. Handle loader + alerts cleanly
+//
+// IMPORTANT:
+// - Existing functionality is preserved
+// - Existing global window.selectedBooking is preserved
+// - Existing legacy window.selectRoute() is preserved
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -26,9 +32,15 @@ import { APP_CONFIG } from "./config.js";
 const MAX_ADVANCE_DAYS = 7;
 
 // ===============================================================
+// MODULE STATE
+// ===============================================================
+let selectedRouteIndex = -1;
+
+// ===============================================================
 // MODULE INITIALIZER
 // ===============================================================
 export function initSearchRoutes() {
+  console.log("--------------------------------------------------");
   console.log("🔎 Initializing Route Search Module...");
 
   const checkBtn = document.getElementById("checkAvailabilityBtn");
@@ -39,6 +51,7 @@ export function initSearchRoutes() {
 
   if (!checkBtn) {
     console.warn("⚠️ checkAvailabilityBtn not found");
+    console.log("--------------------------------------------------");
     return;
   }
 
@@ -47,12 +60,14 @@ export function initSearchRoutes() {
   checkBtn.addEventListener("click", checkAvailability);
 
   console.log("✅ Route Search Module Initialized");
+  console.log("--------------------------------------------------");
 }
 
 // ===============================================================
 // DATE INITIALIZATION
+// ---------------------------------------------------------------
 // - Freeze past dates
-// - Allow only next 15 days from today
+// - Allow only next MAX_ADVANCE_DAYS from today
 // - Set default today
 // ===============================================================
 function initializeTripDate(dateInput) {
@@ -77,7 +92,7 @@ function initializeTripDate(dateInput) {
     dateInput.value = today;
   }
 
-  // iPhone fallback validation
+  // iPhone / browser fallback validation
   dateInput.removeEventListener("change", handleTripDateValidation);
   dateInput.removeEventListener("input", handleTripDateValidation);
 
@@ -161,6 +176,7 @@ function getInputValue(id) {
 // CHECK AVAILABILITY
 // ===============================================================
 async function checkAvailability() {
+  console.log("--------------------------------------------------");
   console.log("🚌 Check Availability clicked");
 
   const travelDate = getInputValue("tripDate");
@@ -179,11 +195,14 @@ async function checkAvailability() {
 
   if (!routesContainer) {
     console.error("❌ routesContainer not found");
+    console.log("--------------------------------------------------");
     return;
   }
 
-  // Clear previous routes and alerts
+  // Clear previous routes / selection / alerts
   routesContainer.innerHTML = "";
+  selectedRouteIndex = -1;
+  window._renderedRoutes = [];
   showAlert("", "");
 
   // ==========================================================
@@ -192,18 +211,21 @@ async function checkAvailability() {
   if (!travelDate || !fromStop || !toStop) {
     console.warn("⚠️ Missing required input(s)");
     showAlert("Please select date and stops.", "warning");
+    console.log("--------------------------------------------------");
     return;
   }
 
   if (!isTripDateWithinAllowedRange(travelDate)) {
     console.warn("⚠️ Travel date is outside allowed range");
     showAlert(`Please select a date between today and the next ${MAX_ADVANCE_DAYS} days.`, "warning");
+    console.log("--------------------------------------------------");
     return;
   }
 
   if (fromStop === toStop) {
     console.warn("⚠️ From stop and To stop are same");
     showAlert("From and To stops cannot be the same.", "warning");
+    console.log("--------------------------------------------------");
     return;
   }
 
@@ -247,6 +269,7 @@ async function checkAvailability() {
         </div>
       `;
 
+      console.log("--------------------------------------------------");
       return;
     }
 
@@ -256,7 +279,6 @@ async function checkAvailability() {
     console.log(`✅ ${data.routes.length} route(s) found`);
 
     showAlert("Routes found successfully.", "success");
-
     renderRoutes(data.routes, travelDate, pax, fromStop, toStop);
 
   } catch (error) {
@@ -264,6 +286,7 @@ async function checkAvailability() {
     showAlert("Error connecting to server.", "error");
   } finally {
     toggleLoader(false);
+    console.log("--------------------------------------------------");
   }
 }
 
@@ -282,13 +305,13 @@ function escapeHtml(value) {
 
 // ===============================================================
 // RENDER ROUTES
+// ---------------------------------------------------------------
 // IMPORTANT:
 // We DO NOT use inline onclick with route values.
 // Instead:
-// 1. Store the route list in memory
+// 1. Store route list in memory
 // 2. Render buttons with data-route-index
 // 3. Attach event listeners safely
-// This avoids quote-breaking and syntax errors.
 // ===============================================================
 function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
   console.log("🎨 Rendering routes...");
@@ -300,7 +323,10 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
     return;
   }
 
-  // Store all rendered routes globally for safe later selection
+  // Reset selection state
+  selectedRouteIndex = -1;
+
+  // Store rendered routes globally for safe selection
   window._renderedRoutes = routes;
 
   let html = `<h3>Select Available Route</h3>`;
@@ -316,9 +342,11 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
     const totalAmount = route.total_amount ?? "-";
 
     html += `
-      <div class="route-card"
-           style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;">
-
+      <div
+        class="route-card"
+        data-route-card-index="${index}"
+        style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;"
+      >
         <h3>${escapeHtml(routeName)}</h3>
 
         <p>
@@ -343,12 +371,9 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
   });
 
   container.innerHTML = html;
-
   console.log("🧩 Route cards injected into DOM");
 
-  // Attach click listeners safely after HTML is rendered
   const buttons = container.querySelectorAll(".select-route-btn");
-
   console.log(`🔘 Found ${buttons.length} Select Route button(s)`);
 
   buttons.forEach((btn) => {
@@ -365,6 +390,20 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
         return;
       }
 
+      // --------------------------------------------------------
+      // Highlight selected route card
+      // --------------------------------------------------------
+      applySelectedRouteUI(index);
+
+      // --------------------------------------------------------
+      // Preserve current selected route index
+      // --------------------------------------------------------
+      selectedRouteIndex = index;
+      console.log("🎯 selectedRouteIndex updated:", selectedRouteIndex);
+
+      // --------------------------------------------------------
+      // Existing booking selection logic
+      // --------------------------------------------------------
       selectRouteHandler({
         routeId: route.route_id ?? "",
         routeName: route.route_name ?? "-",
@@ -387,7 +426,46 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
 }
 
 // ===============================================================
+// APPLY SELECTED ROUTE UI
+// ---------------------------------------------------------------
+// Removes selected style from all route cards and applies it to
+// the chosen one. Also updates button text.
+// ===============================================================
+function applySelectedRouteUI(selectedIndex) {
+  console.log("🎨 applySelectedRouteUI() called for index:", selectedIndex);
+
+  const allCards = document.querySelectorAll(".route-card");
+  const allButtons = document.querySelectorAll(".select-route-btn");
+
+  allCards.forEach((card) => {
+    card.classList.remove("selected");
+  });
+
+  allButtons.forEach((button) => {
+    button.textContent = "Select Route";
+  });
+
+  const selectedCard = document.querySelector(`.route-card[data-route-card-index="${selectedIndex}"]`);
+  const selectedButton = document.querySelector(`.select-route-btn[data-route-index="${selectedIndex}"]`);
+
+  if (selectedCard) {
+    selectedCard.classList.add("selected");
+    console.log("✅ Selected class added to route card");
+  } else {
+    console.warn("⚠️ Selected route card not found in DOM");
+  }
+
+  if (selectedButton) {
+    selectedButton.textContent = "Selected ✓";
+    console.log("✅ Selected button text updated");
+  } else {
+    console.warn("⚠️ Selected route button not found in DOM");
+  }
+}
+
+// ===============================================================
 // ROUTE SELECTION HANDLER
+// ---------------------------------------------------------------
 // Updates booking summary + stores selected booking globally
 // ===============================================================
 function selectRouteHandler({
@@ -413,7 +491,7 @@ function selectRouteHandler({
   const totalAmountDisplay = getElement("totalAmountDisplay");
   const routeDisplay = getElement("routeDisplay");
 
-  // Update booking summary UI safely
+  // Update booking summary safely
   if (selectedSeatsDisplay) {
     selectedSeatsDisplay.innerText = pax;
     console.log("✅ selectedSeatsDisplay updated:", pax);
@@ -449,7 +527,7 @@ function selectRouteHandler({
     console.warn("⚠️ routeDisplay not found");
   }
 
-  // Store booking globally for payment/booking flow
+  // Preserve existing global booking object structure
   window.selectedBooking = {
     routeId,
     routeName,
@@ -467,14 +545,14 @@ function selectRouteHandler({
   };
 
   console.log("📦 Stored Booking Object:", window.selectedBooking);
-
   showAlert("Route selected successfully.", "success");
 }
 
 // ===============================================================
 // OPTIONAL GLOBAL SUPPORT
-// This keeps backward compatibility in case any old code still
-// calls window.selectRoute(...)
+// ---------------------------------------------------------------
+// Keeps backward compatibility if any old code still calls
+// window.selectRoute(...)
 // ===============================================================
 window.selectRoute = function (
   routeId,

@@ -561,6 +561,79 @@ body {
   display: block;
 }
 
+/* ============================================================
+SEARCHABLE DROPDOWN
+---------------------------------------------------------------
+Custom no-library searchable select
+============================================================ */
+.searchable-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.searchable-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d8dbe2;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.searchable-input:focus {
+  border-color: #6f49d9;
+  box-shadow: 0 0 0 2px rgba(111, 73, 217, 0.12);
+}
+
+.searchable-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: none;
+  background: #fff;
+  border: 1px solid #d8dbe2;
+  border-radius: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  z-index: 999;
+}
+
+.searchable-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.searchable-item:last-child {
+  border-bottom: none;
+}
+
+.searchable-item:hover,
+.searchable-item.active {
+  background: #f3f0ff;
+}
+
+.searchable-empty {
+  padding: 10px 12px;
+  color: #888;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .searchable-input {
+    font-size: 13px;
+    padding: 9px 10px;
+  }
+
+  .searchable-item {
+    font-size: 13px;
+    padding: 9px 10px;
+  }
+}
 
 /* ===========================================================
    FOOTER
@@ -925,16 +998,70 @@ body {
   cursor: not-allowed;
 }
 
+/* ============================================================
+ROUTE CARD BASE
+============================================================ */
 .route-card {
   border: 1px solid #ddd;
   padding: 12px;
   margin-bottom: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  background: #fff;
+  transition: all 0.25s ease;
+  position: relative;
 }
 
+/* ============================================================
+HOVER STATE
+============================================================ */
 .route-card:hover {
   background-color: #f8f8f8;
+  border-color: #bbb;
+}
+
+/* ============================================================
+SELECTED STATE (MAIN FEATURE)
+============================================================ */
+.route-card.selected {
+  border: 2px solid #6f49d9;
+  background: #f3f0ff;
+  box-shadow: 0 4px 12px rgba(111, 73, 217, 0.15);
+}
+
+/* Title highlight */
+.route-card.selected h3 {
+  color: #6f49d9;
+}
+
+/* ============================================================
+SELECTED BADGE (✔ Selected)
+============================================================ */
+.route-card.selected::after {
+  content: "✔ Selected";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #6f49d9;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* ============================================================
+BUTTON STYLING WHEN SELECTED
+============================================================ */
+.route-card.selected .select-route-btn {
+  background: #6f49d9 !important;
+  color: #fff !important;
+}
+
+/* ============================================================
+ACTIVE CLICK EFFECT
+============================================================ */
+.route-card:active {
+  transform: scale(0.98);
 }
 
 /* ===========================================================

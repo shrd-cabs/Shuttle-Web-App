@@ -44,14 +44,60 @@ Includes:
         <input type="date" id="tripDate" required>
       </div>
 
+      <!-- ===================================================== -->
+      <!-- SEARCHABLE FROM STOP -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Visible input:
+           - tripFromSearch
+           Hidden input (actual selected value for existing JS):
+           - tripFrom
+      ====================================================== -->
       <div class="form-group">
-        <label for="tripFrom">From</label>
-        <select id="tripFrom"></select>
+        <label for="tripFromSearch">From</label>
+
+        <div class="searchable-dropdown" id="tripFromDropdown">
+          <input
+            type="text"
+            id="tripFromSearch"
+            class="searchable-input"
+            placeholder="Type and search pickup stop"
+            autocomplete="off"
+          />
+
+          <!-- Hidden field keeps old ID for compatibility -->
+          <input type="hidden" id="tripFrom" />
+
+          <!-- Custom dropdown list -->
+          <div class="searchable-list" id="tripFromList"></div>
+        </div>
       </div>
 
+      <!-- ===================================================== -->
+      <!-- SEARCHABLE TO STOP -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Visible input:
+           - tripToSearch
+           Hidden input (actual selected value for existing JS):
+           - tripTo
+      ====================================================== -->
       <div class="form-group">
-        <label for="tripTo">To</label>
-        <select id="tripTo"></select>
+        <label for="tripToSearch">To</label>
+
+        <div class="searchable-dropdown" id="tripToDropdown">
+          <input
+            type="text"
+            id="tripToSearch"
+            class="searchable-input"
+            placeholder="Type and search drop stop"
+            autocomplete="off"
+          />
+
+          <!-- Hidden field keeps old ID for compatibility -->
+          <input type="hidden" id="tripTo" />
+
+          <!-- Custom dropdown list -->
+          <div class="searchable-list" id="tripToList"></div>
+        </div>
       </div>
 
       <div class="form-group">
