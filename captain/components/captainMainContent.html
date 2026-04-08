@@ -9,9 +9,7 @@ SECTIONS:
 
 PURPOSE:
 - Dashboard shows captain info + assigned trips
-- Trip Details shows selected trip summary
-- Left side shows Stops
-- Right side shows Passengers
+- Trip Details shows selected trip summary + assigned trips + stops
 
 IMPORTANT:
 - IDs must match captainDashboard.js exactly
@@ -23,10 +21,7 @@ IMPORTANT:
 
   <!-- ========================================================= -->
   <!-- NAVIGATION TABS -->
-  <!-- --------------------------------------------------------- -->
-  <!-- Dashboard    -> captainDashboardSection
-       Trip Details -> captainManifestSection
-  ========================================================== -->
+  <!-- ========================================================= -->
   <div class="nav-tabs">
 
     <button
@@ -54,7 +49,7 @@ IMPORTANT:
   <!-- ========================================================= -->
   <div class="content-section active" id="captainDashboardSection">
 
-    <h2 style="text-align:center; margin-bottom:20px;">
+    <h2 class="captain-page-title">
       Captain Dashboard
     </h2>
 
@@ -88,7 +83,7 @@ IMPORTANT:
     <!-- ======================================================= -->
     <!-- SELECTED / CURRENT TRIP SUMMARY -->
     <!-- ======================================================= -->
-    <div class="booking-details" style="margin-top:20px;">
+    <div class="booking-details captain-trip-info-card" style="margin-top:20px;">
       <h3>Selected Trip Summary</h3>
 
       <div class="detail-row">
@@ -114,7 +109,7 @@ IMPORTANT:
       <h3>Assigned Trips</h3>
 
       <div id="captainTripsList">
-        <p style="text-align:center;color:#999;">
+        <p class="captain-empty-text">
           Loading trips...
         </p>
       </div>
@@ -124,21 +119,30 @@ IMPORTANT:
 
   <!-- ========================================================= -->
   <!-- TRIP DETAILS SECTION -->
-  <!-- --------------------------------------------------------- -->
-  <!-- NOTE:
-       Section ID kept as captainManifestSection so current JS
-       continues working without change.
-  ========================================================== -->
+  <!-- ========================================================= -->
   <div class="content-section" id="captainManifestSection">
 
-    <h2 style="text-align:center; margin-bottom:20px;">
+    <h2 class="captain-page-title">
       Trip Details
     </h2>
 
     <!-- ======================================================= -->
+    <!-- ASSIGNED TRIPS LIST IN TRIP DETAILS -->
+    <!-- ======================================================= -->
+    <div class="booking-details" style="margin-top:20px;">
+      <h3>Assigned Trips</h3>
+
+      <div id="captainTripsListManifest">
+        <p class="captain-empty-text">
+          Loading trips...
+        </p>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
     <!-- SELECTED TRIP INFO -->
     <!-- ======================================================= -->
-    <div class="booking-details">
+    <div class="booking-details captain-trip-info-card" style="margin-top:20px;">
       <h3>Trip Info</h3>
 
       <div class="detail-row">
@@ -158,39 +162,18 @@ IMPORTANT:
     </div>
 
     <!-- ======================================================= -->
-    <!-- 2 COLUMN LAYOUT -->
-    <!-- ------------------------------------------------------- -->
-    <!-- LEFT  -> Stops
-         RIGHT -> Passengers
-    ======================================================== -->
-    <div class="captain-grid" style="margin-top:20px;">
-
-      <!-- ===================================================== -->
-      <!-- LEFT COLUMN: STOPS -->
-      <!-- ===================================================== -->
+    <!-- STOPS / PASSENGERS STOP-WISE MOBILE VIEW -->
+    <!-- ======================================================= -->
+    <div class="captain-manifest-mobile-wrap" style="margin-top:20px;">
       <div class="booking-details">
-        <h3>Stops</h3>
+        <h3>Trip Stops</h3>
 
         <div id="captainStopsList">
-          <p style="text-align:center;color:#999;">
+          <p class="captain-empty-text">
             Select a trip to view stops.
           </p>
         </div>
       </div>
-
-      <!-- ===================================================== -->
-      <!-- RIGHT COLUMN: PASSENGERS -->
-      <!-- ===================================================== -->
-      <div class="booking-details">
-        <h3>Passengers</h3>
-
-        <div id="captainPassengersList">
-          <p style="text-align:center;color:#999;">
-            Select a trip to view passengers.
-          </p>
-        </div>
-      </div>
-
     </div>
 
   </div>

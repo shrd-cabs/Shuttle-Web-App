@@ -1,4 +1,41 @@
 /* ============================================================
+GLOBAL SAFETY
+---------------------------------------------------------------
+Prevents width overflow on mobile due to padding/borders.
+============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+CAPTAIN ROOT WIDTH SAFETY
+============================================================ */
+#captainDashboard,
+#captainDashboardSection,
+#captainManifestSection,
+.captain-manifest-mobile-wrap,
+.booking-details,
+.captain-list-card,
+.captain-trip-card,
+.captain-stop-accordion,
+.captain-passenger-item,
+.nav-tabs,
+.nav-tab {
+  max-width: 100%;
+}
+
+/* ============================================================
 CAPTAIN PAGE TITLE
 ============================================================ */
 .captain-page-title {
@@ -14,33 +51,10 @@ TRIP INFO CARD
 }
 
 /* ============================================================
-2-COLUMN GRID
----------------------------------------------------------------
-Keep 2 columns even on mobile
+MANIFEST WRAPPER
 ============================================================ */
-.captain-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.captain-grid-mobile-tight {
-  align-items: start;
-}
-
-/* ============================================================
-COLUMN CARDS
-============================================================ */
-.captain-column-card {
-  margin-top: 0 !important;
-  padding: 10px !important;
-  border-radius: 14px;
-}
-
-.captain-column-card h3 {
-  margin-bottom: 10px;
-  font-size: 18px;
+.captain-manifest-mobile-wrap {
+  width: 100%;
 }
 
 /* ============================================================
@@ -54,7 +68,7 @@ EMPTY TEXT
 }
 
 /* ============================================================
-LIST CARDS
+TRIP LIST / GENERIC CARDS
 ============================================================ */
 .captain-list-card {
   border: 1px solid #d8dbe2;
@@ -75,30 +89,18 @@ LIST CARDS
   margin-bottom: 4px;
 }
 
-/* ============================================================
-TRIP LIST CARD
-============================================================ */
 .captain-trip-card {
   padding: 10px;
 }
 
 /* ============================================================
-PASSENGER ACTION BUTTON SPACING
+TRIP OPEN BUTTON
 ============================================================ */
-#captainPassengersList .btn {
-  width: 100%;
-  margin-top: 8px;
-}
-
-/* ============================================================
-BUTTONS INSIDE MOBILE COLUMNS
-============================================================ */
-.captain-open-trip-btn,
-#captainStopsList .btn,
-#captainPassengersList .btn {
+.captain-open-trip-btn {
+  display: block;
   width: 100%;
   min-height: 36px;
-  padding: 8px 8px;
+  padding: 8px;
   font-size: 12px;
   line-height: 1.15;
   border-radius: 10px;
@@ -110,19 +112,237 @@ TRIP INFO / DETAIL ROWS
 ============================================================ */
 .detail-row {
   margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ============================================================
-MOBILE FULL-WIDTH SPACE USAGE
----------------------------------------------------------------
-Use almost every pixel of mobile width
+STOP ACCORDION
+============================================================ */
+.captain-stop-accordion {
+  background: #fff;
+  border: 1px solid #d8dbe2;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.captain-stop-header {
+  padding: 14px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.captain-stop-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.captain-stop-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.captain-stop-chevron {
+  font-size: 18px;
+  font-weight: 700;
+  color: #6b46c1;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.captain-stop-accordion.open .captain-stop-chevron {
+  transform: rotate(180deg);
+}
+
+.captain-stop-meta {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.captain-stop-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.captain-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f3f0ff;
+  color: #5b35b1;
+  max-width: 100%;
+}
+
+.captain-stop-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+
+.captain-stop-accordion.open .captain-stop-body {
+  display: block;
+}
+
+.captain-stop-actions {
+  margin-top: 12px;
+}
+
+.captain-stop-actions .btn,
+.captain-stop-reached-btn {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 10px;
+  font-size: 12px;
+  line-height: 1.15;
+  border-radius: 10px;
+  margin-top: 0;
+}
+
+/* ============================================================
+PASSENGER GROUPS INSIDE STOP
+============================================================ */
+.captain-passenger-group {
+  margin-top: 14px;
+}
+
+.captain-passenger-group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.captain-passenger-item {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.captain-passenger-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.captain-passenger-line {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.captain-passenger-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.captain-call-btn,
+.captain-pickup-btn,
+.captain-drop-tag {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 40px;
+  max-width: 100%;
+}
+
+.captain-call-btn {
+  background: #e8f7ee;
+  color: #18794e;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.captain-call-btn-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.captain-pickup-btn {
+  background: linear-gradient(135deg, #6f49d9, #5537ad);
+  color: #fff;
+  cursor: pointer;
+}
+
+.captain-pickup-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.captain-drop-tag {
+  background: #fff4e5;
+  color: #9a5b00;
+  cursor: default;
+}
+
+.captain-empty-mini {
+  font-size: 13px;
+  color: #888;
+  background: #fff;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ============================================================
+LOADER SPACING
+============================================================ */
+.captain-pickup-btn .btn-loader,
+.captain-stop-actions .btn .btn-loader,
+.captain-open-trip-btn .btn-loader,
+.captain-stop-reached-btn .btn-loader {
+  margin-left: 6px;
+}
+
+/* ============================================================
+TABLET + MOBILE
 ============================================================ */
 @media (max-width: 768px) {
   .container {
-    width: calc(100vw - 8px) !important;
-    max-width: none !important;
-    margin: 4px auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     border-radius: 10px !important;
+    overflow-x: hidden;
   }
 
   .captain-page-title {
@@ -131,6 +351,8 @@ Use almost every pixel of mobile width
   }
 
   .booking-details {
+    width: 100%;
+    max-width: 100%;
     padding: 10px !important;
     margin-top: 10px !important;
     border-radius: 12px !important;
@@ -139,21 +361,8 @@ Use almost every pixel of mobile width
   .booking-details h3 {
     font-size: 16px;
     margin-bottom: 8px;
-  }
-
-  .captain-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-    margin-top: 10px !important;
-  }
-
-  .captain-column-card {
-    padding: 8px !important;
-  }
-
-  .captain-column-card h3 {
-    font-size: 16px;
-    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .captain-list-card {
@@ -168,9 +377,7 @@ Use almost every pixel of mobile width
     margin-bottom: 3px;
   }
 
-  .captain-open-trip-btn,
-  #captainStopsList .btn,
-  #captainPassengersList .btn {
+  .captain-open-trip-btn {
     min-height: 34px;
     padding: 7px 6px;
     font-size: 11px;
@@ -181,6 +388,66 @@ Use almost every pixel of mobile width
     margin-bottom: 6px;
     font-size: 13px;
   }
+
+  .captain-stop-header {
+    padding: 12px;
+  }
+
+  .captain-stop-title {
+    font-size: 15px;
+  }
+
+  .captain-stop-meta {
+    font-size: 13px;
+  }
+
+  .captain-badge {
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+
+  .captain-stop-body {
+    padding: 0 12px 12px;
+  }
+
+  .captain-passenger-group-title {
+    font-size: 13px;
+  }
+
+  .captain-passenger-item {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .captain-passenger-name {
+    font-size: 14px;
+  }
+
+  .captain-passenger-line {
+    font-size: 13px;
+  }
+
+  .captain-passenger-buttons {
+    flex-direction: column;
+  }
+
+  .captain-call-btn,
+  .captain-pickup-btn,
+  .captain-drop-tag {
+    display: flex;
+    width: 100%;
+    font-size: 13px;
+    min-height: 38px;
+    padding: 9px 10px;
+  }
+
+  .captain-stop-actions .btn,
+  .captain-stop-reached-btn {
+    min-height: 36px;
+    padding: 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
 }
 
 /* ============================================================
@@ -188,9 +455,11 @@ VERY SMALL MOBILE
 ============================================================ */
 @media (max-width: 480px) {
   .container {
-    width: calc(100vw - 4px) !important;
-    margin: 2px auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     border-radius: 8px !important;
+    overflow-x: hidden;
   }
 
   .captain-page-title {
@@ -199,18 +468,15 @@ VERY SMALL MOBILE
   }
 
   .booking-details {
+    width: 100%;
+    max-width: 100%;
     padding: 8px !important;
     margin-top: 8px !important;
   }
 
-  .booking-details h3,
-  .captain-column-card h3 {
+  .booking-details h3 {
     font-size: 14px !important;
     margin-bottom: 6px !important;
-  }
-
-  .captain-grid {
-    gap: 6px !important;
   }
 
   .captain-list-card {
@@ -226,9 +492,7 @@ VERY SMALL MOBILE
     margin-bottom: 2px;
   }
 
-  .captain-open-trip-btn,
-  #captainStopsList .btn,
-  #captainPassengersList .btn {
+  .captain-open-trip-btn {
     min-height: 32px;
     padding: 6px 5px;
     font-size: 10.5px;
@@ -242,5 +506,56 @@ VERY SMALL MOBILE
 
   .captain-empty-text {
     font-size: 11px;
+  }
+
+  .captain-stop-header {
+    padding: 10px;
+  }
+
+  .captain-stop-title {
+    font-size: 14px;
+  }
+
+  .captain-stop-meta {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .captain-stop-body {
+    padding: 0 10px 10px;
+  }
+
+  .captain-passenger-item {
+    padding: 9px;
+  }
+
+  .captain-passenger-name {
+    font-size: 13px;
+  }
+
+  .captain-passenger-line {
+    font-size: 12px;
+  }
+
+  .captain-call-btn,
+  .captain-pickup-btn,
+  .captain-drop-tag {
+    font-size: 12px;
+    min-height: 36px;
+    padding: 8px 9px;
+    border-radius: 10px;
+  }
+
+  .captain-stop-actions .btn,
+  .captain-stop-reached-btn {
+    min-height: 34px;
+    padding: 7px 6px;
+    font-size: 10.5px;
+    margin-top: 0;
+  }
+
+  .captain-empty-mini {
+    font-size: 12px;
+    padding: 8px;
   }
 }

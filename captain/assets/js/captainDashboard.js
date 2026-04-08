@@ -2,6 +2,35 @@
 // captainDashboard.js
 // ---------------------------------------------------------------
 // Handles captain dashboard + trip manifest UI
+//
+// FULLY UPDATED + OPTIMIZED
+//
+// FEATURES:
+// 1. Assigned trips visible in BOTH:
+//    - Dashboard tab
+//    - Trip Details tab
+//
+// 2. Opening trip from:
+//    - Dashboard -> loads trip + switches to Trip Details tab
+//    - Trip Details -> loads trip only, stays on same tab
+//
+// 3. Mobile-friendly manifest:
+//    - stop-wise accordion
+//    - each stop contains:
+//      - stop info
+//      - mark stop reached button
+//      - pickup passengers
+//      - drop passengers
+//      - call passenger button
+//
+// 4. Safer rendering:
+//    - HTML escaping
+//    - normalized stop matching
+//    - shared render helpers
+//
+// 5. Optimized refresh behavior:
+//    - pickup / stop updates reopen manifest in "manifest" mode
+//    - no unnecessary tab switching after already being inside manifest
 // ===============================================================
 
 import { APP_CONFIG } from "/assets/js/config.js";
@@ -35,7 +64,7 @@ function formatTime(value) {
 }
 
 // ===============================================================
-// HELPER: PASSENGER TIMESTAMP FORMAT
+// HELPER: PASSENGER / EVENT TIMESTAMP FORMAT
 // ---------------------------------------------------------------
 // Converts:
 // - "2026-04-06 22:35:19" -> "06 Apr, 10:35 PM"
@@ -47,7 +76,6 @@ function formatPassengerTimestamp(value) {
 
   const str = String(value).trim();
 
-  // Case 1: backend formatted "YYYY-MM-DD HH:mm:ss"
   const match = str.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (match) {
     const [, y, m, d, hh, mm] = match;
@@ -63,7 +91,6 @@ function formatPassengerTimestamp(value) {
     }
   }
 
-  // Case 2: already a browser-readable date string
   const dateObj = new Date(str);
   if (!isNaN(dateObj.getTime())) {
     return dateObj.toLocaleString("en-IN", {
@@ -79,14 +106,57 @@ function formatPassengerTimestamp(value) {
 }
 
 // ===============================================================
-// HELPER: TOGGLE ACTION BUTTON LOADER
+// HELPER: NORMALIZE STRING
 // ---------------------------------------------------------------
-// Used for:
-// - Open Trip Details button
-// - Mark Picked Up button
+// Used for stop/passenger stop-name matching
+// ===============================================================
+function normalizeText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+// ===============================================================
+// HELPER: ESCAPE HTML
+// ---------------------------------------------------------------
+// Prevents HTML injection / broken DOM
+// ===============================================================
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ===============================================================
+// HELPER: BUILD PASSENGER CALL BUTTON
+// ===============================================================
+function buildPassengerCallButton(phone) {
+  const safePhone = String(phone || "").trim();
+
+  if (!safePhone) {
+    return `
+      <button class="captain-call-btn captain-call-btn-disabled" type="button" disabled>
+        No Phone
+      </button>
+    `;
+  }
+
+  return `
+    <a class="captain-call-btn" href="tel:${escapeHtml(safePhone)}">
+      📞 Call ${escapeHtml(safePhone)}
+    </a>
+  `;
+}
+
+// ===============================================================
+// HELPER: TOGGLE ACTION BUTTON LOADER
 // ===============================================================
 function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loadingText = "Loading...") {
-  console.log("🔄 toggleActionButtonLoader() called", {
+  console.log("🔄 toggleActionButtonLoader()", {
     buttonId,
     textId,
     loaderId,
@@ -99,12 +169,22 @@ function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loading
   const loaderEl = document.getElementById(loaderId);
 
   if (!button || !textEl || !loaderEl) {
-    console.warn("⚠️ toggleActionButtonLoader() missing required elements");
+    console.warn("⚠️ toggleActionButtonLoader() missing required elements", {
+      buttonFound: !!button,
+      textFound: !!textEl,
+      loaderFound: !!loaderEl
+    });
     return;
   }
 
   if (!textEl.dataset.defaultText) {
     textEl.dataset.defaultText = textEl.textContent;
+  }
+
+  // If button is permanently frozen, do not override text/disabled state
+  if (button.dataset.frozen === "true" && !isLoading) {
+    loaderEl.style.display = "none";
+    return;
   }
 
   button.disabled = isLoading;
@@ -114,14 +194,9 @@ function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loading
 
 // ===============================================================
 // HELPER: FREEZE ACTION BUTTON AFTER SUCCESS
-// ---------------------------------------------------------------
-// Used when an action is completed successfully.
-// Example:
-// - Mark Picked Up  -> Picked Up
-// - Mark Stop Reached -> Reached
 // ===============================================================
 function freezeActionButton(buttonId, textId, finalText) {
-  console.log("🧊 freezeActionButton() called", {
+  console.log("🧊 freezeActionButton()", {
     buttonId,
     textId,
     finalText
@@ -141,10 +216,22 @@ function freezeActionButton(buttonId, textId, finalText) {
 }
 
 // ===============================================================
+// HELPER: TOGGLE STOP ACCORDION
+// ===============================================================
+function toggleCaptainStopAccordion(headerEl) {
+  console.log("📂 toggleCaptainStopAccordion() called");
+
+  const card = headerEl.closest(".captain-stop-accordion");
+  if (!card) {
+    console.warn("⚠️ Accordion card not found");
+    return;
+  }
+
+  card.classList.toggle("open");
+}
+
+// ===============================================================
 // PUBLIC TAB WRAPPER
-// ---------------------------------------------------------------
-// This wrapper exists so HTML onclick="switchCaptainTab('...')"
-// can safely call a global function attached to window.
 // ===============================================================
 export function switchCaptainTab(tabName) {
   console.log(`🟣 switchCaptainTab() wrapper called → ${tabName}`);
@@ -152,65 +239,158 @@ export function switchCaptainTab(tabName) {
 }
 
 // ===============================================================
-// RENDER: ASSIGNED TRIPS
+// HELPER: BUILD TRIP LIST HTML
 // ---------------------------------------------------------------
-// Shows all assigned trips with action button to open details
-// Includes per-button loader state
+// sourceTab:
+// - "dashboard"
+// - "manifest"
+//
+// Different IDs are used in both sections to avoid duplicate IDs.
+// ===============================================================
+function buildTripsHtml(trips, sourceTab) {
+  if (!trips || !trips.length) {
+    return `
+      <p class="captain-empty-text">
+        No trips found for this bus.
+      </p>
+    `;
+  }
+
+  const buttonPrefix = sourceTab === "manifest" ? "manifestOpenTripBtn_" : "openTripBtn_";
+  const textPrefix = sourceTab === "manifest" ? "manifestOpenTripBtnText_" : "openTripBtnText_";
+  const loaderPrefix = sourceTab === "manifest" ? "manifestOpenTripBtnLoader_" : "openTripBtnLoader_";
+
+  return trips.map((trip) => {
+    const tripId = String(trip.tripId || "");
+    const tripIdAttr = escapeHtml(tripId);
+
+    return `
+      <div class="captain-list-card captain-trip-card">
+        <div><strong>${escapeHtml(trip.tripName || "-")}</strong> (${tripIdAttr})</div>
+        <div>Route: ${escapeHtml(trip.firstStop || "-")} → ${escapeHtml(trip.lastStop || "-")}</div>
+        <div>Time: ${formatTime(trip.firstStopTime)} → ${formatTime(trip.lastStopTime)}</div>
+        <div>Confirmed Seats: ${trip.bookingSummary?.confirmedSeats ?? 0}</div>
+        <div>Hold Seats: ${trip.bookingSummary?.holdSeats ?? 0}</div>
+        <div>Cancelled Seats: ${trip.bookingSummary?.cancelledSeats ?? 0}</div>
+
+        <div style="margin-top:10px;">
+          <button
+            class="btn btn-primary captain-open-trip-btn"
+            id="${buttonPrefix}${tripIdAttr}"
+            onclick="openCaptainTripManifest('${tripIdAttr}', '${sourceTab}')"
+            type="button"
+          >
+            <span id="${textPrefix}${tripIdAttr}">Open Trip Details</span>
+            <span id="${loaderPrefix}${tripIdAttr}" class="btn-loader" style="display:none;"></span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ===============================================================
+// RENDER: ASSIGNED TRIPS IN BOTH TABS
 // ===============================================================
 function renderTrips(trips) {
   console.log("📋 renderTrips() called", trips);
 
-  const container = document.getElementById("captainTripsList");
-  if (!container) {
-    console.warn("⚠️ captainTripsList container not found");
+  const dashboardContainer = document.getElementById("captainTripsList");
+  const manifestContainer = document.getElementById("captainTripsListManifest");
+
+  if (!dashboardContainer && !manifestContainer) {
+    console.warn("⚠️ No trip containers found");
     return;
   }
 
-  if (!trips || !trips.length) {
-    container.innerHTML = `
-      <p style="text-align:center;color:#999;">
-        No trips found for this bus.
-      </p>
-    `;
-    return;
+  const dashboardHtml = buildTripsHtml(trips, "dashboard");
+  const manifestHtml = buildTripsHtml(trips, "manifest");
+
+  if (dashboardContainer) {
+    dashboardContainer.innerHTML = dashboardHtml;
   }
 
-  container.innerHTML = trips.map((trip) => `
-    <div class="captain-list-card captain-trip-card">
-      <div><strong>${trip.tripName}</strong> (${trip.tripId})</div>
-      <div>Route: ${trip.firstStop} → ${trip.lastStop}</div>
-      <div>Time: ${formatTime(trip.firstStopTime)} → ${formatTime(trip.lastStopTime)}</div>
-      <div>Confirmed Seats: ${trip.bookingSummary.confirmedSeats}</div>
-      <div>Hold Seats: ${trip.bookingSummary.holdSeats}</div>
-      <div>Cancelled Seats: ${trip.bookingSummary.cancelledSeats}</div>
+  if (manifestContainer) {
+    manifestContainer.innerHTML = manifestHtml;
+  }
 
-      <div style="margin-top:10px;">
-        <button
-          class="btn btn-primary captain-open-trip-btn"
-          id="openTripBtn_${trip.tripId}"
-          onclick="openCaptainTripManifest('${trip.tripId}')"
-          type="button"
-        >
-          <span id="openTripBtnText_${trip.tripId}">Open Trip Details</span>
-          <span id="openTripBtnLoader_${trip.tripId}" class="btn-loader" style="display:none;"></span>
-        </button>
-      </div>
-    </div>
-  `).join("");
-
-  console.log("✅ Trips rendered successfully");
+  console.log("✅ Trips rendered successfully in both sections");
 }
 
 // ===============================================================
-// RENDER: STOPS
-// ---------------------------------------------------------------
-// Shows stop cards with:
-// - compact stop info
-// - button loader state
-// - disabled state for already reached stops
+// HELPER: PICKUP PASSENGER CARD
 // ===============================================================
-function renderStops(stops) {
-  console.log("🛑 renderStops() called", stops);
+function buildPickupPassengerCard(passenger) {
+  const bookingIdRaw = String(passenger.bookingId || "");
+  const bookingId = escapeHtml(bookingIdRaw);
+  const isPicked = !!passenger.actualPickupTime;
+
+  return `
+    <div class="captain-passenger-item">
+      <div class="captain-passenger-name">${escapeHtml(passenger.passengerName || "-")}</div>
+      <div class="captain-passenger-line">Booking: ${bookingId}</div>
+      <div class="captain-passenger-line">Phone: ${escapeHtml(passenger.passengerPhone || "-")}</div>
+      <div class="captain-passenger-line">
+        ${escapeHtml(passenger.fromStop || "-")} → ${escapeHtml(passenger.toStop || "-")}
+      </div>
+      <div class="captain-passenger-line">Seats: ${passenger.seatsBooked ?? 0}</div>
+      <div class="captain-passenger-line">Pickup: ${formatPassengerTimestamp(passenger.actualPickupTime)}</div>
+      <div class="captain-passenger-line">Drop: ${formatPassengerTimestamp(passenger.actualDropTime)}</div>
+
+      <div class="captain-passenger-buttons">
+        ${buildPassengerCallButton(passenger.passengerPhone)}
+
+        <button
+          class="captain-pickup-btn"
+          id="pickupBtn_${bookingId}"
+          onclick="markCaptainPassengerPickedUp('${bookingId}')"
+          type="button"
+          ${isPicked ? "disabled" : ""}
+        >
+          <span id="pickupBtnText_${bookingId}">
+            ${isPicked ? "Picked Up" : "Mark Picked Up"}
+          </span>
+          <span id="pickupBtnLoader_${bookingId}" class="btn-loader" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ===============================================================
+// HELPER: DROP PASSENGER CARD
+// ===============================================================
+function buildDropPassengerCard(passenger) {
+  const isDropped = !!passenger.actualDropTime;
+
+  return `
+    <div class="captain-passenger-item">
+      <div class="captain-passenger-name">${escapeHtml(passenger.passengerName || "-")}</div>
+      <div class="captain-passenger-line">Booking: ${escapeHtml(passenger.bookingId || "-")}</div>
+      <div class="captain-passenger-line">Phone: ${escapeHtml(passenger.passengerPhone || "-")}</div>
+      <div class="captain-passenger-line">
+        ${escapeHtml(passenger.fromStop || "-")} → ${escapeHtml(passenger.toStop || "-")}
+      </div>
+      <div class="captain-passenger-line">Seats: ${passenger.seatsBooked ?? 0}</div>
+      <div class="captain-passenger-line">Pickup: ${formatPassengerTimestamp(passenger.actualPickupTime)}</div>
+      <div class="captain-passenger-line">Drop: ${formatPassengerTimestamp(passenger.actualDropTime)}</div>
+
+      <div class="captain-passenger-buttons">
+        ${buildPassengerCallButton(passenger.passengerPhone)}
+
+        <button class="captain-drop-tag" type="button" disabled>
+          ${isDropped ? "Dropped" : "Drop Pending"}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ===============================================================
+// RENDER: STOP-WISE MANIFEST
+// ===============================================================
+function renderStops(stops, passengers = []) {
+  console.log("🛑 renderStops() called", { stops, passengers });
 
   const container = document.getElementById("captainStopsList");
   if (!container) {
@@ -220,57 +400,101 @@ function renderStops(stops) {
 
   if (!stops || !stops.length) {
     container.innerHTML = `
-      <p style="text-align:center;color:#999;">
+      <p class="captain-empty-text">
         No stops found.
       </p>
     `;
     return;
   }
 
-  container.innerHTML = stops.map((stop) => `
-    <div class="captain-list-card">
-      <strong>${stop.stopOrder}. ${stop.stopName}</strong>
-      <div>Scheduled: ${formatTime(stop.arrivalTime)} | Actual: ${formatPassengerTimestamp(stop.actualReachedTime)}</div>
-      <div>Status: ${stop.stopStatus}</div>
-      <div>Pickups: ${stop.pickups} | Drops: ${stop.drops}</div>
+  container.innerHTML = stops.map((stop, index) => {
+    const stopNameNormalized = normalizeText(stop.stopName);
 
-      <button
-        class="btn btn-primary"
-        id="stopBtn_${stop.stopId}"
-        onclick="markCaptainStopReached('${stop.stopId}')"
-        type="button"
-        ${stop.stopStatus === "REACHED" ? "disabled" : ""}
-      >
-        <span id="stopBtnText_${stop.stopId}">
-          ${stop.stopStatus === "REACHED" ? "Reached" : "Mark Stop Reached"}
-        </span>
-        <span id="stopBtnLoader_${stop.stopId}" class="btn-loader" style="display:none;"></span>
-      </button>
-    </div>
-  `).join("");
+    const pickupPassengers = passengers.filter((p) => normalizeText(p.fromStop) === stopNameNormalized);
+    const dropPassengers = passengers.filter((p) => normalizeText(p.toStop) === stopNameNormalized);
+
+    const pickupHtml = pickupPassengers.length
+      ? pickupPassengers.map(buildPickupPassengerCard).join("")
+      : `<div class="captain-empty-mini">No pickup passengers at this stop.</div>`;
+
+    const dropHtml = dropPassengers.length
+      ? dropPassengers.map(buildDropPassengerCard).join("")
+      : `<div class="captain-empty-mini">No drop passengers at this stop.</div>`;
+
+    const stopIdRaw = String(stop.stopId || "");
+    const stopId = escapeHtml(stopIdRaw);
+    const isReached = String(stop.stopStatus || "").toUpperCase() === "REACHED";
+
+    return `
+      <div class="captain-stop-accordion ${index === 0 ? "open" : ""}">
+        <div class="captain-stop-header" onclick="toggleCaptainStopAccordion(this)">
+          <div class="captain-stop-title-row">
+            <div class="captain-stop-title">
+              ${escapeHtml(stop.stopOrder || "-")}. ${escapeHtml(stop.stopName || "-")}
+            </div>
+            <div class="captain-stop-chevron">⌄</div>
+          </div>
+
+          <div class="captain-stop-meta">
+            <div>Scheduled: ${formatTime(stop.arrivalTime)} | Actual: ${formatPassengerTimestamp(stop.actualReachedTime)}</div>
+            <div>Status: ${escapeHtml(stop.stopStatus || "PENDING")}</div>
+          </div>
+
+          <div class="captain-stop-badges">
+            <span class="captain-badge">Pickups: ${pickupPassengers.length}</span>
+            <span class="captain-badge">Drops: ${dropPassengers.length}</span>
+          </div>
+        </div>
+
+        <div class="captain-stop-body">
+          <div class="captain-stop-actions">
+            <button
+              class="btn btn-primary captain-stop-reached-btn"
+              id="stopBtn_${stopId}"
+              onclick="markCaptainStopReached('${stopId}')"
+              type="button"
+              ${isReached ? "disabled" : ""}
+            >
+              <span id="stopBtnText_${stopId}">
+                ${isReached ? "Reached" : "Mark Stop Reached"}
+              </span>
+              <span id="stopBtnLoader_${stopId}" class="btn-loader" style="display:none;"></span>
+            </button>
+          </div>
+
+          <div class="captain-passenger-group">
+            <div class="captain-passenger-group-title">Pickup Passengers</div>
+            ${pickupHtml}
+          </div>
+
+          <div class="captain-passenger-group">
+            <div class="captain-passenger-group-title">Drop Passengers</div>
+            ${dropHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
 
   console.log("✅ Stops rendered successfully");
 }
 
 // ===============================================================
-// RENDER: PASSENGERS
+// OPTIONAL LEGACY PASSENGER RENDERER
 // ---------------------------------------------------------------
-// Shows passenger cards with:
-// - cleaner pickup/drop time format
-// - per-button loader state
+// Kept only as fallback if old container still exists
 // ===============================================================
 function renderPassengers(passengers) {
   console.log("👥 renderPassengers() called", passengers);
 
   const container = document.getElementById("captainPassengersList");
   if (!container) {
-    console.warn("⚠️ captainPassengersList container not found");
     return;
   }
 
   if (!passengers || !passengers.length) {
     container.innerHTML = `
-      <p style="text-align:center;color:#999;">
+      <p class="captain-empty-text">
         No confirmed passengers found.
       </p>
     `;
@@ -279,30 +503,28 @@ function renderPassengers(passengers) {
 
   container.innerHTML = passengers.map((p) => `
     <div class="captain-list-card">
-      <strong>${p.passengerName}</strong>
-      <div>Booking: ${p.bookingId}</div>
-      <div>Phone: ${p.passengerPhone || "-"}</div>
-      <div>${p.fromStop} → ${p.toStop}</div>
-      <div>Seats: ${p.seatsBooked}</div>
+      <strong>${escapeHtml(p.passengerName || "-")}</strong>
+      <div>Booking: ${escapeHtml(p.bookingId || "-")}</div>
+      <div>Phone: ${escapeHtml(p.passengerPhone || "-")}</div>
+      <div>${escapeHtml(p.fromStop || "-")} → ${escapeHtml(p.toStop || "-")}</div>
+      <div>Seats: ${p.seatsBooked ?? 0}</div>
       <div>Pickup: ${formatPassengerTimestamp(p.actualPickupTime)}</div>
       <div>Drop: ${formatPassengerTimestamp(p.actualDropTime)}</div>
 
       <button
         class="btn btn-primary"
-        id="pickupBtn_${p.bookingId}"
-        onclick="markCaptainPassengerPickedUp('${p.bookingId}')"
+        id="pickupBtn_${escapeHtml(p.bookingId || "")}"
+        onclick="markCaptainPassengerPickedUp('${escapeHtml(p.bookingId || "")}')"
         type="button"
         ${p.actualPickupTime ? "disabled" : ""}
       >
-        <span id="pickupBtnText_${p.bookingId}">
+        <span id="pickupBtnText_${escapeHtml(p.bookingId || "")}">
           ${p.actualPickupTime ? "Picked Up" : "Mark Picked Up"}
         </span>
-        <span id="pickupBtnLoader_${p.bookingId}" class="btn-loader" style="display:none;"></span>
+        <span id="pickupBtnLoader_${escapeHtml(p.bookingId || "")}" class="btn-loader" style="display:none;"></span>
       </button>
     </div>
   `).join("");
-
-  console.log("✅ Passengers rendered successfully");
 }
 
 // ===============================================================
@@ -352,12 +574,13 @@ export async function loadCaptainDashboard() {
 // ===============================================================
 // OPEN TRIP DETAILS
 // ---------------------------------------------------------------
-// Loads selected trip stops + passengers
-// Adds loading state to clicked button
+// sourceTab:
+// - "dashboard" -> switch to manifest tab after loading
+// - "manifest"  -> stay in manifest tab
 // ===============================================================
-export async function openCaptainTripManifest(tripId) {
+export async function openCaptainTripManifest(tripId, sourceTab = "dashboard") {
   console.log("--------------------------------------------------");
-  console.log(`🧭 openCaptainTripManifest() called → ${tripId}`);
+  console.log(`🧭 openCaptainTripManifest() called → ${tripId}`, { sourceTab });
 
   const session = getCaptainSession();
   console.log("🧾 Captain session:", session);
@@ -370,9 +593,13 @@ export async function openCaptainTripManifest(tripId) {
   currentTripId = tripId;
   console.log("📌 currentTripId set to:", currentTripId);
 
-  const buttonId = `openTripBtn_${tripId}`;
-  const textId = `openTripBtnText_${tripId}`;
-  const loaderId = `openTripBtnLoader_${tripId}`;
+  const buttonPrefix = sourceTab === "manifest" ? "manifestOpenTripBtn_" : "openTripBtn_";
+  const textPrefix = sourceTab === "manifest" ? "manifestOpenTripBtnText_" : "openTripBtnText_";
+  const loaderPrefix = sourceTab === "manifest" ? "manifestOpenTripBtnLoader_" : "openTripBtnLoader_";
+
+  const buttonId = `${buttonPrefix}${tripId}`;
+  const textId = `${textPrefix}${tripId}`;
+  const loaderId = `${loaderPrefix}${tripId}`;
 
   try {
     toggleActionButtonLoader(buttonId, textId, loaderId, true, "Opening...");
@@ -399,22 +626,29 @@ export async function openCaptainTripManifest(tripId) {
     const manifestTripName = document.getElementById("manifestTripName");
     const manifestTravelDate = document.getElementById("manifestTravelDate");
 
-    if (manifestTripId) manifestTripId.textContent = result.trip.tripId || "-";
-    if (manifestTripName) manifestTripName.textContent = result.trip.tripName || "-";
+    if (manifestTripId) manifestTripId.textContent = result.trip?.tripId || "-";
+    if (manifestTripName) manifestTripName.textContent = result.trip?.tripName || "-";
     if (manifestTravelDate) manifestTravelDate.textContent = result.travelDate || "-";
 
     const captainTripId = document.getElementById("captainTripId");
     const captainRoute = document.getElementById("captainRoute");
     const captainTripStatus = document.getElementById("captainTripStatus");
 
-    if (captainTripId) captainTripId.textContent = result.trip.tripId || "-";
-    if (captainRoute) captainRoute.textContent = result.trip.tripName || "Not Assigned";
+    if (captainTripId) captainTripId.textContent = result.trip?.tripId || "-";
+    if (captainRoute) captainRoute.textContent = result.trip?.tripName || "Not Assigned";
     if (captainTripStatus) captainTripStatus.textContent = "In Progress";
 
-    renderStops(result.stops || []);
-    renderPassengers(result.passengers || []);
+    renderStops(result.stops || [], result.passengers || []);
 
-    switchCaptainTabUI("manifest");
+    const passengerContainer = document.getElementById("captainPassengersList");
+    if (passengerContainer) {
+      passengerContainer.innerHTML = "";
+    }
+
+    if (sourceTab === "dashboard") {
+      switchCaptainTabUI("manifest");
+    }
+
     console.log("✅ Trip details opened successfully");
 
   } catch (error) {
@@ -428,13 +662,8 @@ export async function openCaptainTripManifest(tripId) {
   }
 }
 
-/// ===============================================================
+// ===============================================================
 // MARK PASSENGER PICKED UP
-// ---------------------------------------------------------------
-// Expected behavior:
-// 1. Show loader while request is running
-// 2. On success, freeze button immediately
-// 3. Reload current trip details in background
 // ===============================================================
 export async function markCaptainPassengerPickedUp(bookingId) {
   console.log("--------------------------------------------------");
@@ -472,19 +701,12 @@ export async function markCaptainPassengerPickedUp(bookingId) {
       return;
     }
 
-    // -----------------------------------------------------------
-    // Freeze button immediately after success
-    // -----------------------------------------------------------
     freezeActionButton(buttonId, textId, "Picked Up");
-
     console.log("✅ Passenger pickup marked successfully");
 
-    // -----------------------------------------------------------
-    // Refresh manifest in background to update timestamps / state
-    // -----------------------------------------------------------
     if (currentTripId) {
       console.log("🔄 Reloading current trip details...");
-      await openCaptainTripManifest(currentTripId);
+      await openCaptainTripManifest(currentTripId, "manifest");
     }
 
   } catch (error) {
@@ -492,8 +714,6 @@ export async function markCaptainPassengerPickedUp(bookingId) {
     alert("Failed to mark passenger pickup");
 
   } finally {
-    // Keep loader hidden after completion.
-    // If button is frozen, it stays disabled.
     toggleActionButtonLoader(buttonId, textId, loaderId, false);
     console.log("🏁 markCaptainPassengerPickedUp() completed");
     console.log("--------------------------------------------------");
@@ -502,11 +722,6 @@ export async function markCaptainPassengerPickedUp(bookingId) {
 
 // ===============================================================
 // MARK STOP REACHED
-// ---------------------------------------------------------------
-// Expected behavior:
-// 1. Show loader while request is running
-// 2. On success, freeze button immediately
-// 3. Reload trip details in background
 // ===============================================================
 export async function markCaptainStopReached(stopId) {
   console.log("--------------------------------------------------");
@@ -549,33 +764,22 @@ export async function markCaptainStopReached(stopId) {
       return;
     }
 
-    // -----------------------------------------------------------
-    // Freeze button immediately after success
-    // -----------------------------------------------------------
     freezeActionButton(buttonId, textId, "Reached");
-
     console.log("✅ Stop marked reached successfully");
 
-    // -----------------------------------------------------------
-    // Refresh manifest in background to update:
-    // - actual reached time
-    // - backfilled stops
-    // - passenger drop updates
-    // -----------------------------------------------------------
-    await openCaptainTripManifest(currentTripId);
+    await openCaptainTripManifest(currentTripId, "manifest");
 
   } catch (error) {
     console.error("❌ markCaptainStopReached() failed:", error);
     alert("Failed to mark stop reached");
 
   } finally {
-    // Keep loader hidden after completion.
-    // If button is frozen, it stays disabled.
     toggleActionButtonLoader(buttonId, textId, loaderId, false);
     console.log("🏁 markCaptainStopReached() completed");
     console.log("--------------------------------------------------");
   }
 }
+
 // ===============================================================
 // EXPOSE FUNCTIONS GLOBALLY FOR HTML onclick
 // ===============================================================
@@ -583,3 +787,4 @@ window.switchCaptainTab = switchCaptainTab;
 window.openCaptainTripManifest = openCaptainTripManifest;
 window.markCaptainPassengerPickedUp = markCaptainPassengerPickedUp;
 window.markCaptainStopReached = markCaptainStopReached;
+window.toggleCaptainStopAccordion = toggleCaptainStopAccordion;
