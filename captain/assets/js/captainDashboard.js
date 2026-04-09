@@ -29,8 +29,13 @@
 //    - shared render helpers
 //
 // 5. Optimized refresh behavior:
-//    - pickup / stop updates reopen manifest in "manifest" mode
+//    - pickup / no-show / stop updates reopen manifest in "manifest" mode
 //    - no unnecessary tab switching after already being inside manifest
+//
+// 6. Fixed action buttons:
+//    - freeze immediately on click
+//    - restore properly on API failure
+//    - permanently freeze after success
 // ===============================================================
 
 import { APP_CONFIG } from "/assets/js/config.js";
@@ -69,17 +74,21 @@ function formatTime(value) {
 // Converts:
 // - "2026-04-06 22:35:19" -> "06 Apr, 10:35 PM"
 // - JS date strings       -> local readable format
+// - "NO SHOW"             -> "NO SHOW"
 // - empty                 -> "Pending"
 // ===============================================================
 function formatPassengerTimestamp(value) {
   if (!value) return "Pending";
 
   const str = String(value).trim();
+  if (!str) return "Pending";
+  if (str.toUpperCase() === "NO SHOW") return "NO SHOW";
 
   const match = str.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (match) {
     const [, y, m, d, hh, mm] = match;
     const dateObj = new Date(`${y}-${m}-${d}T${hh}:${mm}:00`);
+
     if (!isNaN(dateObj.getTime())) {
       return dateObj.toLocaleString("en-IN", {
         day: "2-digit",
@@ -153,14 +162,18 @@ function buildPassengerCallButton(phone) {
 }
 
 // ===============================================================
-// HELPER: TOGGLE ACTION BUTTON LOADER
+// HELPER: START ACTION BUTTON PENDING STATE IMMEDIATELY
+// ---------------------------------------------------------------
+// PURPOSE:
+// 1. Freeze button instantly when user clicks
+// 2. Show loader immediately
+// 3. Prevent double click while API is in progress
 // ===============================================================
-function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loadingText = "Loading...") {
-  console.log("🔄 toggleActionButtonLoader()", {
+function startActionButtonPending(buttonId, textId, loaderId, loadingText = "Saving...") {
+  console.log("⏳ startActionButtonPending()", {
     buttonId,
     textId,
     loaderId,
-    isLoading,
     loadingText
   });
 
@@ -169,7 +182,59 @@ function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loading
   const loaderEl = document.getElementById(loaderId);
 
   if (!button || !textEl || !loaderEl) {
-    console.warn("⚠️ toggleActionButtonLoader() missing required elements", {
+    console.warn("⚠️ startActionButtonPending() missing required elements", {
+      buttonFound: !!button,
+      textFound: !!textEl,
+      loaderFound: !!loaderEl
+    });
+    return false;
+  }
+
+  if (button.dataset.frozen === "true") {
+    console.log("🧊 Button already permanently frozen, ignoring click");
+    return false;
+  }
+
+  if (button.dataset.pending === "true") {
+    console.log("⏳ Button already pending, ignoring duplicate click");
+    return false;
+  }
+
+  if (!textEl.dataset.defaultText) {
+    textEl.dataset.defaultText = textEl.textContent.trim();
+  }
+
+  button.dataset.pending = "true";
+  button.disabled = true;
+  button.classList.add("captain-pending-freeze");
+
+  textEl.textContent = loadingText;
+  loaderEl.style.display = "inline-block";
+
+  return true;
+}
+
+// ===============================================================
+// HELPER: RESTORE BUTTON IF API FAILS / LOADING ENDS
+// ---------------------------------------------------------------
+// PURPOSE:
+// 1. Unfreeze pending state
+// 2. Restore original button text
+// 3. Hide loader
+// ===============================================================
+function restoreActionButton(buttonId, textId, loaderId) {
+  console.log("↩️ restoreActionButton()", {
+    buttonId,
+    textId,
+    loaderId
+  });
+
+  const button = document.getElementById(buttonId);
+  const textEl = document.getElementById(textId);
+  const loaderEl = document.getElementById(loaderId);
+
+  if (!button || !textEl || !loaderEl) {
+    console.warn("⚠️ restoreActionButton() missing required elements", {
       buttonFound: !!button,
       textFound: !!textEl,
       loaderFound: !!loaderEl
@@ -177,42 +242,61 @@ function toggleActionButtonLoader(buttonId, textId, loaderId, isLoading, loading
     return;
   }
 
-  if (!textEl.dataset.defaultText) {
-    textEl.dataset.defaultText = textEl.textContent;
-  }
-
-  // If button is permanently frozen, do not override text/disabled state
-  if (button.dataset.frozen === "true" && !isLoading) {
+  if (button.dataset.frozen === "true") {
+    console.log("🧊 Button is permanently frozen, restore skipped");
     loaderEl.style.display = "none";
+    button.classList.remove("captain-pending-freeze");
+    delete button.dataset.pending;
     return;
   }
 
-  button.disabled = isLoading;
-  textEl.textContent = isLoading ? loadingText : textEl.dataset.defaultText;
-  loaderEl.style.display = isLoading ? "inline-block" : "none";
+  button.disabled = false;
+  button.classList.remove("captain-pending-freeze");
+  delete button.dataset.pending;
+
+  textEl.textContent = textEl.dataset.defaultText || textEl.textContent;
+  loaderEl.style.display = "none";
 }
 
 // ===============================================================
 // HELPER: FREEZE ACTION BUTTON AFTER SUCCESS
+// ---------------------------------------------------------------
+// PURPOSE:
+// 1. Keep button disabled permanently
+// 2. Hide loader
+// 3. Set final text
 // ===============================================================
-function freezeActionButton(buttonId, textId, finalText) {
+function freezeActionButton(buttonId, textId, finalText, loaderId = null) {
   console.log("🧊 freezeActionButton()", {
     buttonId,
     textId,
+    loaderId,
     finalText
   });
 
   const button = document.getElementById(buttonId);
   const textEl = document.getElementById(textId);
+  const loaderEl = loaderId ? document.getElementById(loaderId) : null;
 
   if (!button || !textEl) {
-    console.warn("⚠️ freezeActionButton() missing required elements");
+    console.warn("⚠️ freezeActionButton() missing required elements", {
+      buttonFound: !!button,
+      textFound: !!textEl
+    });
     return;
   }
 
   button.disabled = true;
   button.dataset.frozen = "true";
+  delete button.dataset.pending;
+  button.classList.remove("captain-pending-freeze");
+
   textEl.textContent = finalText;
+  textEl.dataset.defaultText = finalText;
+
+  if (loaderEl) {
+    loaderEl.style.display = "none";
+  }
 }
 
 // ===============================================================
@@ -323,7 +407,12 @@ function renderTrips(trips) {
 function buildPickupPassengerCard(passenger) {
   const bookingIdRaw = String(passenger.bookingId || "");
   const bookingId = escapeHtml(bookingIdRaw);
-  const isPicked = !!passenger.actualPickupTime;
+
+  const pickupValue = String(passenger.actualPickupTime || "").trim().toUpperCase();
+  const dropValue = String(passenger.actualDropTime || "").trim().toUpperCase();
+
+  const isNoShow = pickupValue === "NO SHOW" || dropValue === "NO SHOW";
+  const isPicked = !!pickupValue && pickupValue !== "NO SHOW";
 
   return `
     <div class="captain-passenger-item">
@@ -345,12 +434,25 @@ function buildPickupPassengerCard(passenger) {
           id="pickupBtn_${bookingId}"
           onclick="markCaptainPassengerPickedUp('${bookingId}')"
           type="button"
-          ${isPicked ? "disabled" : ""}
+          ${(isPicked || isNoShow) ? "disabled" : ""}
         >
           <span id="pickupBtnText_${bookingId}">
-            ${isPicked ? "Picked Up" : "Mark Picked Up"}
+            ${isPicked ? "Picked Up" : isNoShow ? "Pickup Closed" : "Mark Picked Up"}
           </span>
           <span id="pickupBtnLoader_${bookingId}" class="btn-loader" style="display:none;"></span>
+        </button>
+
+        <button
+          class="captain-no-show-btn"
+          id="noShowBtn_${bookingId}"
+          onclick="markCaptainPassengerNoShow('${bookingId}')"
+          type="button"
+          ${(isPicked || isNoShow) ? "disabled" : ""}
+        >
+          <span id="noShowBtnText_${bookingId}">
+            ${isNoShow ? "No Show" : "Didn’t Show"}
+          </span>
+          <span id="noShowBtnLoader_${bookingId}" class="btn-loader" style="display:none;"></span>
         </button>
       </div>
     </div>
@@ -361,7 +463,11 @@ function buildPickupPassengerCard(passenger) {
 // HELPER: DROP PASSENGER CARD
 // ===============================================================
 function buildDropPassengerCard(passenger) {
-  const isDropped = !!passenger.actualDropTime;
+  const pickupValue = String(passenger.actualPickupTime || "").trim().toUpperCase();
+  const dropValue = String(passenger.actualDropTime || "").trim().toUpperCase();
+
+  const isNoShow = pickupValue === "NO SHOW" || dropValue === "NO SHOW";
+  const isDropped = !!dropValue && dropValue !== "NO SHOW";
 
   return `
     <div class="captain-passenger-item">
@@ -379,7 +485,7 @@ function buildDropPassengerCard(passenger) {
         ${buildPassengerCallButton(passenger.passengerPhone)}
 
         <button class="captain-drop-tag" type="button" disabled>
-          ${isDropped ? "Dropped" : "Drop Pending"}
+          ${isNoShow ? "No Show" : isDropped ? "Dropped" : "Drop Pending"}
         </button>
       </div>
     </div>
@@ -501,30 +607,55 @@ function renderPassengers(passengers) {
     return;
   }
 
-  container.innerHTML = passengers.map((p) => `
-    <div class="captain-list-card">
-      <strong>${escapeHtml(p.passengerName || "-")}</strong>
-      <div>Booking: ${escapeHtml(p.bookingId || "-")}</div>
-      <div>Phone: ${escapeHtml(p.passengerPhone || "-")}</div>
-      <div>${escapeHtml(p.fromStop || "-")} → ${escapeHtml(p.toStop || "-")}</div>
-      <div>Seats: ${p.seatsBooked ?? 0}</div>
-      <div>Pickup: ${formatPassengerTimestamp(p.actualPickupTime)}</div>
-      <div>Drop: ${formatPassengerTimestamp(p.actualDropTime)}</div>
+  container.innerHTML = passengers.map((p) => {
+    const bookingId = escapeHtml(p.bookingId || "");
+    const pickupValue = String(p.actualPickupTime || "").trim().toUpperCase();
+    const dropValue = String(p.actualDropTime || "").trim().toUpperCase();
+    const isNoShow = pickupValue === "NO SHOW" || dropValue === "NO SHOW";
+    const isPicked = !!pickupValue && pickupValue !== "NO SHOW";
 
-      <button
-        class="btn btn-primary"
-        id="pickupBtn_${escapeHtml(p.bookingId || "")}"
-        onclick="markCaptainPassengerPickedUp('${escapeHtml(p.bookingId || "")}')"
-        type="button"
-        ${p.actualPickupTime ? "disabled" : ""}
-      >
-        <span id="pickupBtnText_${escapeHtml(p.bookingId || "")}">
-          ${p.actualPickupTime ? "Picked Up" : "Mark Picked Up"}
-        </span>
-        <span id="pickupBtnLoader_${escapeHtml(p.bookingId || "")}" class="btn-loader" style="display:none;"></span>
-      </button>
-    </div>
-  `).join("");
+    return `
+      <div class="captain-list-card">
+        <strong>${escapeHtml(p.passengerName || "-")}</strong>
+        <div>Booking: ${escapeHtml(p.bookingId || "-")}</div>
+        <div>Phone: ${escapeHtml(p.passengerPhone || "-")}</div>
+        <div>${escapeHtml(p.fromStop || "-")} → ${escapeHtml(p.toStop || "-")}</div>
+        <div>Seats: ${p.seatsBooked ?? 0}</div>
+        <div>Pickup: ${formatPassengerTimestamp(p.actualPickupTime)}</div>
+        <div>Drop: ${formatPassengerTimestamp(p.actualDropTime)}</div>
+
+        <div class="captain-passenger-buttons" style="margin-top:10px;">
+          ${buildPassengerCallButton(p.passengerPhone)}
+
+          <button
+            class="btn btn-primary"
+            id="pickupBtn_${bookingId}"
+            onclick="markCaptainPassengerPickedUp('${bookingId}')"
+            type="button"
+            ${(isPicked || isNoShow) ? "disabled" : ""}
+          >
+            <span id="pickupBtnText_${bookingId}">
+              ${isPicked ? "Picked Up" : isNoShow ? "Pickup Closed" : "Mark Picked Up"}
+            </span>
+            <span id="pickupBtnLoader_${bookingId}" class="btn-loader" style="display:none;"></span>
+          </button>
+
+          <button
+            class="captain-no-show-btn"
+            id="noShowBtn_${bookingId}"
+            onclick="markCaptainPassengerNoShow('${bookingId}')"
+            type="button"
+            ${(isPicked || isNoShow) ? "disabled" : ""}
+          >
+            <span id="noShowBtnText_${bookingId}">
+              ${isNoShow ? "No Show" : "Didn’t Show"}
+            </span>
+            <span id="noShowBtnLoader_${bookingId}" class="btn-loader" style="display:none;"></span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 // ===============================================================
@@ -601,9 +732,12 @@ export async function openCaptainTripManifest(tripId, sourceTab = "dashboard") {
   const textId = `${textPrefix}${tripId}`;
   const loaderId = `${loaderPrefix}${tripId}`;
 
-  try {
-    toggleActionButtonLoader(buttonId, textId, loaderId, true, "Opening...");
+  const started = startActionButtonPending(buttonId, textId, loaderId, "Opening...");
+  if (!started) {
+    console.log("ℹ️ Open trip button pending state not started, continuing safely");
+  }
 
+  try {
     const url =
       `${APP_CONFIG.API_URL}?action=getCaptainTripManifest` +
       `&driver_id=${encodeURIComponent(session.driverId)}` +
@@ -618,6 +752,7 @@ export async function openCaptainTripManifest(tripId, sourceTab = "dashboard") {
     console.log("📥 Manifest API Response:", result);
 
     if (!result.success) {
+      restoreActionButton(buttonId, textId, loaderId);
       alert(result.message || "Failed to load trip details");
       return;
     }
@@ -649,17 +784,16 @@ export async function openCaptainTripManifest(tripId, sourceTab = "dashboard") {
       switchCaptainTabUI("manifest");
     }
 
+    restoreActionButton(buttonId, textId, loaderId);
     console.log("✅ Trip details opened successfully");
 
   } catch (error) {
     console.error("❌ openCaptainTripManifest() failed:", error);
+    restoreActionButton(buttonId, textId, loaderId);
     alert("Failed to load trip details");
-
-  } finally {
-    toggleActionButtonLoader(buttonId, textId, loaderId, false);
-    console.log("🏁 openCaptainTripManifest() completed");
-    console.log("--------------------------------------------------");
   }
+
+  console.log("--------------------------------------------------");
 }
 
 // ===============================================================
@@ -681,9 +815,10 @@ export async function markCaptainPassengerPickedUp(bookingId) {
   const textId = `pickupBtnText_${bookingId}`;
   const loaderId = `pickupBtnLoader_${bookingId}`;
 
-  try {
-    toggleActionButtonLoader(buttonId, textId, loaderId, true, "Saving...");
+  const started = startActionButtonPending(buttonId, textId, loaderId, "Saving...");
+  if (!started) return;
 
+  try {
     const url =
       `${APP_CONFIG.API_URL}?action=markPassengerPickedUp` +
       `&driver_id=${encodeURIComponent(session.driverId)}` +
@@ -697,11 +832,21 @@ export async function markCaptainPassengerPickedUp(bookingId) {
     console.log("📥 Pickup API Response:", result);
 
     if (!result.success) {
+      restoreActionButton(buttonId, textId, loaderId);
       alert(result.message || "Failed to mark passenger pickup");
       return;
     }
 
-    freezeActionButton(buttonId, textId, "Picked Up");
+    freezeActionButton(buttonId, textId, "Picked Up", loaderId);
+
+    const noShowBtnId = `noShowBtn_${bookingId}`;
+    const noShowTextId = `noShowBtnText_${bookingId}`;
+    const noShowLoaderId = `noShowBtnLoader_${bookingId}`;
+
+    if (document.getElementById(noShowBtnId)) {
+      freezeActionButton(noShowBtnId, noShowTextId, "No Show Closed", noShowLoaderId);
+    }
+
     console.log("✅ Passenger pickup marked successfully");
 
     if (currentTripId) {
@@ -711,13 +856,80 @@ export async function markCaptainPassengerPickedUp(bookingId) {
 
   } catch (error) {
     console.error("❌ markCaptainPassengerPickedUp() failed:", error);
+    restoreActionButton(buttonId, textId, loaderId);
     alert("Failed to mark passenger pickup");
-
-  } finally {
-    toggleActionButtonLoader(buttonId, textId, loaderId, false);
-    console.log("🏁 markCaptainPassengerPickedUp() completed");
-    console.log("--------------------------------------------------");
   }
+
+  console.log("🏁 markCaptainPassengerPickedUp() completed");
+  console.log("--------------------------------------------------");
+}
+
+// ===============================================================
+// MARK PASSENGER NO SHOW
+// ===============================================================
+export async function markCaptainPassengerNoShow(bookingId) {
+  console.log("--------------------------------------------------");
+  console.log(`🚫 markCaptainPassengerNoShow() called → ${bookingId}`);
+
+  const session = getCaptainSession();
+  console.log("🧾 Captain session:", session);
+
+  if (!session) {
+    console.warn("⚠️ No captain session found");
+    return;
+  }
+
+  const buttonId = `noShowBtn_${bookingId}`;
+  const textId = `noShowBtnText_${bookingId}`;
+  const loaderId = `noShowBtnLoader_${bookingId}`;
+
+  const started = startActionButtonPending(buttonId, textId, loaderId, "Saving...");
+  if (!started) return;
+
+  try {
+    const url =
+      `${APP_CONFIG.API_URL}?action=markPassengerNoShow` +
+      `&driver_id=${encodeURIComponent(session.driverId)}` +
+      `&booking_id=${encodeURIComponent(bookingId)}`;
+
+    console.log("📡 No Show API URL:", url);
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    console.log("📥 No Show API Response:", result);
+
+    if (!result.success) {
+      restoreActionButton(buttonId, textId, loaderId);
+      alert(result.message || "Failed to mark passenger as no show");
+      return;
+    }
+
+    freezeActionButton(buttonId, textId, "No Show", loaderId);
+
+    const pickupBtnId = `pickupBtn_${bookingId}`;
+    const pickupTextId = `pickupBtnText_${bookingId}`;
+    const pickupLoaderId = `pickupBtnLoader_${bookingId}`;
+
+    if (document.getElementById(pickupBtnId)) {
+      freezeActionButton(pickupBtnId, pickupTextId, "Pickup Closed", pickupLoaderId);
+    }
+
+    console.log("✅ Passenger marked as NO SHOW successfully");
+
+    if (currentTripId) {
+      console.log("🔄 Reloading current trip details...");
+      await openCaptainTripManifest(currentTripId, "manifest");
+    }
+
+  } catch (error) {
+    console.error("❌ markCaptainPassengerNoShow() failed:", error);
+    restoreActionButton(buttonId, textId, loaderId);
+    alert("Failed to mark passenger as no show");
+  }
+
+  console.log("🏁 markCaptainPassengerNoShow() completed");
+  console.log("--------------------------------------------------");
 }
 
 // ===============================================================
@@ -742,9 +954,10 @@ export async function markCaptainStopReached(stopId) {
   const textId = `stopBtnText_${stopId}`;
   const loaderId = `stopBtnLoader_${stopId}`;
 
-  try {
-    toggleActionButtonLoader(buttonId, textId, loaderId, true, "Saving...");
+  const started = startActionButtonPending(buttonId, textId, loaderId, "Saving...");
+  if (!started) return;
 
+  try {
     const url =
       `${APP_CONFIG.API_URL}?action=markStopReached` +
       `&driver_id=${encodeURIComponent(session.driverId)}` +
@@ -760,24 +973,24 @@ export async function markCaptainStopReached(stopId) {
     console.log("📥 Stop Reached API Response:", result);
 
     if (!result.success) {
+      restoreActionButton(buttonId, textId, loaderId);
       alert(result.message || "Failed to mark stop reached");
       return;
     }
 
-    freezeActionButton(buttonId, textId, "Reached");
+    freezeActionButton(buttonId, textId, "Reached", loaderId);
     console.log("✅ Stop marked reached successfully");
 
     await openCaptainTripManifest(currentTripId, "manifest");
 
   } catch (error) {
     console.error("❌ markCaptainStopReached() failed:", error);
+    restoreActionButton(buttonId, textId, loaderId);
     alert("Failed to mark stop reached");
-
-  } finally {
-    toggleActionButtonLoader(buttonId, textId, loaderId, false);
-    console.log("🏁 markCaptainStopReached() completed");
-    console.log("--------------------------------------------------");
   }
+
+  console.log("🏁 markCaptainStopReached() completed");
+  console.log("--------------------------------------------------");
 }
 
 // ===============================================================
@@ -786,5 +999,6 @@ export async function markCaptainStopReached(stopId) {
 window.switchCaptainTab = switchCaptainTab;
 window.openCaptainTripManifest = openCaptainTripManifest;
 window.markCaptainPassengerPickedUp = markCaptainPassengerPickedUp;
+window.markCaptainPassengerNoShow = markCaptainPassengerNoShow;
 window.markCaptainStopReached = markCaptainStopReached;
 window.toggleCaptainStopAccordion = toggleCaptainStopAccordion;

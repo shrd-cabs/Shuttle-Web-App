@@ -259,35 +259,48 @@ PASSENGER GROUPS INSIDE STOP
   word-break: break-word;
 }
 
+/* ============================================================
+PASSENGER BUTTONS
+============================================================ */
 .captain-passenger-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
   width: 100%;
+  align-items: stretch;
 }
 
 .captain-call-btn,
 .captain-pickup-btn,
+.captain-no-show-btn,
 .captain-drop-tag {
-  border: none;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 14px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
 }
 
+/* ============================================================
+CALL BUTTON
+============================================================ */
 .captain-call-btn {
   background: #e8f7ee;
   color: #18794e;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border: none;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.captain-call-btn:hover {
+  background: #dcf1e5;
 }
 
 .captain-call-btn-disabled {
@@ -295,23 +308,61 @@ PASSENGER GROUPS INSIDE STOP
   cursor: not-allowed;
 }
 
+/* ============================================================
+PICKUP BUTTON
+============================================================ */
 .captain-pickup-btn {
   background: linear-gradient(135deg, #6f49d9, #5537ad);
   color: #fff;
+  border: none;
   cursor: pointer;
 }
 
-.captain-pickup-btn:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.captain-pickup-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.97;
 }
 
+.captain-pickup-btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================
+NO SHOW BUTTON
+============================================================ */
+.captain-no-show-btn {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.captain-no-show-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  transform: translateY(-1px);
+}
+
+.captain-no-show-btn:disabled {
+  opacity: 0.78;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================================
+DROP TAG
+============================================================ */
 .captain-drop-tag {
   background: #fff4e5;
   color: #9a5b00;
+  border: none;
   cursor: default;
 }
 
+/* ============================================================
+EMPTY MINI
+============================================================ */
 .captain-empty-mini {
   font-size: 13px;
   color: #888;
@@ -324,9 +375,25 @@ PASSENGER GROUPS INSIDE STOP
 }
 
 /* ============================================================
+IMMEDIATE PENDING FREEZE STATE
+---------------------------------------------------------------
+Applied instantly on click before API completes
+============================================================ */
+.captain-pending-freeze {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* ============================================================
 LOADER SPACING
 ============================================================ */
+.btn-loader {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .captain-pickup-btn .btn-loader,
+.captain-no-show-btn .btn-loader,
 .captain-stop-actions .btn .btn-loader,
 .captain-open-trip-btn .btn-loader,
 .captain-stop-reached-btn .btn-loader {
@@ -433,8 +500,8 @@ TABLET + MOBILE
 
   .captain-call-btn,
   .captain-pickup-btn,
+  .captain-no-show-btn,
   .captain-drop-tag {
-    display: flex;
     width: 100%;
     font-size: 13px;
     min-height: 38px;
@@ -539,6 +606,7 @@ VERY SMALL MOBILE
 
   .captain-call-btn,
   .captain-pickup-btn,
+  .captain-no-show-btn,
   .captain-drop-tag {
     font-size: 12px;
     min-height: 36px;
