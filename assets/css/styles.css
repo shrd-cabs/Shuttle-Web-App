@@ -794,10 +794,48 @@ Custom no-library searchable select
   gap: 12px;
 }
 
-/* Fix warning width */
 .payment-warning-note {
-  width: 100%;
-  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  background: #fff7e6;
+  border: 1px solid #f5c97a;
+  border-left: 5px solid #f0b429;
+
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-top: 16px;
+}
+
+/* Icon */
+.warning-icon {
+  font-size: 20px;
+  margin-top: 2px;
+}
+
+/* Text container */
+.warning-text {
+  flex: 1;
+}
+
+/* Title */
+.warning-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #8a5a00;
+  margin-bottom: 4px;
+}
+
+/* Description */
+.warning-desc {
+  font-size: 14px;
+  color: #5f4300;
+  line-height: 1.5;
+}
+
+.warning-desc strong {
+  color: #3d2b00;
 }
 
 /* Buttons row */
@@ -2100,7 +2138,7 @@ ACTIVE CLICK EFFECT
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 6px 0;
   border-bottom: 1px solid #eee;
   font-size: 16px;
 }

@@ -322,7 +322,7 @@ function injectPaymentSummaryModal() {
 
           <label class="payment-wallet-checkbox">
             <input type="checkbox" id="useWalletCheckbox" onchange="handleWalletCheckboxChange()">
-            <span>Use wallet balance for this booking</span>
+            <span>Use wallet balance</span>
           </label>
 
           <div class="payment-summary-row">
@@ -334,28 +334,35 @@ function injectPaymentSummaryModal() {
             <span>Pay Online</span>
             <strong id="summaryOnlineAmount">₹0</strong>
           </div>
-        </div>
-
-        <div class="payment-summary-footer">
 
           <!-- Warning -->
           <div class="payment-warning-note">
-            ⚠️ <strong>Do not close or refresh this page</strong><br>
-            Please wait until you receive the <strong>booking confirmation message on the web app</strong>.<br>
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-text">
+              <div class="warning-title">Payment in progress</div>
+              <div class="warning-desc">
+                Do not close or refresh this page.<br>
+                Wait until you receive the <strong>booking confirmation</strong>.
+              </div>
+            </div>
           </div>
 
-          <!-- BUTTON WRAPPER -->
-          <div class="payment-footer-buttons">
-            <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
-              Cancel
-            </button>
+          <div class="payment-summary-footer">
+            <!-- BUTTON WRAPPER -->
+            <div class="payment-footer-buttons">
+              <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
+                Cancel
+              </button>
 
-            <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
-              Proceed
-            </button>
+              <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
+                Proceed
+              </button>
+            </div>
+
           </div>
-
         </div>
+
+        
       </div>
     </div>
   `;
