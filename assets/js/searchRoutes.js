@@ -1,27 +1,31 @@
 // ===============================================================
-// searchRoutes.js (OPTIMIZED + SAFE VERSION)
+// searchRoutes.js (ONE WAY + ROUND TRIP SUPPORT 🚀)
 // ---------------------------------------------------------------
 // Handles route searching functionality.
 //
 // RESPONSIBILITIES:
 // 1. Initialize trip date input
-//    - Freeze past dates
-//    - Allow only today to next MAX_ADVANCE_DAYS
-//    - Set default date = today
-// 2. Attach Check Availability button safely
-// 3. Validate form inputs
-// 4. Call Apps Script backend
-// 5. Render available routes
-// 6. Handle route selection safely
-// 7. Highlight selected route card
-// 8. Update booking summary
-// 9. Store selected booking globally
-// 10. Handle loader + alerts cleanly
+// 2. Handle One Way / Round Trip trip type toggle
+// 3. Handle Swap Stops button
+// 4. Validate booking form inputs
+// 5. Call backend searchRoutes API
+// 6. Render:
+//    - One Way routes
+//    - Round Trip onward + return routes
+// 7. Track selected route(s) safely
+// 8. Update booking summary safely
+// 9. Preserve global booking object for payment.js
+// 10. Keep existing one-way flow backward-compatible
 //
 // IMPORTANT:
-// - Existing functionality is preserved
-// - Existing global window.selectedBooking is preserved
-// - Existing legacy window.selectRoute() is preserved
+// ---------------------------------------------------------------
+// ✅ Common trip date for both one-way and round-trip
+// ✅ From / To are swapped for return route search automatically
+// ✅ Round trip requires 2 selections:
+//    - onward route
+//    - return route
+// ✅ window.selectedBooking remains available globally
+// ✅ Includes detailed console logs for debugging
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -36,6 +40,18 @@ const MAX_ADVANCE_DAYS = 7;
 // ===============================================================
 let selectedRouteIndex = -1;
 
+// Round-trip selection state
+let selectedOnwardRouteIndex = -1;
+let selectedReturnRouteIndex = -1;
+
+// Rendered routes memory
+let renderedRouteState = {
+  tripType: "ONEWAY",
+  onwardRoutes: [],
+  returnRoutes: [],
+  oneWayRoutes: []
+};
+
 // ===============================================================
 // MODULE INITIALIZER
 // ===============================================================
@@ -45,9 +61,13 @@ export function initSearchRoutes() {
 
   const checkBtn = document.getElementById("checkAvailabilityBtn");
   const dateInput = document.getElementById("tripDate");
+  const oneWayBtn = document.getElementById("oneWayBtn");
+  const roundTripBtn = document.getElementById("roundTripBtn");
+  const swapBtn = document.getElementById("swapStopsBtn");
 
-  // Initialize trip date field
   initializeTripDate(dateInput);
+  initializeTripTypeToggle(oneWayBtn, roundTripBtn);
+  initializeSwapStopsButton(swapBtn);
 
   if (!checkBtn) {
     console.warn("⚠️ checkAvailabilityBtn not found");
@@ -55,7 +75,6 @@ export function initSearchRoutes() {
     return;
   }
 
-  // Prevent duplicate event registration
   checkBtn.removeEventListener("click", checkAvailability);
   checkBtn.addEventListener("click", checkAvailability);
 
@@ -65,10 +84,6 @@ export function initSearchRoutes() {
 
 // ===============================================================
 // DATE INITIALIZATION
-// ---------------------------------------------------------------
-// - Freeze past dates
-// - Allow only next MAX_ADVANCE_DAYS from today
-// - Set default today
 // ===============================================================
 function initializeTripDate(dateInput) {
   if (!dateInput) {
@@ -83,16 +98,13 @@ function initializeTripDate(dateInput) {
   maxDateObj.setDate(maxDateObj.getDate() + MAX_ADVANCE_DAYS);
   const maxDate = formatDateLocal(maxDateObj);
 
-  // Native restriction
   dateInput.min = today;
   dateInput.max = maxDate;
 
-  // Set default if empty or invalid
   if (!dateInput.value || dateInput.value < today || dateInput.value > maxDate) {
     dateInput.value = today;
   }
 
-  // iPhone / browser fallback validation
   dateInput.removeEventListener("change", handleTripDateValidation);
   dateInput.removeEventListener("input", handleTripDateValidation);
 
@@ -151,8 +163,116 @@ function isTripDateWithinAllowedRange(dateValue) {
 }
 
 // ===============================================================
+// TRIP TYPE TOGGLE
+// ===============================================================
+function initializeTripTypeToggle(oneWayBtn, roundTripBtn) {
+  if (!oneWayBtn || !roundTripBtn) {
+    console.warn("⚠️ Trip type buttons not found");
+    return;
+  }
+
+  oneWayBtn.removeEventListener("click", handleOneWayClick);
+  roundTripBtn.removeEventListener("click", handleRoundTripClick);
+
+  oneWayBtn.addEventListener("click", handleOneWayClick);
+  roundTripBtn.addEventListener("click", handleRoundTripClick);
+
+  console.log("✅ Trip type toggle initialized");
+}
+
+function handleOneWayClick() {
+  console.log("🛣️ Trip Type selected: ONEWAY");
+  setTripType("ONEWAY");
+}
+
+function handleRoundTripClick() {
+  console.log("🔁 Trip Type selected: ROUNDTRIP");
+  setTripType("ROUNDTRIP");
+}
+
+function setTripType(type) {
+  const tripTypeInput = getElement("tripType");
+  const oneWayBtn = getElement("oneWayBtn");
+  const roundTripBtn = getElement("roundTripBtn");
+  const routesContainer = getElement("routesContainer");
+
+  if (tripTypeInput) {
+    tripTypeInput.value = type.toLowerCase();
+  }
+
+  if (oneWayBtn) {
+    oneWayBtn.classList.toggle("active", type === "ONEWAY");
+  }
+
+  if (roundTripBtn) {
+    roundTripBtn.classList.toggle("active", type === "ROUNDTRIP");
+  }
+
+  resetRenderedRoutesState();
+  clearSelectedBooking();
+  clearBookingSummary();
+
+  if (routesContainer) {
+    routesContainer.innerHTML = "";
+  }
+
+  showAlert("", "");
+  console.log("✅ Trip type updated to:", type);
+}
+
+// ===============================================================
+// SWAP STOPS BUTTON
+// ===============================================================
+function initializeSwapStopsButton(swapBtn) {
+  if (!swapBtn) {
+    console.warn("⚠️ swapStopsBtn not found");
+    return;
+  }
+
+  swapBtn.removeEventListener("click", swapStops);
+  swapBtn.addEventListener("click", swapStops);
+
+  console.log("✅ Swap stops button initialized");
+}
+
+function swapStops() {
+  console.log("🔄 swapStops() called");
+
+  const fromSearch = getElement("tripFromSearch");
+  const fromHidden = getElement("tripFrom");
+  const toSearch = getElement("tripToSearch");
+  const toHidden = getElement("tripTo");
+
+  if (!fromSearch || !fromHidden || !toSearch || !toHidden) {
+    console.warn("⚠️ One or more stop inputs not found");
+    return;
+  }
+
+  const tempSearch = fromSearch.value;
+  const tempHidden = fromHidden.value;
+
+  fromSearch.value = toSearch.value;
+  fromHidden.value = toHidden.value;
+
+  toSearch.value = tempSearch;
+  toHidden.value = tempHidden;
+
+  console.log("✅ Stops swapped successfully");
+
+  resetRenderedRoutesState();
+  clearSelectedBooking();
+  clearBookingSummary();
+
+  const routesContainer = getElement("routesContainer");
+  if (routesContainer) {
+    routesContainer.innerHTML = "";
+  }
+
+  showAlert("", "");
+}
+
+// ===============================================================
 // FORMAT DATE AS YYYY-MM-DD USING LOCAL DATE PARTS
-// Safe for HTML date input
 // ===============================================================
 function formatDateLocal(date) {
   const year = date.getFullYear();
@@ -172,6 +292,55 @@ function getInputValue(id) {
   return document.getElementById(id)?.value?.trim() || "";
 }
 
+function getCurrentTripType() {
+  const raw = getInputValue("tripType").toUpperCase();
+  return raw === "ROUNDTRIP" ? "ROUNDTRIP" : "ONEWAY";
+}
+
+// ===============================================================
+// STATE RESET HELPERS
+// ===============================================================
+function resetRenderedRoutesState() {
+  selectedRouteIndex = -1;
+  selectedOnwardRouteIndex = -1;
+  selectedReturnRouteIndex = -1;
+
+  renderedRouteState = {
+    tripType: getCurrentTripType(),
+    onwardRoutes: [],
+    returnRoutes: [],
+    oneWayRoutes: []
+  };
+
+  window._renderedRoutes = [];
+  window._renderedOnwardRoutes = [];
+  window._renderedReturnRoutes = [];
+
+  console.log("🧹 Route render state reset");
+}
+
+function clearSelectedBooking() {
+  window.selectedBooking = null;
+  console.log("🧹 window.selectedBooking cleared");
+}
+
+function clearBookingSummary() {
+  const selectedSeatsDisplay = getElement("selectedSeatsDisplay");
+  const dateDisplay = getElement("dateDisplay");
+  const journeyTimeDisplay = getElement("journeyTimeDisplay");
+  const totalAmountDisplay = getElement("totalAmountDisplay");
+  const routeDisplay = getElement("routeDisplay");
+
+  if (selectedSeatsDisplay) selectedSeatsDisplay.innerText = "None";
+  if (dateDisplay) dateDisplay.innerText = "Not selected";
+  if (journeyTimeDisplay) dateDisplay ? null : null;
+  if (journeyTimeDisplay) journeyTimeDisplay.innerText = "Not selected";
+  if (totalAmountDisplay) totalAmountDisplay.innerText = "Not selected";
+  if (routeDisplay) routeDisplay.innerText = "Not selected";
+
+  console.log("🧹 Booking summary cleared");
+}
+
 // ===============================================================
 // CHECK AVAILABILITY
 // ===============================================================
@@ -179,12 +348,14 @@ async function checkAvailability() {
   console.log("--------------------------------------------------");
   console.log("🚌 Check Availability clicked");
 
+  const tripType = getCurrentTripType();
   const travelDate = getInputValue("tripDate");
   const fromStop = getInputValue("tripFrom");
   const toStop = getInputValue("tripTo");
   const pax = getInputValue("noOfPAX");
 
   console.log("📌 Search Params:", {
+    tripType,
     travelDate,
     fromStop,
     toStop,
@@ -199,15 +370,12 @@ async function checkAvailability() {
     return;
   }
 
-  // Clear previous routes / selection / alerts
   routesContainer.innerHTML = "";
-  selectedRouteIndex = -1;
-  window._renderedRoutes = [];
+  resetRenderedRoutesState();
+  clearSelectedBooking();
+  clearBookingSummary();
   showAlert("", "");
 
-  // ==========================================================
-  // FORM VALIDATION
-  // ==========================================================
   if (!travelDate || !fromStop || !toStop) {
     console.warn("⚠️ Missing required input(s)");
     showAlert("Please select date and stops.", "warning");
@@ -236,6 +404,7 @@ async function checkAvailability() {
 
     const url =
       `${APP_CONFIG.API_URL}?action=searchRoutes` +
+      `&trip_type=${encodeURIComponent(tripType)}` +
       `&travel_date=${encodeURIComponent(travelDate)}` +
       `&from_stop=${encodeURIComponent(fromStop)}` +
       `&to_stop=${encodeURIComponent(toStop)}` +
@@ -244,7 +413,6 @@ async function checkAvailability() {
     console.log("📡 Request URL:", url);
 
     const response = await fetch(url);
-
     console.log("📶 Response status:", response.status);
 
     if (!response.ok) {
@@ -252,13 +420,73 @@ async function checkAvailability() {
     }
 
     const data = await response.json();
-
     console.log("📥 Backend Response:", data);
 
+    if (!data?.success) {
+      console.warn("⚠️ Backend returned unsuccessful response");
+      showAlert(data?.error || "No trips available for selected date.", "warning");
+      routesContainer.innerHTML = `
+        <div class="route-empty">
+          🚫 No trips available for selected date
+        </div>
+      `;
+      console.log("--------------------------------------------------");
+      return;
+    }
+
     // ==========================================================
-    // NO ROUTES FOUND
+    // ROUND TRIP FLOW
     // ==========================================================
-    if (!data?.success || !Array.isArray(data.routes) || data.routes.length === 0) {
+    if (tripType === "ROUNDTRIP") {
+      const onwardRoutes = Array.isArray(data.onward_routes) ? data.onward_routes : [];
+      const returnRoutes = Array.isArray(data.return_routes) ? data.return_routes : [];
+
+      console.log("🔁 Round Trip Results:");
+      console.log("➡️ onwardRoutes:", onwardRoutes.length);
+      console.log("⬅️ returnRoutes:", returnRoutes.length);
+
+      if (onwardRoutes.length === 0 || returnRoutes.length === 0) {
+        console.warn("⚠️ Missing onward or return routes for round trip");
+
+        showAlert("Round trip routes not available for selected date.", "warning");
+
+        routesContainer.innerHTML = `
+          <div class="route-empty">
+            🚫 Round trip routes not available for selected date
+          </div>
+        `;
+
+        console.log("--------------------------------------------------");
+        return;
+      }
+
+      renderedRouteState.tripType = "ROUNDTRIP";
+      renderedRouteState.onwardRoutes = onwardRoutes;
+      renderedRouteState.returnRoutes = returnRoutes;
+
+      window._renderedOnwardRoutes = onwardRoutes;
+      window._renderedReturnRoutes = returnRoutes;
+
+      showAlert("Onward and return routes found successfully.", "success");
+      renderRoundTripRoutes({
+        onwardRoutes,
+        returnRoutes,
+        travelDate,
+        pax,
+        fromStop,
+        toStop
+      });
+
+      console.log("--------------------------------------------------");
+      return;
+    }
+
+    // ==========================================================
+    // ONE WAY FLOW
+    // ==========================================================
+    const routes = Array.isArray(data.routes) ? data.routes : [];
+
+    if (routes.length === 0) {
       console.warn("⚠️ No routes returned from backend");
 
       showAlert("No trips available for selected date.", "warning");
@@ -273,13 +501,13 @@ async function checkAvailability() {
       return;
     }
 
-    // ==========================================================
-    // ROUTES FOUND
-    // ==========================================================
-    console.log(`✅ ${data.routes.length} route(s) found`);
+    console.log(`✅ ${routes.length} one-way route(s) found`);
+
+    renderedRouteState.tripType = "ONEWAY";
+    renderedRouteState.oneWayRoutes = routes;
 
     showAlert("Routes found successfully.", "success");
-    renderRoutes(data.routes, travelDate, pax, fromStop, toStop);
+    renderRoutes(routes, travelDate, pax, fromStop, toStop);
 
   } catch (error) {
     console.error("❌ Error while fetching routes:", error);
@@ -292,7 +520,6 @@ async function checkAvailability() {
 
 // ===============================================================
 // ESCAPE HTML
-// Prevent UI break / injection in rendered content
 // ===============================================================
 function escapeHtml(value) {
   return String(value ?? "")
@@ -304,114 +531,184 @@ function escapeHtml(value) {
 }
 
 // ===============================================================
-// RENDER ROUTES
-// ---------------------------------------------------------------
-// IMPORTANT:
-// We DO NOT use inline onclick with route values.
-// Instead:
-// 1. Store route list in memory
-// 2. Render buttons with data-route-index
-// 3. Attach event listeners safely
+// RENDER ONE-WAY ROUTES
 // ===============================================================
 function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
-  console.log("🎨 Rendering routes...");
+  console.log("🎨 Rendering one-way routes...");
 
   const container = getElement("routesContainer");
-
   if (!container) {
     console.error("❌ routesContainer not found during render");
     return;
   }
 
-  // Reset selection state
   selectedRouteIndex = -1;
-
-  // Store rendered routes globally for safe selection
   window._renderedRoutes = routes;
 
   let html = `<h3>Select Available Route</h3>`;
 
   routes.forEach((route, index) => {
-    console.log(`🚌 Rendering Route ${index + 1}:`, route);
-
-    const routeName = route.route_name ?? "-";
-    const pickupTime = route.arrivalTime_at_pickup ?? "-";
-    const dropTime = route.reachingTime_at_drop ?? "-";
-    const availableSeats = route.available_seats ?? "-";
-    const farePerSeat = route.fare_per_seat ?? "-";
-    const totalAmount = route.total_amount ?? "-";
-
-    html += `
-      <div
-        class="route-card"
-        data-route-card-index="${index}"
-        style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;"
-      >
-        <h3>${escapeHtml(routeName)}</h3>
-
-        <p>
-          <strong>Journey:</strong>
-          ${escapeHtml(pickupTime)} → ${escapeHtml(dropTime)}<br>
-
-          <strong>Available Seats:</strong> ${escapeHtml(availableSeats)}<br>
-
-          <strong>Fare per Seat:</strong> ₹${escapeHtml(farePerSeat)}<br>
-
-          <strong>Total:</strong> ₹${escapeHtml(totalAmount)}
-        </p>
-
-        <button
-          type="button"
-          class="btn btn-primary select-route-btn"
-          data-route-index="${index}">
-          Select Route
-        </button>
-      </div>
-    `;
+    html += buildRouteCardHtml({
+      route,
+      index,
+      sectionType: "oneway",
+      buttonText: "Select Route"
+    });
   });
 
   container.innerHTML = html;
-  console.log("🧩 Route cards injected into DOM");
+  attachOneWayRouteListeners(routes, travelDate, pax, fromStop, toStop);
 
-  const buttons = container.querySelectorAll(".select-route-btn");
-  console.log(`🔘 Found ${buttons.length} Select Route button(s)`);
+  console.log("✅ One-way routes rendered successfully");
+}
+
+// ===============================================================
+// RENDER ROUND-TRIP ROUTES
+// ===============================================================
+function renderRoundTripRoutes({
+  onwardRoutes,
+  returnRoutes,
+  travelDate,
+  pax,
+  fromStop,
+  toStop
+}) {
+  console.log("🎨 Rendering round-trip routes...");
+
+  const container = getElement("routesContainer");
+  if (!container) {
+    console.error("❌ routesContainer not found during round-trip render");
+    return;
+  }
+
+  selectedOnwardRouteIndex = -1;
+  selectedReturnRouteIndex = -1;
+
+  let html = `
+    <div class="roundtrip-routes-wrapper">
+
+      <div class="roundtrip-section">
+        <h3>Onward Route (${escapeHtml(fromStop)} → ${escapeHtml(toStop)})</h3>
+  `;
+
+  onwardRoutes.forEach((route, index) => {
+    html += buildRouteCardHtml({
+      route,
+      index,
+      sectionType: "onward",
+      buttonText: "Select Onward"
+    });
+  });
+
+  html += `
+      </div>
+
+      <div class="roundtrip-section" style="margin-top:20px;">
+        <h3>Return Route (${escapeHtml(toStop)} → ${escapeHtml(fromStop)})</h3>
+  `;
+
+  returnRoutes.forEach((route, index) => {
+    html += buildRouteCardHtml({
+      route,
+      index,
+      sectionType: "return",
+      buttonText: "Select Return"
+    });
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+
+  attachRoundTripRouteListeners({
+    onwardRoutes,
+    returnRoutes,
+    travelDate,
+    pax,
+    fromStop,
+    toStop
+  });
+
+  console.log("✅ Round-trip routes rendered successfully");
+}
+
+// ===============================================================
+// ROUTE CARD HTML BUILDER
+// ===============================================================
+function buildRouteCardHtml({ route, index, sectionType, buttonText }) {
+  const routeName = route.route_name ?? "-";
+  const pickupTime = route.arrivalTime_at_pickup ?? "-";
+  const dropTime = route.reachingTime_at_drop ?? "-";
+  const availableSeats = route.available_seats ?? "-";
+  const farePerSeat = route.fare_per_seat ?? "-";
+  const totalAmount = route.total_amount ?? "-";
+
+  return `
+    <div
+      class="route-card"
+      data-route-card-index="${index}"
+      data-route-section="${escapeHtml(sectionType)}"
+      style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;"
+    >
+      <h3>${escapeHtml(routeName)}</h3>
+
+      <p>
+        <strong>Journey:</strong>
+        ${escapeHtml(pickupTime)} → ${escapeHtml(dropTime)}<br>
+
+        <strong>Available Seats:</strong> ${escapeHtml(availableSeats)}<br>
+
+        <strong>Fare per Seat:</strong> ₹${escapeHtml(farePerSeat)}<br>
+
+        <strong>Total:</strong> ₹${escapeHtml(totalAmount)}
+      </p>
+
+      <button
+        type="button"
+        class="btn btn-primary select-route-btn"
+        data-route-index="${index}"
+        data-route-section="${escapeHtml(sectionType)}">
+        ${escapeHtml(buttonText)}
+      </button>
+    </div>
+  `;
+}
+
+// ===============================================================
+// ATTACH ONE-WAY LISTENERS
+// ===============================================================
+function attachOneWayRouteListeners(routes, travelDate, pax, fromStop, toStop) {
+  const buttons = document.querySelectorAll('.select-route-btn[data-route-section="oneway"]');
+  console.log(`🔘 Found ${buttons.length} one-way route button(s)`);
 
   buttons.forEach((btn) => {
     btn.addEventListener("click", function () {
       const index = Number(this.dataset.routeIndex);
-      const route = window._renderedRoutes?.[index];
+      const route = routes?.[index];
 
-      console.log("🖱️ Select Route button clicked for index:", index);
-      console.log("📦 Route data fetched from memory:", route);
+      console.log("🖱️ One-way Select Route clicked:", { index, route });
 
       if (!route) {
-        console.error("❌ Route data not found for selected button index:", index);
+        console.error("❌ Route data not found for selected one-way button");
         showAlert("Unable to select this route.", "error");
         return;
       }
 
-      // --------------------------------------------------------
-      // Highlight selected route card
-      // --------------------------------------------------------
-      applySelectedRouteUI(index);
-
-      // --------------------------------------------------------
-      // Preserve current selected route index
-      // --------------------------------------------------------
+      applySelectedRouteUI(index, "oneway");
       selectedRouteIndex = index;
-      console.log("🎯 selectedRouteIndex updated:", selectedRouteIndex);
 
-      // --------------------------------------------------------
-      // Existing booking selection logic
-      // --------------------------------------------------------
       selectRouteHandler({
+        tripType: "ONEWAY",
         routeId: route.route_id ?? "",
         routeName: route.route_name ?? "-",
         arrivalTime: route.arrivalTime_at_pickup ?? "-",
         reachingTime: route.reachingTime_at_drop ?? "-",
         travelDate,
         pax,
-        totalAmount: route.total_amount ?? "-",
+        totalAmount: Number(route.total_amount ?? 0),
         fromStop,
         toStop,
         busId: route.bus_id ?? "",
@@ -421,54 +718,133 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
       });
     });
   });
+}
 
-  console.log("✅ Routes rendered successfully");
+// ===============================================================
+// ATTACH ROUND-TRIP LISTENERS
+// ===============================================================
+function attachRoundTripRouteListeners({
+  onwardRoutes,
+  returnRoutes,
+  travelDate,
+  pax,
+  fromStop,
+  toStop
+}) {
+  const onwardButtons = document.querySelectorAll('.select-route-btn[data-route-section="onward"]');
+  const returnButtons = document.querySelectorAll('.select-route-btn[data-route-section="return"]');
+
+  console.log(`🔘 Found ${onwardButtons.length} onward button(s)`);
+  console.log(`🔘 Found ${returnButtons.length} return button(s)`);
+
+  onwardButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const index = Number(this.dataset.routeIndex);
+      const route = onwardRoutes?.[index];
+
+      console.log("🖱️ Onward route selected:", { index, route });
+
+      if (!route) {
+        console.error("❌ Onward route data not found");
+        showAlert("Unable to select onward route.", "error");
+        return;
+      }
+
+      selectedOnwardRouteIndex = index;
+      applySelectedRouteUI(index, "onward");
+      updateRoundTripSelection({
+        legType: "onward",
+        route,
+        travelDate,
+        pax,
+        fromStop,
+        toStop
+      });
+    });
+  });
+
+  returnButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const index = Number(this.dataset.routeIndex);
+      const route = returnRoutes?.[index];
+
+      console.log("🖱️ Return route selected:", { index, route });
+
+      if (!route) {
+        console.error("❌ Return route data not found");
+        showAlert("Unable to select return route.", "error");
+        return;
+      }
+
+      selectedReturnRouteIndex = index;
+      applySelectedRouteUI(index, "return");
+      updateRoundTripSelection({
+        legType: "return",
+        route,
+        travelDate,
+        pax,
+        fromStop,
+        toStop
+      });
+    });
+  });
 }
 
 // ===============================================================
 // APPLY SELECTED ROUTE UI
-// ---------------------------------------------------------------
-// Removes selected style from all route cards and applies it to
-// the chosen one. Also updates button text.
 // ===============================================================
-function applySelectedRouteUI(selectedIndex) {
-  console.log("🎨 applySelectedRouteUI() called for index:", selectedIndex);
+function applySelectedRouteUI(selectedIndex, sectionType = "oneway") {
+  console.log("🎨 applySelectedRouteUI() called", { selectedIndex, sectionType });
 
-  const allCards = document.querySelectorAll(".route-card");
-  const allButtons = document.querySelectorAll(".select-route-btn");
+  const allCards = document.querySelectorAll(`.route-card[data-route-section="${sectionType}"]`);
+  const allButtons = document.querySelectorAll(`.select-route-btn[data-route-section="${sectionType}"]`);
 
-  allCards.forEach((card) => {
-    card.classList.remove("selected");
-  });
+  allCards.forEach((card) => card.classList.remove("selected"));
 
   allButtons.forEach((button) => {
-    button.textContent = "Select Route";
+    if (sectionType === "onward") {
+      button.textContent = "Select Onward";
+    } else if (sectionType === "return") {
+      button.textContent = "Select Return";
+    } else {
+      button.textContent = "Select Route";
+    }
   });
 
-  const selectedCard = document.querySelector(`.route-card[data-route-card-index="${selectedIndex}"]`);
-  const selectedButton = document.querySelector(`.select-route-btn[data-route-index="${selectedIndex}"]`);
+  const selectedCard = document.querySelector(
+    `.route-card[data-route-card-index="${selectedIndex}"][data-route-section="${sectionType}"]`
+  );
+
+  const selectedButton = document.querySelector(
+    `.select-route-btn[data-route-index="${selectedIndex}"][data-route-section="${sectionType}"]`
+  );
 
   if (selectedCard) {
     selectedCard.classList.add("selected");
-    console.log("✅ Selected class added to route card");
+    console.log("✅ Selected class added");
   } else {
-    console.warn("⚠️ Selected route card not found in DOM");
+    console.warn("⚠️ Selected route card not found");
   }
 
   if (selectedButton) {
-    selectedButton.textContent = "Selected ✓";
+    if (sectionType === "onward") {
+      selectedButton.textContent = "Selected ✓";
+    } else if (sectionType === "return") {
+      selectedButton.textContent = "Selected ✓";
+    } else {
+      selectedButton.textContent = "Selected ✓";
+    }
     console.log("✅ Selected button text updated");
   } else {
-    console.warn("⚠️ Selected route button not found in DOM");
+    console.warn("⚠️ Selected route button not found");
   }
 }
 
 // ===============================================================
-// ROUTE SELECTION HANDLER
-// ---------------------------------------------------------------
-// Updates booking summary + stores selected booking globally
+// ONE-WAY ROUTE SELECTION HANDLER
 // ===============================================================
 function selectRouteHandler({
+  tripType,
   routeId,
   routeName,
   arrivalTime,
@@ -483,59 +859,25 @@ function selectRouteHandler({
   driverName,
   driverPhone
 }) {
-  console.log("🟢 Route Selected:", routeId);
+  console.log("🟢 One-way Route Selected:", routeId);
 
-  const selectedSeatsDisplay = getElement("selectedSeatsDisplay");
-  const dateDisplay = getElement("dateDisplay");
-  const journeyTimeDisplay = getElement("journeyTimeDisplay");
-  const totalAmountDisplay = getElement("totalAmountDisplay");
-  const routeDisplay = getElement("routeDisplay");
+  updateBookingSummaryUI({
+    pax,
+    travelDate,
+    journeyText: `${arrivalTime} → ${reachingTime}`,
+    totalText: `₹${totalAmount}`,
+    routeText: routeName
+  });
 
-  // Update booking summary safely
-  if (selectedSeatsDisplay) {
-    selectedSeatsDisplay.innerText = pax;
-    console.log("✅ selectedSeatsDisplay updated:", pax);
-  } else {
-    console.warn("⚠️ selectedSeatsDisplay not found");
-  }
-
-  if (dateDisplay) {
-    dateDisplay.innerText = travelDate;
-    console.log("✅ dateDisplay updated:", travelDate);
-  } else {
-    console.warn("⚠️ dateDisplay not found");
-  }
-
-  if (journeyTimeDisplay) {
-    journeyTimeDisplay.innerText = `${arrivalTime} → ${reachingTime}`;
-    console.log("✅ journeyTimeDisplay updated:", `${arrivalTime} → ${reachingTime}`);
-  } else {
-    console.warn("⚠️ journeyTimeDisplay not found");
-  }
-
-  if (totalAmountDisplay) {
-    totalAmountDisplay.innerText = `₹${totalAmount}`;
-    console.log("✅ totalAmountDisplay updated:", `₹${totalAmount}`);
-  } else {
-    console.warn("⚠️ totalAmountDisplay not found");
-  }
-
-  if (routeDisplay) {
-    routeDisplay.innerText = routeName;
-    console.log("✅ routeDisplay updated:", routeName);
-  } else {
-    console.warn("⚠️ routeDisplay not found");
-  }
-
-  // Preserve existing global booking object structure
   window.selectedBooking = {
+    tripType: tripType || "ONEWAY",
     routeId,
     routeName,
     arrivalTime,
     reachingTime,
     travelDate,
     pax,
-    totalAmount,
+    totalAmount: Number(totalAmount || 0),
     fromStop,
     toStop,
     busId,
@@ -544,15 +886,149 @@ function selectRouteHandler({
     driverPhone
   };
 
-  console.log("📦 Stored Booking Object:", window.selectedBooking);
+  console.log("📦 Stored One-way Booking Object:", window.selectedBooking);
   showAlert("Route selected successfully.", "success");
 }
 
 // ===============================================================
-// OPTIONAL GLOBAL SUPPORT
-// ---------------------------------------------------------------
-// Keeps backward compatibility if any old code still calls
-// window.selectRoute(...)
+// ROUND-TRIP SELECTION HANDLER
+// ===============================================================
+function updateRoundTripSelection({
+  legType,
+  route,
+  travelDate,
+  pax,
+  fromStop,
+  toStop
+}) {
+  console.log("🔁 updateRoundTripSelection() called", { legType, route });
+
+  const existingBooking = window.selectedBooking || {
+    tripType: "ROUNDTRIP",
+    travelDate,
+    pax,
+    onward: null,
+    return: null,
+    totalAmount: 0
+  };
+
+  const legPayload = {
+    routeId: route.route_id ?? "",
+    routeName: route.route_name ?? "-",
+    arrivalTime: route.arrivalTime_at_pickup ?? "-",
+    reachingTime: route.reachingTime_at_drop ?? "-",
+    travelDate,
+    pax,
+    totalAmount: Number(route.total_amount ?? 0),
+    fromStop: legType === "onward" ? fromStop : toStop,
+    toStop: legType === "onward" ? toStop : fromStop,
+    busId: route.bus_id ?? "",
+    busNumber: route.bus_number ?? "-",
+    driverName: route.driver_name ?? "-",
+    driverPhone: route.driver_phone ?? "-"
+  };
+
+  if (legType === "onward") {
+    existingBooking.onward = legPayload;
+  } else if (legType === "return") {
+    existingBooking.return = legPayload;
+  }
+
+  existingBooking.tripType = "ROUNDTRIP";
+  existingBooking.travelDate = travelDate;
+  existingBooking.pax = pax;
+
+  const onwardAmount = Number(existingBooking.onward?.totalAmount || 0);
+  const returnAmount = Number(existingBooking.return?.totalAmount || 0);
+  existingBooking.totalAmount = onwardAmount + returnAmount;
+
+  window.selectedBooking = existingBooking;
+
+  console.log("📦 Updated Round-trip Booking Object:", window.selectedBooking);
+
+  updateRoundTripSummaryUI(existingBooking);
+
+  if (existingBooking.onward && existingBooking.return) {
+    showAlert("Onward and return routes selected successfully.", "success");
+  } else if (existingBooking.onward) {
+    showAlert("Onward route selected. Please select return route.", "success");
+  } else if (existingBooking.return) {
+    showAlert("Return route selected. Please select onward route.", "success");
+  }
+}
+
+// ===============================================================
+// SUMMARY UPDATERS
+// ===============================================================
+function updateBookingSummaryUI({
+  pax,
+  travelDate,
+  journeyText,
+  totalText,
+  routeText
+}) {
+  const selectedSeatsDisplay = getElement("selectedSeatsDisplay");
+  const dateDisplay = getElement("dateDisplay");
+  const journeyTimeDisplay = getElement("journeyTimeDisplay");
+  const totalAmountDisplay = getElement("totalAmountDisplay");
+  const routeDisplay = getElement("routeDisplay");
+
+  if (selectedSeatsDisplay) {
+    selectedSeatsDisplay.innerText = pax;
+    console.log("✅ selectedSeatsDisplay updated:", pax);
+  }
+
+  if (dateDisplay) {
+    dateDisplay.innerText = travelDate;
+    console.log("✅ dateDisplay updated:", travelDate);
+  }
+
+  if (journeyTimeDisplay) {
+    journeyTimeDisplay.innerText = journeyText;
+    console.log("✅ journeyTimeDisplay updated:", journeyText);
+  }
+
+  if (totalAmountDisplay) {
+    totalAmountDisplay.innerText = totalText;
+    console.log("✅ totalAmountDisplay updated:", totalText);
+  }
+
+  if (routeDisplay) {
+    routeDisplay.innerText = routeText;
+    console.log("✅ routeDisplay updated:", routeText);
+  }
+}
+
+function updateRoundTripSummaryUI(booking) {
+  console.log("🧾 updateRoundTripSummaryUI() called", booking);
+
+  const onwardJourney = booking.onward
+    ? `${booking.onward.arrivalTime} → ${booking.onward.reachingTime}`
+    : "Not selected";
+
+  const returnJourney = booking.return
+    ? `${booking.return.arrivalTime} → ${booking.return.reachingTime}`
+    : "Not selected";
+
+  const onwardRoute = booking.onward
+    ? booking.onward.routeName
+    : "Not selected";
+
+  const returnRoute = booking.return
+    ? booking.return.routeName
+    : "Not selected";
+
+  updateBookingSummaryUI({
+    pax: booking.pax,
+    travelDate: booking.travelDate,
+    journeyText: `Onward: ${onwardJourney} | Return: ${returnJourney}`,
+    totalText: booking.totalAmount > 0 ? `₹${booking.totalAmount}` : "Not selected",
+    routeText: `Onward: ${onwardRoute} | Return: ${returnRoute}`
+  });
+}
+
+// ===============================================================
+// OPTIONAL GLOBAL SUPPORT FOR LEGACY ONE-WAY CALLS
 // ===============================================================
 window.selectRoute = function (
   routeId,
@@ -572,6 +1048,7 @@ window.selectRoute = function (
   console.warn("⚠️ Legacy window.selectRoute() called");
 
   selectRouteHandler({
+    tripType: "ONEWAY",
     routeId,
     routeName,
     arrivalTime,

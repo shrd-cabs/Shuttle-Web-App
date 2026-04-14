@@ -1,11 +1,13 @@
 // ===============================================================
-// payment.js (BOOKING PAYMENT + PASS + WALLET VERSION 🚀🔥)
+// payment.js (BOOKING PAYMENT + PASS + WALLET + ROUND TRIP SUPPORT 🚀🔥)
 // ---------------------------------------------------------------
 // FEATURES
 // ---------------------------------------------------------------
 // ✅ Seat HOLD before payment
+// ✅ Supports ONEWAY booking
+// ✅ Supports ROUNDTRIP booking (same day, 2 booking rows)
 // ✅ Fetch active applicable pass for booking
-// ✅ Show pass details inside existing payment summary modal
+// ✅ Show pass details inside payment summary modal
 // ✅ Apply pass discount BEFORE wallet
 // ✅ Wallet balance check
 // ✅ Wallet usage only if checkbox selected
@@ -20,7 +22,7 @@
 //
 // BACKEND EXPECTATION
 // ---------------------------------------------------------------
-// This file calls:
+// This file expects backend to support:
 // 1. getApplicablePassForBooking
 // 2. createHoldBooking
 // 3. createOrder
@@ -28,8 +30,13 @@
 // 5. verifyMixedBookingPayment
 // 6. confirmBooking
 //
-// Pass fields are sent in booking confirmation APIs.
-// Backend must be updated to save them in Bookings sheet.
+// ROUND TRIP BACKEND EXPECTATION
+// ---------------------------------------------------------------
+// For ROUNDTRIP, createHoldBooking should create 2 booking rows
+// and return booking_ids array.
+// Final payment APIs should accept:
+// - booking_ids=ID1,ID2
+// and process both rows together.
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -37,7 +44,13 @@ import { currentUser } from "./state.js";
 
 const HOLD_TIME = 5 * 60 * 1000;
 
-let holdBookingId = null;
+// ===============================================================
+// HOLD STATE
+// ---------------------------------------------------------------
+// One-way   -> holdBookingIds = [singleId]
+// RoundTrip -> holdBookingIds = [onwardId, returnId]
+// ===============================================================
+let holdBookingIds = [];
 let holdTimer = null;
 
 // ===============================================================
@@ -51,6 +64,8 @@ let holdTimer = null;
 let paymentSummaryState = {
   booking: null,
 
+  tripType: "ONEWAY",
+
   originalAmount: 0,
   totalAmount: 0,
 
@@ -63,7 +78,6 @@ let paymentSummaryState = {
   passDetails: null,
   passDiscountAmount: 0
 };
-
 
 // ===============================================================
 // BUTTON LOADER
@@ -91,7 +105,6 @@ function togglePayLoader(show) {
   }
 }
 
-
 // ===============================================================
 // SAFE FETCH
 // ===============================================================
@@ -110,13 +123,11 @@ async function safeFetch(url) {
       console.error("❌ JSON Parse Error:", err);
       throw new Error("Invalid JSON response from server");
     }
-
   } catch (error) {
     console.error("❌ Fetch Error:", error);
     throw error;
   }
 }
-
 
 // ===============================================================
 // FETCH WALLET BALANCE
@@ -137,7 +148,6 @@ async function fetchWalletBalance(email) {
   return Number(result.wallet_balance || 0);
 }
 
-
 // ===============================================================
 // FETCH APPLICABLE PASS FOR THIS BOOKING
 // ---------------------------------------------------------------
@@ -146,12 +156,27 @@ async function fetchWalletBalance(email) {
 // - whether pass is applicable on this route/fare
 // - discount amount
 // - final amount after pass
+//
+// ROUND TRIP SUPPORT
+// ---------------------------------------------------------------
+// For round trip, we send a combined route hint + total amount.
+// Current backend may still use only total_amount. Route id fallback:
+// - One-way   => selected routeId
+// - Roundtrip => onward routeId
 // ===============================================================
 async function fetchApplicablePass(booking, totalAmount) {
+  const routeIdForPass =
+    booking?.tripType === "ROUNDTRIP"
+      ? (booking?.onward?.routeId || "")
+      : (booking?.routeId || "");
+
+  const tripType = booking?.tripType || "ONEWAY";
+
   const url =
     `${APP_CONFIG.API_URL}?action=getApplicablePassForBooking` +
     `&user_email=${encodeURIComponent(currentUser.email)}` +
-    `&route_id=${encodeURIComponent(booking.routeId)}` +
+    `&route_id=${encodeURIComponent(routeIdForPass)}` +
+    `&trip_type=${encodeURIComponent(tripType)}` +
     `&total_amount=${encodeURIComponent(totalAmount)}`;
 
   console.log("🎫 fetchApplicablePass() URL:", url);
@@ -167,7 +192,6 @@ async function fetchApplicablePass(booking, totalAmount) {
   return data;
 }
 
-
 // ===============================================================
 // FORMAT AMOUNT
 // ===============================================================
@@ -175,23 +199,84 @@ function formatAmount(amount) {
   return `₹${Number(amount || 0)}`;
 }
 
+// ===============================================================
+// HELPER: DETECT TRIP TYPE
+// ===============================================================
+function getBookingTripType(booking) {
+  const tripType = String(booking?.tripType || "ONEWAY").toUpperCase();
+  return tripType === "ROUNDTRIP" ? "ROUNDTRIP" : "ONEWAY";
+}
+
+// ===============================================================
+// HELPER: VALIDATE SELECTED BOOKING
+// ===============================================================
+function validateSelectedBooking(booking) {
+  console.log("🧪 validateSelectedBooking() called with:", booking);
+
+  if (!booking) {
+    throw new Error("Please select a route first");
+  }
+
+  const tripType = getBookingTripType(booking);
+
+  if (tripType === "ROUNDTRIP") {
+    if (!booking.onward || !booking.return) {
+      throw new Error("Please select both onward and return routes");
+    }
+
+    if (!booking.travelDate) {
+      throw new Error("Travel date missing for round trip");
+    }
+
+    if (!booking.pax) {
+      throw new Error("Passenger count missing");
+    }
+
+    return;
+  }
+
+  if (!booking.routeId) {
+    throw new Error("Please select a route first");
+  }
+}
+
+// ===============================================================
+// HELPER: GET DISPLAY DESCRIPTION
+// ===============================================================
+function getBookingDescription(booking) {
+  const tripType = getBookingTripType(booking);
+
+  if (tripType === "ROUNDTRIP") {
+    const onwardRoute = booking?.onward?.routeName || "Onward";
+    const returnRoute = booking?.return?.routeName || "Return";
+    return `${onwardRoute} + ${returnRoute}`;
+  }
+
+  return booking?.routeName || "SHRD Shuttle Booking";
+}
+
+// ===============================================================
+// HELPER: COMPUTE BOOKING ORIGINAL TOTAL
+// ===============================================================
+function getBookingOriginalAmount(booking) {
+  const tripType = getBookingTripType(booking);
+
+  if (tripType === "ROUNDTRIP") {
+    const onward = Number(booking?.onward?.totalAmount || 0);
+    const ret = Number(booking?.return?.totalAmount || 0);
+    const total = onward + ret;
+
+    console.log("💰 Round trip original amount computed:", total);
+    return total;
+  }
+
+  const total = Number(booking?.totalAmount || 0);
+  console.log("💰 One-way original amount computed:", total);
+  return total;
+}
 
 // ===============================================================
 // BUILD PASS PAYLOAD FOR BOOKING CONFIRMATION
-// ---------------------------------------------------------------
-// These values map to your updated Bookings sheet columns:
-//
-// original_total_amount
-// pass_applied
-// user_pass_id
-// pass_type_id
-// pass_name
-// pass_discount_percent
-// pass_discount_amount
-// final_total_amount
-//
-// IMPORTANT:
-// If user has no pass, fill required fallback words/numbers
 // ===============================================================
 function getPassBookingPayload() {
   console.log("🧮 getPassBookingPayload() called");
@@ -229,7 +314,6 @@ function getPassBookingPayload() {
   return noPassPayload;
 }
 
-
 // ===============================================================
 // CONVERT PASS PAYLOAD TO QUERY STRING
 // ===============================================================
@@ -250,11 +334,19 @@ function buildPassQueryString() {
   return query;
 }
 
+// ===============================================================
+// HELPER: BUILD BOOKING IDS QUERY STRING
+// ===============================================================
+function buildBookingIdsQueryString() {
+  const ids = Array.isArray(holdBookingIds) ? holdBookingIds.filter(Boolean) : [];
+  const query = `&booking_ids=${encodeURIComponent(ids.join(","))}`;
+
+  console.log("🧾 buildBookingIdsQueryString() =>", query);
+  return query;
+}
 
 // ===============================================================
 // INJECT PAYMENT SUMMARY MODAL HTML
-// ---------------------------------------------------------------
-// Creates summary modal dynamically from JS
 // ===============================================================
 function injectPaymentSummaryModal() {
   console.log("🧩 injectPaymentSummaryModal() called");
@@ -274,17 +366,21 @@ function injectPaymentSummaryModal() {
 
         <div class="payment-summary-body">
 
-          <!-- ===================================================
-               FARE SUMMARY
-               =================================================== -->
+          <div class="payment-summary-row">
+            <span>Trip Type</span>
+            <strong id="summaryTripType">One Way</strong>
+          </div>
+
+          <div class="payment-summary-row">
+            <span>Journey</span>
+            <strong id="summaryJourneyLabel">-</strong>
+          </div>
+
           <div class="payment-summary-row">
             <span>Total Fare</span>
             <strong id="summaryOriginalFare">₹0</strong>
           </div>
 
-          <!-- ===================================================
-               PASS SUMMARY
-               =================================================== -->
           <div id="passSection">
             <div class="payment-summary-row">
               <span>Trip Pass</span>
@@ -312,9 +408,6 @@ function injectPaymentSummaryModal() {
             </div>
           </div>
 
-          <!-- ===================================================
-               WALLET SUMMARY
-               =================================================== -->
           <div class="payment-summary-row">
             <span>Wallet Balance</span>
             <strong id="summaryWalletBalance">₹0</strong>
@@ -335,7 +428,6 @@ function injectPaymentSummaryModal() {
             <strong id="summaryOnlineAmount">₹0</strong>
           </div>
 
-          <!-- Warning -->
           <div class="payment-warning-note">
             <div class="warning-icon">⚠️</div>
             <div class="warning-text">
@@ -348,7 +440,6 @@ function injectPaymentSummaryModal() {
           </div>
 
           <div class="payment-summary-footer">
-            <!-- BUTTON WRAPPER -->
             <div class="payment-footer-buttons">
               <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
                 Cancel
@@ -358,11 +449,8 @@ function injectPaymentSummaryModal() {
                 Proceed
               </button>
             </div>
-
           </div>
         </div>
-
-        
       </div>
     </div>
   `;
@@ -370,7 +458,6 @@ function injectPaymentSummaryModal() {
   document.body.insertAdjacentHTML("beforeend", modalHtml);
   console.log("✅ Payment summary modal injected into DOM");
 }
-
 
 // ===============================================================
 // OPEN PAYMENT SUMMARY MODAL
@@ -388,7 +475,6 @@ function openPaymentSummaryModal() {
   updatePaymentSummaryUI();
 }
 
-
 // ===============================================================
 // CLOSE PAYMENT SUMMARY MODAL
 // ===============================================================
@@ -401,19 +487,9 @@ function closePaymentSummaryModal() {
   }
 }
 
-// ---------------------------------------------------------------
+// ===============================================================
 // FORMAT DISPLAY DATE TIME
-// ---------------------------------------------------------------
-// Converts values like:
-//   2026-04-03T18:30:00.000Z
-// into:
-//   2026-04-03 Time - 18:30
-//
-// Notes:
-// - Keeps "-" unchanged
-// - Supports ISO strings directly
-// - Supports general Date-parsable strings as fallback
-// ---------------------------------------------------------------
+// ===============================================================
 function formatDisplayDateTime(value) {
   if (!value || value === "-") {
     return "-";
@@ -447,22 +523,35 @@ function formatDisplayDateTime(value) {
 }
 
 // ===============================================================
+// HELPER: BUILD JOURNEY LABEL
+// ===============================================================
+function buildJourneyLabel(booking) {
+  const tripType = getBookingTripType(booking);
+
+  if (tripType === "ROUNDTRIP") {
+    const onward = booking?.onward
+      ? `${booking.onward.fromStop} → ${booking.onward.toStop}`
+      : "Onward not selected";
+
+    const ret = booking?.return
+      ? `${booking.return.fromStop} → ${booking.return.toStop}`
+      : "Return not selected";
+
+    return `${onward} | ${ret}`;
+  }
+
+  return `${booking?.fromStop || "-"} → ${booking?.toStop || "-"}`;
+}
+
+// ===============================================================
 // UPDATE PAYMENT SUMMARY UI
-// ---------------------------------------------------------------
-// Order of calculation:
-// 1. original fare
-// 2. pass discount
-// 3. fare after pass
-// 4. wallet used on discounted fare
-// 5. online amount
 // ===============================================================
 function updatePaymentSummaryUI() {
   console.log("🔄 updatePaymentSummaryUI() called");
   console.log("📦 paymentSummaryState:", paymentSummaryState);
 
-  // ------------------------------------------------------------
-  // Common elements
-  // ------------------------------------------------------------
+  const tripTypeEl = document.getElementById("summaryTripType");
+  const journeyLabelEl = document.getElementById("summaryJourneyLabel");
   const originalFareEl = document.getElementById("summaryOriginalFare");
   const walletBalanceEl = document.getElementById("summaryWalletBalance");
   const walletUsedEl = document.getElementById("summaryWalletUsed");
@@ -470,9 +559,6 @@ function updatePaymentSummaryUI() {
   const checkbox = document.getElementById("useWalletCheckbox");
   const confirmBtn = document.getElementById("paymentSummaryConfirmBtn");
 
-  // ------------------------------------------------------------
-  // Pass elements
-  // ------------------------------------------------------------
   const passSection = document.getElementById("passSection");
   const passNameEl = document.getElementById("summaryPassName");
   const passDiscountEl = document.getElementById("summaryPassDiscount");
@@ -480,23 +566,23 @@ function updatePaymentSummaryUI() {
   const passRemainingEl = document.getElementById("summaryPassRemaining");
   const fareAfterPassEl = document.getElementById("summaryFareAfterPass");
 
-  // ------------------------------------------------------------
-  // Render original fare
-  // ------------------------------------------------------------
+  if (tripTypeEl) {
+    tripTypeEl.textContent =
+      paymentSummaryState.tripType === "ROUNDTRIP" ? "Round Trip" : "One Way";
+  }
+
+  if (journeyLabelEl) {
+    journeyLabelEl.textContent = buildJourneyLabel(paymentSummaryState.booking);
+  }
+
   if (originalFareEl) {
     originalFareEl.textContent = formatAmount(paymentSummaryState.originalAmount);
   }
 
-  // ------------------------------------------------------------
-  // Render wallet balance
-  // ------------------------------------------------------------
   if (walletBalanceEl) {
     walletBalanceEl.textContent = formatAmount(paymentSummaryState.walletBalance);
   }
 
-  // ------------------------------------------------------------
-  // Render pass section
-  // ------------------------------------------------------------
   if (passSection) {
     passSection.style.display = "block";
   }
@@ -508,12 +594,9 @@ function updatePaymentSummaryUI() {
 
     if (passNameEl) passNameEl.textContent = p.pass_name || "Pass Applied";
     if (passDiscountEl) passDiscountEl.textContent = `- ${formatAmount(paymentSummaryState.passDiscountAmount)}`;
-    if (passExpiryEl) {
-      passExpiryEl.textContent = formatDisplayDateTime(p.expiry_date || "-");
-    }    
+    if (passExpiryEl) passExpiryEl.textContent = formatDisplayDateTime(p.expiry_date || "-");
     if (passRemainingEl) passRemainingEl.textContent = p.remaining_trips ?? "-";
     if (fareAfterPassEl) fareAfterPassEl.textContent = formatAmount(paymentSummaryState.totalAmount);
-
   } else {
     console.log("ℹ️ No applicable pass for this booking");
 
@@ -524,16 +607,10 @@ function updatePaymentSummaryUI() {
     if (fareAfterPassEl) fareAfterPassEl.textContent = formatAmount(paymentSummaryState.originalAmount);
   }
 
-  // ------------------------------------------------------------
-  // Render wallet checkbox state
-  // ------------------------------------------------------------
   if (checkbox) {
     checkbox.checked = paymentSummaryState.useWallet;
   }
 
-  // ------------------------------------------------------------
-  // Wallet calculation happens on discounted amount
-  // ------------------------------------------------------------
   if (paymentSummaryState.useWallet) {
     paymentSummaryState.walletUsed = Math.min(
       Number(paymentSummaryState.walletBalance || 0),
@@ -557,9 +634,6 @@ function updatePaymentSummaryUI() {
     onlineAmountEl.textContent = formatAmount(paymentSummaryState.onlineAmount);
   }
 
-  // ------------------------------------------------------------
-  // Update confirm button label
-  // ------------------------------------------------------------
   if (confirmBtn) {
     if (paymentSummaryState.onlineAmount === 0 && paymentSummaryState.walletUsed > 0) {
       confirmBtn.textContent = `Pay ${formatAmount(paymentSummaryState.totalAmount)} via Wallet`;
@@ -570,7 +644,6 @@ function updatePaymentSummaryUI() {
     }
   }
 }
-
 
 // ===============================================================
 // CHECKBOX CHANGE HANDLER
@@ -586,18 +659,8 @@ function handleWalletCheckboxChange() {
   updatePaymentSummaryUI();
 }
 
-
 // ===============================================================
 // MAIN PAYMENT FUNCTION
-// ---------------------------------------------------------------
-// FLOW
-// ---------------------------------------------------------------
-// 1. Validate selected booking
-// 2. Create HOLD booking
-// 3. Fetch applicable pass for booking
-// 4. Fetch wallet balance
-// 5. Build summary state
-// 6. Open payment summary modal
 // ===============================================================
 export async function openPaymentModal() {
   try {
@@ -606,22 +669,18 @@ export async function openPaymentModal() {
     togglePayLoader(true);
 
     const booking = window.selectedBooking;
+    validateSelectedBooking(booking);
 
-    if (!booking) {
-      togglePayLoader(false);
-      alert("⚠️ Please select a route first");
-      return;
-    }
+    const tripType = getBookingTripType(booking);
 
     console.log("📦 Booking Data:", booking);
+    console.log("🛣️ Trip Type:", tripType);
 
-    // ==========================================================
-    // FETCH APPLICABLE PASS
-    // ==========================================================
     let passData = null;
+    const originalAmount = getBookingOriginalAmount(booking);
 
     try {
-      passData = await fetchApplicablePass(booking, booking.totalAmount);
+      passData = await fetchApplicablePass(booking, originalAmount);
       console.log("🎫 Applicable pass fetched successfully:", passData);
     } catch (passError) {
       console.warn("⚠️ Failed to fetch/apply pass. Proceeding without pass.", passError);
@@ -631,10 +690,6 @@ export async function openPaymentModal() {
       };
     }
 
-    // ==========================================================
-    // APPLY PASS RESULT
-    // ==========================================================
-    let originalAmount = Number(booking.totalAmount || 0);
     let finalAmount = originalAmount;
     let passApplied = false;
     let passDetails = null;
@@ -650,22 +705,16 @@ export async function openPaymentModal() {
       console.log("🎫 Pass details:", passDetails);
       console.log("💸 Pass discount amount:", passDiscountAmount);
       console.log("💰 Final amount after pass:", finalAmount);
-
     } else {
       console.log("ℹ️ No applicable pass found for this booking");
     }
 
-    // ==========================================================
-    // FETCH WALLET BALANCE
-    // ==========================================================
     const walletBalance = await fetchWalletBalance(currentUser.email);
     console.log("💰 Wallet balance fetched:", walletBalance);
 
-    // ==========================================================
-    // BUILD PAYMENT STATE
-    // ==========================================================
     paymentSummaryState = {
       booking,
+      tripType,
 
       originalAmount,
       totalAmount: finalAmount,
@@ -684,7 +733,6 @@ export async function openPaymentModal() {
 
     togglePayLoader(false);
     openPaymentSummaryModal();
-
   } catch (error) {
     console.error("❌ Payment flow start failed:", error);
     togglePayLoader(false);
@@ -692,19 +740,117 @@ export async function openPaymentModal() {
   }
 }
 
+// ===============================================================
+// HELPER: CREATE HOLD BOOKING FOR ONE-WAY / ROUND-TRIP
+// ===============================================================
+async function createHoldBookingForSelectedTrip(booking) {
+  console.log("⏳ createHoldBookingForSelectedTrip() called");
+  console.log("📦 booking:", booking);
+
+  const tripType = getBookingTripType(booking);
+
+  if (tripType === "ROUNDTRIP") {
+    const onward = booking.onward;
+    const ret = booking.return;
+
+    const holdUrl =
+      `${APP_CONFIG.API_URL}?action=createHoldBooking` +
+      `&trip_type=ROUNDTRIP` +
+      `&booking_date=${encodeURIComponent(new Date().toISOString().split("T")[0])}` +
+      `&travel_date=${encodeURIComponent(booking.travelDate)}` +
+
+      `&onward_route_id=${encodeURIComponent(onward.routeId)}` +
+      `&onward_bus_id=${encodeURIComponent(onward.busId)}` +
+      `&onward_bus_number=${encodeURIComponent(onward.busNumber)}` +
+      `&onward_driver_name=${encodeURIComponent(onward.driverName)}` +
+      `&onward_driver_phone=${encodeURIComponent(onward.driverPhone)}` +
+      `&onward_fromStop=${encodeURIComponent(onward.fromStop)}` +
+      `&onward_toStop=${encodeURIComponent(onward.toStop)}` +
+      `&onward_scheduled_pickup_time=${encodeURIComponent(onward.arrivalTime)}` +
+      `&onward_scheduled_drop_time=${encodeURIComponent(onward.reachingTime)}` +
+      `&onward_fare_per_seat=${encodeURIComponent(Number(onward.totalAmount || 0) / Number(booking.pax || 1))}` +
+      `&onward_total_amount=${encodeURIComponent(onward.totalAmount)}` +
+
+      `&return_route_id=${encodeURIComponent(ret.routeId)}` +
+      `&return_bus_id=${encodeURIComponent(ret.busId)}` +
+      `&return_bus_number=${encodeURIComponent(ret.busNumber)}` +
+      `&return_driver_name=${encodeURIComponent(ret.driverName)}` +
+      `&return_driver_phone=${encodeURIComponent(ret.driverPhone)}` +
+      `&return_fromStop=${encodeURIComponent(ret.fromStop)}` +
+      `&return_toStop=${encodeURIComponent(ret.toStop)}` +
+      `&return_scheduled_pickup_time=${encodeURIComponent(ret.arrivalTime)}` +
+      `&return_scheduled_drop_time=${encodeURIComponent(ret.reachingTime)}` +
+      `&return_fare_per_seat=${encodeURIComponent(Number(ret.totalAmount || 0) / Number(booking.pax || 1))}` +
+      `&return_total_amount=${encodeURIComponent(ret.totalAmount)}` +
+
+      `&passenger_name=${encodeURIComponent(currentUser.name)}` +
+      `&passenger_email=${encodeURIComponent(currentUser.email)}` +
+      `&passenger_phone=${encodeURIComponent(currentUser.phone)}` +
+      `&seats_booked=${encodeURIComponent(booking.pax)}`;
+
+    console.log("🌐 ROUNDTRIP createHoldBooking URL:", holdUrl);
+
+    const holdData = await safeFetch(holdUrl);
+    console.log("📥 ROUNDTRIP HOLD response:", holdData);
+
+    if (!holdData.success) {
+      throw new Error(holdData.error || "Failed to create round-trip booking hold");
+    }
+
+    if (Array.isArray(holdData.booking_ids) && holdData.booking_ids.length > 0) {
+      return holdData.booking_ids;
+    }
+
+    if (holdData.booking_id) {
+      return [holdData.booking_id];
+    }
+
+    throw new Error("Round-trip HOLD created but booking IDs missing");
+  }
+
+  const holdUrl =
+    `${APP_CONFIG.API_URL}?action=createHoldBooking` +
+    `&trip_type=ONEWAY` +
+    `&booking_date=${encodeURIComponent(new Date().toISOString().split("T")[0])}` +
+    `&travel_date=${encodeURIComponent(booking.travelDate)}` +
+    `&route_id=${encodeURIComponent(booking.routeId)}` +
+    `&bus_id=${encodeURIComponent(booking.busId)}` +
+    `&bus_number=${encodeURIComponent(booking.busNumber)}` +
+    `&driver_name=${encodeURIComponent(booking.driverName)}` +
+    `&driver_phone=${encodeURIComponent(booking.driverPhone)}` +
+    `&fromStop=${encodeURIComponent(booking.fromStop)}` +
+    `&toStop=${encodeURIComponent(booking.toStop)}` +
+    `&scheduled_pickup_time=${encodeURIComponent(booking.arrivalTime)}` +
+    `&scheduled_drop_time=${encodeURIComponent(booking.reachingTime)}` +
+    `&passenger_name=${encodeURIComponent(currentUser.name)}` +
+    `&passenger_email=${encodeURIComponent(currentUser.email)}` +
+    `&passenger_phone=${encodeURIComponent(currentUser.phone)}` +
+    `&seats_booked=${encodeURIComponent(booking.pax)}` +
+    `&fare_per_seat=${encodeURIComponent(Number(booking.totalAmount || 0) / Number(booking.pax || 1))}` +
+    `&total_amount=${encodeURIComponent(booking.totalAmount)}`;
+
+  console.log("🌐 ONEWAY createHoldBooking URL:", holdUrl);
+
+  const holdData = await safeFetch(holdUrl);
+  console.log("📥 ONEWAY HOLD Response:", holdData);
+
+  if (!holdData.success) {
+    throw new Error(holdData.error || "Failed to create booking hold");
+  }
+
+  if (holdData.booking_id) {
+    return [holdData.booking_id];
+  }
+
+  if (Array.isArray(holdData.booking_ids) && holdData.booking_ids.length > 0) {
+    return holdData.booking_ids;
+  }
+
+  throw new Error("Hold created but booking ID missing");
+}
 
 // ===============================================================
 // CONFIRM PAYMENT SUMMARY
-// ---------------------------------------------------------------
-// Handles 3 cases:
-//
-// 1. Full wallet
-// 2. Partial wallet + Razorpay
-// 3. Full Razorpay
-//
-// PASS SUPPORT
-// ---------------------------------------------------------------
-// Pass payload is sent to backend in all final booking APIs.
 // ===============================================================
 async function confirmPaymentSummary() {
   console.log("✅ confirmPaymentSummary() called");
@@ -715,55 +861,26 @@ async function confirmPaymentSummary() {
     togglePayLoader(true);
 
     const booking = paymentSummaryState.booking;
+    const tripType = getBookingTripType(booking);
 
-    // ==========================================================
-    // CREATE HOLD BOOKING (MOVED HERE)
-    // ----------------------------------------------------------
-    // Now HOLD entry will be created only when user clicks
-    // Proceed inside payment summary modal.
-    // ==========================================================
-    console.log("⏳ Creating HOLD booking (on final confirm)...");
+    holdBookingIds = [];
+    console.log("🧹 holdBookingIds reset before new payment flow");
 
-    const holdData = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=createHoldBooking` +
-      `&booking_date=${new Date().toISOString().split("T")[0]}` +
-      `&travel_date=${booking.travelDate}` +
-      `&route_id=${booking.routeId}` +
-      `&bus_id=${booking.busId}` +
-      `&bus_number=${booking.busNumber}` +
-      `&driver_name=${booking.driverName}` +
-      `&driver_phone=${booking.driverPhone}` +
-      `&fromStop=${booking.fromStop}` +
-      `&toStop=${booking.toStop}` +
-      `&scheduled_pickup_time=${booking.arrivalTime}` +
-      `&scheduled_drop_time=${booking.reachingTime}` +
-      `&passenger_name=${encodeURIComponent(currentUser.name)}` +
-      `&passenger_email=${encodeURIComponent(currentUser.email)}` +
-      `&passenger_phone=${encodeURIComponent(currentUser.phone)}` +
-      `&seats_booked=${booking.pax}` +
-      `&fare_per_seat=${booking.totalAmount / booking.pax}` +
-      `&total_amount=${booking.totalAmount}`
-    );
+    const createdIds = await createHoldBookingForSelectedTrip(booking);
+    holdBookingIds = createdIds;
 
-    console.log("📥 HOLD Response:", holdData);
-
-    if (!holdData.success) {
-      togglePayLoader(false);
-      alert(holdData.error || "❌ Failed to create booking hold");
-      return;
-    }
-
-    holdBookingId = holdData.booking_id;
-    console.log("🧾 HOLD Booking Created:", holdBookingId);
+    console.log("🧾 HOLD Booking IDs Created:", holdBookingIds);
 
     startHoldTimer();
 
-    const totalAmount = Number(paymentSummaryState.totalAmount || 0); // after pass
+    const totalAmount = Number(paymentSummaryState.totalAmount || 0);
     const walletUsed = Number(paymentSummaryState.walletUsed || 0);
     const onlineAmount = Number(paymentSummaryState.onlineAmount || 0);
     const passQueryString = buildPassQueryString();
+    const bookingIdsQueryString = buildBookingIdsQueryString();
 
     console.log("📘 Booking being confirmed:", booking);
+    console.log("🛣️ tripType:", tripType);
     console.log("💰 totalAmount(after pass):", totalAmount);
     console.log("👛 walletUsed:", walletUsed);
     console.log("🌐 onlineAmount:", onlineAmount);
@@ -776,7 +893,8 @@ async function confirmPaymentSummary() {
 
       const walletPayResult = await safeFetch(
         `${APP_CONFIG.API_URL}?action=processWalletBookingPayment` +
-        `&booking_id=${encodeURIComponent(holdBookingId)}` +
+        bookingIdsQueryString +
+        `&trip_type=${encodeURIComponent(tripType)}` +
         `&email=${encodeURIComponent(currentUser.email)}` +
         `&amount=${encodeURIComponent(totalAmount)}` +
         passQueryString
@@ -822,7 +940,7 @@ async function confirmPaymentSummary() {
         currency: "INR",
         order_id: order.id,
         name: "SHRD Shuttle",
-        description: booking.routeName + " (Wallet + Online)",
+        description: `${getBookingDescription(booking)} (Wallet + Online)`,
 
         handler: async function (response) {
           console.log("✅ Mixed payment success:", response);
@@ -833,7 +951,8 @@ async function confirmPaymentSummary() {
           try {
             const verifyData = await safeFetch(
               `${APP_CONFIG.API_URL}?action=verifyMixedBookingPayment` +
-              `&booking_id=${encodeURIComponent(holdBookingId)}` +
+              bookingIdsQueryString +
+              `&trip_type=${encodeURIComponent(tripType)}` +
               `&email=${encodeURIComponent(currentUser.email)}` +
               `&wallet_amount=${encodeURIComponent(walletUsed)}` +
               `&online_amount=${encodeURIComponent(onlineAmount)}` +
@@ -853,7 +972,6 @@ async function confirmPaymentSummary() {
             }
 
             alert("✅ Booking Confirmed! Wallet + Online payment used");
-
           } catch (err) {
             console.error("❌ Mixed payment verify error:", err);
             togglePayLoader(false);
@@ -905,7 +1023,7 @@ async function confirmPaymentSummary() {
       order_id: order.id,
 
       name: "SHRD Shuttle",
-      description: booking.routeName,
+      description: getBookingDescription(booking),
 
       handler: async function (response) {
         console.log("✅ Full payment success:", response);
@@ -916,7 +1034,8 @@ async function confirmPaymentSummary() {
         try {
           const confirmData = await safeFetch(
             `${APP_CONFIG.API_URL}?action=confirmBooking` +
-            `&booking_id=${encodeURIComponent(holdBookingId)}` +
+            bookingIdsQueryString +
+            `&trip_type=${encodeURIComponent(tripType)}` +
             `&razorpay_order_id=${encodeURIComponent(response.razorpay_order_id)}` +
             `&razorpay_payment_id=${encodeURIComponent(response.razorpay_payment_id)}` +
             `&razorpay_signature=${encodeURIComponent(response.razorpay_signature)}` +
@@ -933,7 +1052,6 @@ async function confirmPaymentSummary() {
           }
 
           alert("✅ Booking Confirmed!");
-
         } catch (err) {
           console.error("❌ Full payment confirm error:", err);
           togglePayLoader(false);
@@ -956,7 +1074,6 @@ async function confirmPaymentSummary() {
 
     const rzp = new Razorpay(options);
     rzp.open();
-
   } catch (error) {
     console.error("❌ confirmPaymentSummary() failed:", error);
     togglePayLoader(false);
@@ -964,12 +1081,13 @@ async function confirmPaymentSummary() {
   }
 }
 
-
 // ===============================================================
 // HOLD TIMER
 // ===============================================================
 function startHoldTimer() {
   console.log(`⏳ HOLD TIMER STARTED (${HOLD_TIME / 1000}s)`);
+
+  clearTimeout(holdTimer);
 
   holdTimer = setTimeout(async () => {
     console.log("⌛ HOLD TIME EXPIRED");
@@ -977,32 +1095,34 @@ function startHoldTimer() {
   }, HOLD_TIME);
 }
 
-
 // ===============================================================
 // CANCEL HOLD BOOKING
 // ===============================================================
 async function cancelHoldBooking() {
-  if (!holdBookingId) {
-    console.warn("⚠️ No holdBookingId present, skipping cancel");
+  if (!Array.isArray(holdBookingIds) || holdBookingIds.length === 0) {
+    console.warn("⚠️ No holdBookingIds present, skipping cancel");
     return;
   }
 
-  console.log("🚫 Cancelling HOLD booking:", holdBookingId);
+  console.log("🚫 Cancelling HOLD booking IDs:", holdBookingIds);
 
   try {
+    const tripType = paymentSummaryState?.tripType || "ONEWAY";
+
     const data = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=cancelBooking&booking_id=${encodeURIComponent(holdBookingId)}`
+      `${APP_CONFIG.API_URL}?action=cancelBooking` +
+      buildBookingIdsQueryString() +
+      `&trip_type=${encodeURIComponent(tripType)}`
     );
 
     console.log("📥 Cancel Response:", data);
-
   } catch (err) {
     console.error("❌ Cancel Error:", err);
   }
 
-  console.log("❌ HOLD booking cancelled");
+  holdBookingIds = [];
+  console.log("❌ HOLD booking(s) cancelled and local IDs reset");
 }
-
 
 // ===============================================================
 // GLOBAL BINDINGS
@@ -1010,7 +1130,6 @@ async function cancelHoldBooking() {
 window.closePaymentSummaryModal = closePaymentSummaryModal;
 window.handleWalletCheckboxChange = handleWalletCheckboxChange;
 window.confirmPaymentSummary = confirmPaymentSummary;
-
 
 // ===============================================================
 // INIT PAYMENT MODAL HTML

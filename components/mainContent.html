@@ -3,12 +3,13 @@ mainContent.html
 ---------------------------------------------------------------
 This component contains the main content visible after login.
 
-Includes:
-- Navigation Tabs
-- Booking Section
-- My Trips Section
-- Travel Pass Section
-- Live Tracking Section
+UPDATED:
+- Added Trip Type selector (One Way / Round Trip)
+- Added hidden tripType input
+- Added Swap Stops button between From and To
+- Kept Trip Date common for same-day round trips
+- Preserved existing IDs and structure so current JS flow
+  remains compatible as much as possible
 =========================================================== -->
 
 <div id="mainContent" style="display: none;">
@@ -39,6 +40,45 @@ Includes:
     </h2>
 
     <div class="booking-form">
+
+      <!-- ===================================================== -->
+      <!-- TRIP TYPE -->
+      <!-- ----------------------------------------------------- -->
+      <!-- One common date for both one-way and same-day round trip -->
+      <!-- Hidden field will be used by JS -->
+      <!-- ===================================================== -->
+      <div class="form-group">
+        <label>Trip Type</label>
+
+        <div class="trip-type-toggle" id="tripTypeToggle">
+          <button
+            type="button"
+            class="trip-type-btn active"
+            id="oneWayBtn"
+            data-trip-type="oneway"
+          >
+            One Way
+          </button>
+
+          <button
+            type="button"
+            class="trip-type-btn"
+            id="roundTripBtn"
+            data-trip-type="roundtrip"
+          >
+            Round Trip
+          </button>
+        </div>
+
+        <!-- Hidden field for JS / backend -->
+        <input type="hidden" id="tripType" value="oneway">
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- COMMON TRIP DATE -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Same date used for one-way and round-trip -->
+      <!-- ===================================================== -->
       <div class="form-group">
         <label for="tripDate">Trip Date</label>
         <input type="date" id="tripDate" required>
@@ -73,6 +113,22 @@ Includes:
       </div>
 
       <!-- ===================================================== -->
+      <!-- SWAP BUTTON -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Swaps visible and hidden From / To values -->
+      <!-- ===================================================== -->
+      <div class="form-group swap-stops-group">
+        <button
+          type="button"
+          id="swapStopsBtn"
+          class="swap-stops-btn"
+          title="Swap stops"
+        >
+          ⇅
+        </button>
+      </div>
+
+      <!-- ===================================================== -->
       <!-- SEARCHABLE TO STOP -->
       <!-- ----------------------------------------------------- -->
       <!-- Visible input:
@@ -100,6 +156,9 @@ Includes:
         </div>
       </div>
 
+      <!-- ===================================================== -->
+      <!-- PASSENGERS -->
+      <!-- ===================================================== -->
       <div class="form-group">
         <label for="noOfPAX">Number of Passengers</label>
         <select id="noOfPAX">
@@ -110,6 +169,9 @@ Includes:
         </select>
       </div>
 
+      <!-- ===================================================== -->
+      <!-- CHECK AVAILABILITY -->
+      <!-- ===================================================== -->
       <div class="form-group">
         <button class="btn btn-primary" type="button" id="checkAvailabilityBtn">
           <span id="checkBtnText">Check Availability</span>
