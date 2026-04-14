@@ -235,8 +235,10 @@ function initializeSwapStopsButton(swapBtn) {
   console.log("✅ Swap stops button initialized");
 }
 
-function swapStops() {
+function swapStops(event) {
   console.log("🔄 swapStops() called");
+
+  const swapBtn = event?.currentTarget;
 
   const fromSearch = getElement("tripFromSearch");
   const fromHidden = getElement("tripFrom");
@@ -248,6 +250,25 @@ function swapStops() {
     return;
   }
 
+  // 👇 rotation logic (works with hover)
+  if (swapBtn) {
+    let rotation = parseInt(swapBtn.dataset.rotation || "0", 10);
+
+    // If hovered, base is already 180 visually → compensate
+    const isHovered = swapBtn.matches(":hover");
+    if (isHovered) {
+      rotation += 180;
+    }
+
+    rotation += 180;
+
+    swapBtn.dataset.rotation = rotation;
+    swapBtn.style.transform = `rotate(${rotation}deg)`;
+
+    console.log(`🔁 Rotation: ${rotation}deg`);
+  }
+
+  // swap logic
   const tempSearch = fromSearch.value;
   const tempHidden = fromHidden.value;
 

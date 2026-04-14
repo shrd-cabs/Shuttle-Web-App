@@ -1,0 +1,96 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-production:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Prepare production files
+        run: |
+          mkdir -p /tmp/site-root
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            ./ /tmp/site-root/
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-branch
+
+      - name: Replace production root and keep staging folder
+        run: |
+          shopt -s dotglob
+          cd gh-pages-branch
+          find . -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name 'staging' \
+            -exec rm -rf {} +
+          rsync -av /tmp/site-root/ ./
+
+      - name: Commit and push production
+        run: |
+          cd gh-pages-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Deploy production from main"
+          git push origin gh-pages
+
+  deploy-staging:
+    if: github.ref_name == 'staging'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Prepare staging files
+        run: |
+          mkdir -p /tmp/staging-site
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            ./ /tmp/staging-site/
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-branch
+
+      - name: Replace staging files only
+        run: |
+          mkdir -p gh-pages-branch/staging
+          rm -rf gh-pages-branch/staging/*
+          rsync -av /tmp/staging-site/ gh-pages-branch/staging/
+
+      - name: Commit and push staging
+        run: |
+          cd gh-pages-branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Deploy staging from staging"
+          git push origin gh-pages
