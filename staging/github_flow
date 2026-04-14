@@ -1,0 +1,131 @@
+Deployment flow chart
+                ┌─────────────────────┐
+                │   feature branch    │
+                │ feature/anything    │
+                └─────────┬───────────┘
+                          │
+                          │ commit + push
+                          ▼
+                ┌─────────────────────┐
+                │   GitHub stores it  │
+                │  nothing deploys    │
+                └─────────┬───────────┘
+                          │
+                          │ merge into staging
+                          ▼
+                ┌─────────────────────┐
+                │      staging        │
+                │   test branch       │
+                └─────────┬───────────┘
+                          │
+                          │ push / merge
+                          ▼
+                ┌─────────────────────┐
+                │  GitHub Action runs │
+                │ updates gh-pages    │
+                │ inside /staging/    │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ staging website     │
+                │ /staging/           │
+                └─────────┬───────────┘
+                          │
+                          │ test everything
+                          │ if okay
+                          ▼
+                ┌─────────────────────┐
+                │ merge staging into  │
+                │       main          │
+                └─────────┬───────────┘
+                          │
+                          │ push / merge
+                          ▼
+                ┌─────────────────────┐
+                │  GitHub Action runs │
+                │ updates gh-pages    │
+                │ root production     │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ production website  │
+                │        /            │
+                └─────────────────────┘
+
+
+What each branch means
+
+feature/*   = work safely, nothing public changes
+staging     = test deployment
+main        = production deployment
+gh-pages    = final published site only
+
+
+Super simple memory rule
+
+push feature  -> no deployment
+push staging  -> staging site updates
+push main     -> production site updates
+
+
+Visual map of branches
+
+feature branch
+      │
+      ▼
+   staging
+      │
+      ▼
+    main
+      │
+      ▼
+  GitHub Action
+      │
+      ▼
+   gh-pages
+      │
+      ├── root        -> production
+      └── /staging/   -> staging
+
+
+
+Daily workflow chart
+
+Start work
+   │
+   ▼
+Create feature branch from staging
+   │
+   ▼
+Make changes in VS Code
+   │
+   ▼
+Commit + push feature branch
+   │
+   ▼
+Merge feature -> staging
+   │
+   ▼
+Test on /staging/
+   │
+   ├── if broken -> fix in feature/staging and test again
+   │
+   └── if okay
+         ▼
+      Merge staging -> main
+         │
+         ▼
+      Live site updates
+
+
+
+One-line version
+feature -> staging -> main -> gh-pages -> live
+
+Best shortcut to remember
+feature = build
+staging = test
+main    = release
+gh-pages = serve
