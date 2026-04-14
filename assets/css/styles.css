@@ -535,10 +535,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+
+  transition: transform 0.3s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* hover effect */
+/* Hover rotation */
 .swap-stops-btn:hover {
   background: #6a5acd;
   color: white;
