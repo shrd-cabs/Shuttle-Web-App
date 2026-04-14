@@ -1,0 +1,340 @@
+<!-- ===========================================================
+mainContent.html
+---------------------------------------------------------------
+This component contains the main content visible after login.
+
+UPDATED:
+- Added Trip Type selector (One Way / Round Trip)
+- Added hidden tripType input
+- Added Swap Stops button between From and To
+- Kept Trip Date common for same-day round trips
+- Preserved existing IDs and structure so current JS flow
+  remains compatible as much as possible
+=========================================================== -->
+
+<div id="mainContent" style="display: none;">
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('booking')" data-tab="booking">
+      Book Seat
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('myTrips')" data-tab="myTrips">
+      My Trips
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('travelPass')" data-tab="travelPass">
+      Travel Pass
+    </button>
+
+    <button class="nav-tab" onclick="switchTab('liveTracking')" data-tab="liveTracking">
+      Live Tracking (Under Progress)
+    </button>
+  </div>
+
+  <!-- BOOKING SECTION -->
+  <div class="content-section active" id="bookingSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Book Your Seat
+    </h2>
+
+    <div class="booking-form">
+
+      <!-- ===================================================== -->
+      <!-- TRIP TYPE -->
+      <!-- ----------------------------------------------------- -->
+      <!-- One common date for both one-way and same-day round trip -->
+      <!-- Hidden field will be used by JS -->
+      <!-- ===================================================== -->
+      <div class="form-group">
+        <label>Trip Type</label>
+
+        <div class="trip-type-toggle" id="tripTypeToggle">
+          <button
+            type="button"
+            class="trip-type-btn active"
+            id="oneWayBtn"
+            data-trip-type="oneway"
+          >
+            One Way
+          </button>
+
+          <button
+            type="button"
+            class="trip-type-btn"
+            id="roundTripBtn"
+            data-trip-type="roundtrip"
+          >
+            Round Trip
+          </button>
+        </div>
+
+        <!-- Hidden field for JS / backend -->
+        <input type="hidden" id="tripType" value="oneway">
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- COMMON TRIP DATE -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Same date used for one-way and round-trip -->
+      <!-- ===================================================== -->
+      <div class="form-group">
+        <label for="tripDate">Trip Date</label>
+        <input type="date" id="tripDate" required>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- SEARCHABLE FROM STOP -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Visible input:
+           - tripFromSearch
+           Hidden input (actual selected value for existing JS):
+           - tripFrom
+      ====================================================== -->
+      <div class="form-group">
+        <label for="tripFromSearch">From</label>
+
+        <div class="searchable-dropdown" id="tripFromDropdown">
+          <input
+            type="text"
+            id="tripFromSearch"
+            class="searchable-input"
+            placeholder="Type and search pickup stop"
+            autocomplete="off"
+          />
+
+          <!-- Hidden field keeps old ID for compatibility -->
+          <input type="hidden" id="tripFrom" />
+
+          <!-- Custom dropdown list -->
+          <div class="searchable-list" id="tripFromList"></div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- SWAP BUTTON -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Swaps visible and hidden From / To values -->
+      <!-- ===================================================== -->
+      <div class="form-group swap-stops-group">
+        <button
+          type="button"
+          id="swapStopsBtn"
+          class="swap-stops-btn"
+          title="Swap stops"
+        >
+          ⇅
+        </button>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- SEARCHABLE TO STOP -->
+      <!-- ----------------------------------------------------- -->
+      <!-- Visible input:
+           - tripToSearch
+           Hidden input (actual selected value for existing JS):
+           - tripTo
+      ====================================================== -->
+      <div class="form-group">
+        <label for="tripToSearch">To</label>
+
+        <div class="searchable-dropdown" id="tripToDropdown">
+          <input
+            type="text"
+            id="tripToSearch"
+            class="searchable-input"
+            placeholder="Type and search drop stop"
+            autocomplete="off"
+          />
+
+          <!-- Hidden field keeps old ID for compatibility -->
+          <input type="hidden" id="tripTo" />
+
+          <!-- Custom dropdown list -->
+          <div class="searchable-list" id="tripToList"></div>
+        </div>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- PASSENGERS -->
+      <!-- ===================================================== -->
+      <div class="form-group">
+        <label for="noOfPAX">Number of Passengers</label>
+        <select id="noOfPAX">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+
+      <!-- ===================================================== -->
+      <!-- CHECK AVAILABILITY -->
+      <!-- ===================================================== -->
+      <div class="form-group">
+        <button class="btn btn-primary" type="button" id="checkAvailabilityBtn">
+          <span id="checkBtnText">Check Availability</span>
+          <span id="checkLoader" class="btn-loader" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+
+    <div id="routesContainer" style="margin-top:20px;"></div>
+
+    <div class="booking-details">
+      <h3>Booking Summary</h3>
+
+      <div class="detail-row">
+        <strong>Number of Passengers:</strong>
+        <span id="selectedSeatsDisplay">None</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Trip Date:</strong>
+        <span id="dateDisplay">Not selected</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Journey Time:</strong>
+        <span id="journeyTimeDisplay">Not selected</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Total Amount:</strong>
+        <span id="totalAmountDisplay">Not selected</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Route Name:</strong>
+        <span id="routeDisplay">Not selected</span>
+      </div>
+    </div>
+
+    <div id="bookingAlert" class="alert"></div>
+
+    <div class="button-group">
+      <button class="btn btn-primary" id="payBtn" onclick="openPaymentModal()">
+        <span id="payBtnText">Proceed to Payment</span>
+        <span id="payLoader" class="btn-loader" style="display:none;"></span>
+      </button>
+
+      <button class="btn btn-secondary" onclick="resetBooking()">
+        Clear Selection
+      </button>
+    </div>
+  </div>
+
+  <!-- MY TRIPS SECTION -->
+  <div class="content-section" id="myTripsSection">
+    <h2 style="text-align:center;color:#333;margin-bottom:20px;">
+      Your Bookings
+    </h2>
+
+    <div class="trip-tabs">
+      <button class="trip-tab active" onclick="showTripsTab('current')" id="tabCurrent">
+        Current Trips
+      </button>
+
+      <button class="trip-tab" onclick="showTripsTab('upcoming')" id="tabUpcoming">
+        Upcoming Trips
+      </button>
+
+      <button class="trip-tab" onclick="showTripsTab('past')" id="tabPast">
+        Past Trips
+      </button>
+    </div>
+
+    <div class="my-trips" id="myTripsList">
+      <p style="text-align:center;color:#999;">
+        Loading bookings...
+      </p>
+    </div>
+  </div>
+
+  <!-- TRIP DETAILS MODAL -->
+  <div id="tripDetailsModal" class="trip-modal">
+    <div class="trip-modal-content">
+      <div id="tripDetailsContent"></div>
+    </div>
+  </div>
+
+  <!-- ===========================================================
+  TRAVEL PASS SECTION
+  Uniform structure similar to My Trips section
+  =========================================================== -->
+  <div class="content-section" id="travelPassSection">
+
+    <h2 style="text-align:center;color:#333;margin-bottom:20px;">
+      Travel Pass
+    </h2>
+
+    <!-- PASS FILTER TABS -->
+    <div class="trip-tabs">
+
+      <button class="trip-tab active"
+              onclick="showPassTab('available')"
+              id="tabPassAvailable">
+        Available Passes
+      </button>
+
+      <button class="trip-tab"
+              onclick="showPassTab('myPasses')"
+              id="tabPassMyPasses">
+        My Passes
+      </button>
+
+      <button class="trip-tab"
+              onclick="showPassTab('usage')"
+              id="tabPassUsage">
+        Usage History
+      </button>
+
+    </div>
+
+    <!-- PASS CONTENT CONTAINER -->
+    <div class="my-trips" id="travelPassContent">
+      <p style="text-align:center;color:#999;">
+        Loading travel pass data...
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ===========================================================
+  PASS DETAILS MODAL
+  =========================================================== -->
+  <div id="passDetailsModal" class="trip-modal">
+    <div class="trip-modal-content">
+      <div id="passDetailsContent"></div>
+    </div>
+  </div>
+
+  <!-- LIVE TRACKING SECTION -->
+  <div class="content-section" id="liveTrackingSection">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+      Live Tracking (Under Progress)
+    </h2>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label for="cancelBookingId">Booking ID</label>
+        <input type="text" id="cancelBookingId" placeholder="Enter your booking ID">
+        <div class="error-text" id="cancelError"></div>
+      </div>
+    </div>
+
+    <div id="cancelAlert" class="alert"></div>
+
+    <div class="button-group">
+      <button class="btn btn-danger" onclick="cancelBooking()">
+        Submit
+      </button>
+
+      <button class="btn btn-secondary" onclick="clearCancelForm()">
+        Clear
+      </button>
+    </div>
+  </div>
+
+</div>

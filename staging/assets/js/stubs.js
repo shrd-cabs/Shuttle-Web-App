@@ -1,0 +1,26 @@
+// ===============================================================
+// stubs.js
+// ---------------------------------------------------------------
+// This file contains placeholder ("Coming soon") functions.
+//
+// These are functions referenced in index.html using onclick="...".
+//
+// Example:
+// - resetBooking()
+//
+// If these functions are not defined, the HTML will break.
+// So we register them safely on window.
+// ===============================================================
+
+export function registerStubFunctions() {
+  [
+    "resetBooking",
+    "closeConfirmationModal",
+    "cancelBooking",
+    "clearCancelForm",
+  ].forEach((name) => {
+    window[name] = function () {
+      alert(`${name} – Coming soon!`);
+    };
+  });
+}

@@ -1,0 +1,181 @@
+<!-- ===========================================================
+captainMainContent.html
+---------------------------------------------------------------
+Captain panel main content after login.
+
+SECTIONS:
+1. Dashboard
+2. Trip Details
+
+PURPOSE:
+- Dashboard shows captain info + assigned trips
+- Trip Details shows selected trip summary + assigned trips + stops
+
+IMPORTANT:
+- IDs must match captainDashboard.js exactly
+- Inline onclick handlers require global functions:
+  - switchCaptainTab()
+=========================================================== -->
+
+<div id="captainDashboard" style="display: none;">
+
+  <!-- ========================================================= -->
+  <!-- NAVIGATION TABS -->
+  <!-- ========================================================= -->
+  <div class="nav-tabs">
+
+    <button
+      class="nav-tab active"
+      onclick="switchCaptainTab('dashboard')"
+      data-tab="dashboard"
+      type="button"
+    >
+      Dashboard
+    </button>
+
+    <button
+      class="nav-tab"
+      onclick="switchCaptainTab('manifest')"
+      data-tab="manifest"
+      type="button"
+    >
+      Trip Details
+    </button>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- DASHBOARD SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section active" id="captainDashboardSection">
+
+    <h2 class="captain-page-title">
+      Captain Dashboard
+    </h2>
+
+    <!-- ======================================================= -->
+    <!-- DRIVER DETAILS -->
+    <!-- ======================================================= -->
+    <div class="booking-details">
+      <h3>Driver Details</h3>
+
+      <div class="detail-row">
+        <strong>Name:</strong>
+        <span id="captainName">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Mobile:</strong>
+        <span id="captainMobileDisplay">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Bus Number:</strong>
+        <span id="captainBus">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Status:</strong>
+        <span id="captainStatus">-</span>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- SELECTED / CURRENT TRIP SUMMARY -->
+    <!-- ======================================================= -->
+    <div class="booking-details captain-trip-info-card" style="margin-top:20px;">
+      <h3>Selected Trip Summary</h3>
+
+      <div class="detail-row">
+        <strong>Route:</strong>
+        <span id="captainRoute">Not Assigned</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Trip ID:</strong>
+        <span id="captainTripId">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Status:</strong>
+        <span id="captainTripStatus">Not Started</span>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- ASSIGNED TRIPS LIST -->
+    <!-- ======================================================= -->
+    <div class="booking-details" style="margin-top:20px;">
+      <h3>Assigned Trips</h3>
+
+      <div id="captainTripsList">
+        <p class="captain-empty-text">
+          Loading trips...
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TRIP DETAILS SECTION -->
+  <!-- ========================================================= -->
+  <div class="content-section" id="captainManifestSection">
+
+    <h2 class="captain-page-title">
+      Trip Details
+    </h2>
+
+    <!-- ======================================================= -->
+    <!-- ASSIGNED TRIPS LIST IN TRIP DETAILS -->
+    <!-- ======================================================= -->
+    <div class="booking-details" style="margin-top:20px;">
+      <h3>Assigned Trips</h3>
+
+      <div id="captainTripsListManifest">
+        <p class="captain-empty-text">
+          Loading trips...
+        </p>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- SELECTED TRIP INFO -->
+    <!-- ======================================================= -->
+    <div class="booking-details captain-trip-info-card" style="margin-top:20px;">
+      <h3>Trip Info</h3>
+
+      <div class="detail-row">
+        <strong>Trip ID:</strong>
+        <span id="manifestTripId">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Trip Name:</strong>
+        <span id="manifestTripName">-</span>
+      </div>
+
+      <div class="detail-row">
+        <strong>Travel Date:</strong>
+        <span id="manifestTravelDate">-</span>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- STOPS / PASSENGERS STOP-WISE MOBILE VIEW -->
+    <!-- ======================================================= -->
+    <div class="captain-manifest-mobile-wrap" style="margin-top:20px;">
+      <div class="booking-details">
+        <h3>Trip Stops</h3>
+
+        <div id="captainStopsList">
+          <p class="captain-empty-text">
+            Select a trip to view stops.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

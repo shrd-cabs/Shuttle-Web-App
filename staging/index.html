@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/jpeg" href="./assets/images/img1.jpeg">
+  <title>SHRD Shuttle Bus Booking System</title>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+
+<body>
+
+  <!-- ========================================================= -->
+  <!-- APP LOADER (Shown while components + sheet data loads) -->
+  <!-- ========================================================= -->
+  <div id="appLoader">
+    <div class="loader-box">
+      <div class="spinner"></div>
+      <p>Loading SHRD Shuttle System...</p>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN APP WRAPPER -->
+  <!-- --------------------------------------------------------- -->
+  <!-- IMPORTANT:
+       Your CSS is designed to show the UI inside a centered white
+       container/card (like your GitHub screenshot).
+       
+       So we MUST wrap header/login/main/footer inside a container.
+  -->
+  <!-- ========================================================= -->
+
+  <div class="container">
+
+    <!-- These placeholders will be filled by componentLoader.js -->
+    <div id="headerComponent"></div>
+
+    <div id="loginComponent"></div>
+
+    <div id="mainContentComponent"></div>
+
+    <div id="footerComponent"></div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODALS (should be outside container so they can overlay full page) -->
+  <!-- ========================================================= -->
+  <div id="paymentModalComponent"></div>
+  <div id="confirmationModalComponent"></div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN JS ENTRY POINT -->
+  <!-- ========================================================= -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script type="module" src="./assets/js/main.js"></script>
+</body>
+</html>

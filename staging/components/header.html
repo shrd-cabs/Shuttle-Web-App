@@ -1,0 +1,154 @@
+<!-- ===========================================================
+header.html
+---------------------------------------------------------------
+Top header section of the app.
+
+INCLUDES:
+- Logo + title
+- Wallet balance chip
+- Logout button
+- Wallet popup modal
+
+NOTES:
+- Wallet chip opens popup using openWalletPopup()
+- Logout uses logout()
+- Popup buttons use wallet.js global functions
+=========================================================== -->
+
+<!-- ===========================================================
+HEADER
+=========================================================== -->
+<div class="header">
+    <!-- =========================================================
+       LEFT SIDE: LOGO + TITLE
+    ========================================================== -->
+  <img
+    src="./assets/images/img1.jpeg"
+    alt="Shri Radhey Logo"
+    class="logo-img"
+  />
+
+  <div class="header-title-block">
+    <h1 class="header-title">SHRD Shuttle Booking</h1>
+    <p class="header-subtitle">Shri Radhey Travel Services</p>
+  </div>
+  <!-- =========================================================
+       RIGHT SIDE: WALLET + LOGOUT
+         WALLET CHIP
+         - Hidden by default
+         - Shown after login by wallet.js
+  ========================================================= -->
+  <div class="header-right">
+    <div
+      class="wallet-box"
+      id="walletBox"
+      style="display: none;"
+      onclick="openWalletPopup()"
+      title="Open Wallet"
+    >
+      <span class="wallet-icon">💰</span>
+      <span id="walletAmount">₹0</span>
+    </div>
+    <!-- =======================================================
+         LOGOUT BUTTON
+         - Hidden by default
+         - Shown after login
+    ======================================================== -->
+    <button
+      class="logout-btn"
+      id="logoutBtn"
+      style="display: none;"
+      onclick="logout()"
+      type="button"
+    >
+      Logout
+    </button>
+  </div>
+</div>
+
+
+<!-- ===========================================================
+WALLET MODAL
+---------------------------------------------------------------
+Shown when user clicks wallet chip
+=========================================================== -->
+<div
+  class="wallet-modal-overlay"
+  id="walletModalOverlay"
+  style="display: none;"
+>
+  <div class="wallet-modal">
+
+    <!-- =======================================================
+         MODAL HEADER
+    ======================================================== -->
+    <div class="wallet-modal-header">
+      <h2>My Wallet</h2>
+
+      <button
+        class="wallet-close-btn"
+        type="button"
+        onclick="closeWalletPopup()"
+        aria-label="Close Wallet Popup"
+        title="Close"
+      >
+        ×
+      </button>
+    </div>
+
+    <!-- =======================================================
+         CURRENT BALANCE
+    ======================================================== -->
+    <div class="wallet-balance-card">
+      <p class="wallet-balance-label">Available Balance</p>
+      <h3 id="walletPopupBalance">₹0</h3>
+    </div>
+
+    <!-- =======================================================
+         ADD MONEY SECTION
+    ======================================================== -->
+    <div class="wallet-section">
+      <h4>Add Money</h4>
+
+      <!-- QUICK AMOUNT BUTTONS -->
+      <div class="wallet-amount-chips">
+        <button type="button" onclick="setWalletAmount(100)">₹100</button>
+        <button type="button" onclick="setWalletAmount(200)">₹200</button>
+        <button type="button" onclick="setWalletAmount(500)">₹500</button>
+        <button type="button" onclick="setWalletAmount(1000)">₹1000</button>
+      </div>
+
+      <!-- CUSTOM AMOUNT INPUT -->
+      <input
+        type="number"
+        id="walletAddAmount"
+        class="wallet-input"
+        placeholder="Enter amount"
+        min="1"
+      />
+
+      <!-- ADD MONEY BUTTON -->
+      <button
+        class="wallet-add-btn"
+        type="button"
+        onclick="handleAddMoney()"
+      >
+        Proceed to Add Money
+      </button>
+    </div>
+
+    <!-- =======================================================
+         RECENT TRANSACTIONS
+    ======================================================== -->
+    <div class="wallet-section">
+      <div class="wallet-transaction-header">
+        <h4>Recent Transactions</h4>
+      </div>
+
+      <div id="walletTransactionsList" class="wallet-transactions-list">
+        <div class="wallet-empty-state">No transactions found</div>
+      </div>
+    </div>
+
+  </div>
+</div>

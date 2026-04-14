@@ -1,0 +1,59 @@
+<!-- ===========================================================
+captainHeader.html
+---------------------------------------------------------------
+Top header section of the captain panel.
+
+INCLUDES:
+- Logo + title
+- Captain info chip
+- Logout button
+
+NOTES:
+- Reuses same visual layout as customer header
+- No wallet UI needed for captain panel
+- Logout uses logoutCaptain()
+=========================================================== -->
+
+<!-- ===========================================================
+HEADER
+=========================================================== -->
+<div class="header">
+  <!-- =========================================================
+       LEFT SIDE: LOGO + TITLE
+  ========================================================== -->
+  <img
+    src="../assets/images/img1.jpeg"
+    alt="Shri Radhey Logo"
+    class="logo-img"
+  />
+
+  <div class="header-title-block">
+    <h1 class="header-title">SHRD Captain Panel</h1>
+    <p class="header-subtitle">Shri Radhey Travel Services</p>
+  </div>
+
+  <!-- =========================================================
+       RIGHT SIDE: CAPTAIN INFO + LOGOUT
+  ========================================================== -->
+  <div class="header-right">
+    <div
+      class="wallet-box"
+      id="captainInfoBox"
+      style="display: none;"
+      title="Captain Info"
+    >
+      <span class="wallet-icon">🧑‍✈️</span>
+      <span id="captainHeaderName">Captain</span>
+    </div>
+
+    <button
+      class="logout-btn"
+      id="captainLogoutBtn"
+      style="display: none;"
+      onclick="logoutCaptain()"
+      type="button"
+    >
+      Logout
+    </button>
+  </div>
+</div>
