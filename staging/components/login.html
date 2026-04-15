@@ -5,11 +5,13 @@ This component contains:
 - Login form
 - Signup form
 - Toggle signup functionality
+- Forgot password
 
 Functions used:
 - login()
 - signup()
 - toggleSignup()
+- forgotPassword()
 =========================================================== -->
 
 <div class="login-section active" id="loginSection">
@@ -35,8 +37,15 @@ Functions used:
         <span id="loginBtnText">Login</span>
         <span id="loginLoader" class="btn-loader" style="display:none;"></span>
       </button>
-
     </form>
+
+    <!-- FORGOT PASSWORD -->
+    <p style="text-align:center; margin-top:12px;">
+      <a href="#" onclick="forgotPassword(); return false;"
+         style="color:#6B46C1; cursor:pointer; font-weight:600;">
+        Forgot Password?
+      </a>
+    </p>
 
     <p style="text-align: center; margin-top: 15px; color: #666;">
       Don't have an account?
