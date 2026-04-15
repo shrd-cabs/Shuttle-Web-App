@@ -5,17 +5,11 @@
 //
 // FUNCTIONS:
 // ---------------------------------------------------------------
-// 1. login()       → Authenticate user
-// 2. signup()      → Create new account
-// 3. logout()      → Clear session
-// 4. autoLogin()   → Restore session
-//
-// NOTES:
-// ---------------------------------------------------------------
-// ✅ Wallet code fully removed from auth.js
-// ✅ Wallet UI is now handled only by wallet.js
-// ✅ Auth.js only triggers wallet sync/hide functions
-// ✅ Includes comments + console logs
+// 1. login()          → Authenticate user
+// 2. signup()         → Create new account
+// 3. forgotPassword() → Send stored password to user email
+// 4. logout()         → Clear session
+// 5. autoLogin()      → Restore session
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
@@ -23,11 +17,8 @@ import { setCurrentUser, clearCurrentUser } from "./state.js";
 import { showMainContent, showLoginContent } from "./ui.js";
 import { syncWalletForUser, hideWalletUI } from "./wallet.js";
 
-
 // ===============================================================
 // HELPER: BUTTON LOADER
-// ---------------------------------------------------------------
-// Reusable loader for login/signup buttons
 // ===============================================================
 function toggleButtonLoader(button, textEl, loaderEl, isLoading, loadingText) {
   console.log("🔄 toggleButtonLoader() called", {
@@ -54,7 +45,6 @@ function toggleButtonLoader(button, textEl, loaderEl, isLoading, loadingText) {
 
   console.log("✅ Button loader updated");
 }
-
 
 // ===============================================================
 // LOGIN FUNCTION
@@ -109,14 +99,7 @@ export async function login() {
       setCurrentUser(user);
       localStorage.setItem("currentUser", JSON.stringify(user));
 
-      console.log("💾 currentUser saved to localStorage");
-
       showMainContent();
-      console.log("✅ Main content shown");
-
-      // =========================================================
-      // Wallet sync is now handled only by wallet.js
-      // =========================================================
       syncWalletForUser(user);
 
       alert(`Welcome ${user.name}!`);
@@ -135,7 +118,6 @@ export async function login() {
     console.log("--------------------------------------------------");
   }
 }
-
 
 // ===============================================================
 // SIGNUP FUNCTION
@@ -193,19 +175,10 @@ export async function signup() {
         wallet_balance: Number(result.wallet_balance || 0)
       };
 
-      console.log("✅ New user created:", user);
-
       setCurrentUser(user);
       localStorage.setItem("currentUser", JSON.stringify(user));
 
-      console.log("💾 currentUser saved to localStorage");
-
       showMainContent();
-      console.log("✅ Main content shown");
-
-      // =========================================================
-      // Wallet sync is now handled only by wallet.js
-      // =========================================================
       syncWalletForUser(user);
 
       alert(`🎉 Account created! Welcome ${name}`);
@@ -225,6 +198,58 @@ export async function signup() {
   }
 }
 
+// ===============================================================
+// FORGOT PASSWORD FUNCTION
+// ---------------------------------------------------------------
+// Uses email entered in login email box
+// Sends stored password to registered email
+// ===============================================================
+export async function forgotPassword() {
+  console.log("--------------------------------------------------");
+  console.log("🔑 forgotPassword() called");
+
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const loginBtn = document.getElementById("loginBtn");
+  const loginBtnText = document.getElementById("loginBtnText");
+  const loginLoader = document.getElementById("loginLoader");
+
+  console.log("📧 Forgot password email:", email);
+
+  if (!email) {
+    alert("Please enter your email address first");
+    return;
+  }
+
+  try {
+    toggleButtonLoader(loginBtn, loginBtnText, loginLoader, true, "Sending...");
+
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const response = await fetch(
+      `${APP_CONFIG.API_URL}?action=forgotPassword` +
+      `&email=${encodeURIComponent(email)}`
+    );
+
+    const result = await response.json();
+
+    console.log("📥 forgotPassword API Response:", result);
+
+    if (result.success) {
+      alert("✅ Your password has been sent to your registered email");
+    } else {
+      alert(result.error || "Failed to send password email");
+    }
+
+  } catch (error) {
+    console.error("❌ forgotPassword Error:", error);
+    alert("Failed to process forgot password request");
+
+  } finally {
+    toggleButtonLoader(loginBtn, loginBtnText, loginLoader, false);
+    console.log("🏁 forgotPassword() completed");
+    console.log("--------------------------------------------------");
+  }
+}
 
 // ===============================================================
 // LOGOUT FUNCTION
@@ -236,14 +261,7 @@ export function logout() {
   clearCurrentUser();
   localStorage.removeItem("currentUser");
 
-  console.log("🧹 User session cleared");
-
   showLoginContent();
-  console.log("✅ Login screen shown");
-
-  // =============================================================
-  // Wallet hide is now handled only by wallet.js
-  // =============================================================
   hideWalletUI();
 
   alert("Logged out successfully");
@@ -251,7 +269,6 @@ export function logout() {
   console.log("🏁 logout() completed");
   console.log("--------------------------------------------------");
 }
-
 
 // ===============================================================
 // AUTO LOGIN FUNCTION
@@ -271,16 +288,8 @@ export function autoLogin() {
   try {
     const user = JSON.parse(savedUser);
 
-    console.log("✅ Saved user found:", user);
-
     setCurrentUser(user);
     showMainContent();
-
-    console.log("✅ Main content restored from saved session");
-
-    // =========================================================
-    // Wallet sync is now handled only by wallet.js
-    // =========================================================
     syncWalletForUser(user);
 
   } catch (error) {
@@ -291,3 +300,8 @@ export function autoLogin() {
   console.log("🏁 autoLogin() completed");
   console.log("--------------------------------------------------");
 }
+
+// ===============================================================
+// GLOBAL BINDING FOR INLINE HTML onclick
+// ===============================================================
+window.forgotPassword = forgotPassword;
