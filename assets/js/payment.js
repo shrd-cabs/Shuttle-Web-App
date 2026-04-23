@@ -276,6 +276,61 @@ function getBookingOriginalAmount(booking) {
 }
 
 // ===============================================================
+// HELPER: ROUND-TRIP LEG AMOUNTS
+// ---------------------------------------------------------------
+// Returns per-leg original/final amounts for storage in booking rows.
+// For now:
+// - if no pass => each leg keeps its own amount
+// - if pass applied => split discount proportionally across both legs
+// ===============================================================
+function getRoundTripLegAmounts() {
+  const booking = paymentSummaryState.booking || {};
+
+  const onwardOriginal = Number(booking?.onward?.totalAmount || 0);
+  const returnOriginal = Number(booking?.return?.totalAmount || 0);
+
+  const combinedOriginal = onwardOriginal + returnOriginal;
+  const combinedFinal = Number(paymentSummaryState.totalAmount || combinedOriginal);
+
+  console.log("🧮 getRoundTripLegAmounts() called");
+  console.log("➡️ onwardOriginal:", onwardOriginal);
+  console.log("⬅️ returnOriginal:", returnOriginal);
+  console.log("🧾 combinedOriginal:", combinedOriginal);
+  console.log("💰 combinedFinal:", combinedFinal);
+
+  // No pass / no discount / invalid totals
+  if (
+    !paymentSummaryState.passApplied ||
+    combinedOriginal <= 0 ||
+    combinedFinal >= combinedOriginal
+  ) {
+    const noDiscountLegs = {
+      onward_original_total_amount: onwardOriginal,
+      onward_final_total_amount: onwardOriginal,
+      return_original_total_amount: returnOriginal,
+      return_final_total_amount: returnOriginal
+    };
+
+    console.log("✅ Round-trip leg amounts (NO DISCOUNT split needed):", noDiscountLegs);
+    return noDiscountLegs;
+  }
+
+  // Proportional split of discounted final amount
+  let onwardFinal = Math.round((onwardOriginal / combinedOriginal) * combinedFinal);
+  let returnFinal = combinedFinal - onwardFinal;
+
+  const discountedLegs = {
+    onward_original_total_amount: onwardOriginal,
+    onward_final_total_amount: onwardFinal,
+    return_original_total_amount: returnOriginal,
+    return_final_total_amount: returnFinal
+  };
+
+  console.log("✅ Round-trip leg amounts (DISCOUNT SPLIT):", discountedLegs);
+  return discountedLegs;
+}
+
+// ===============================================================
 // BUILD PASS PAYLOAD FOR BOOKING CONFIRMATION
 // ===============================================================
 function getPassBookingPayload() {
@@ -331,6 +386,31 @@ function buildPassQueryString() {
     `&final_total_amount=${encodeURIComponent(passPayload.final_total_amount)}`;
 
   console.log("🔗 Pass query string built:", query);
+  return query;
+}
+
+// ===============================================================
+// BUILD ROUND-TRIP LEG QUERY STRING
+// ---------------------------------------------------------------
+// Sends per-leg totals so backend can store each booking row correctly
+// ===============================================================
+function buildRoundTripLegQueryString() {
+  const tripType = paymentSummaryState.tripType || "ONEWAY";
+
+  if (tripType !== "ROUNDTRIP") {
+    console.log("ℹ️ buildRoundTripLegQueryString() skipped for ONEWAY");
+    return "";
+  }
+
+  const legs = getRoundTripLegAmounts();
+
+  const query =
+    `&onward_original_total_amount=${encodeURIComponent(legs.onward_original_total_amount)}` +
+    `&onward_final_total_amount=${encodeURIComponent(legs.onward_final_total_amount)}` +
+    `&return_original_total_amount=${encodeURIComponent(legs.return_original_total_amount)}` +
+    `&return_final_total_amount=${encodeURIComponent(legs.return_final_total_amount)}`;
+
+  console.log("🔗 Round-trip leg query string built:", query);
   return query;
 }
 
@@ -877,6 +957,7 @@ async function confirmPaymentSummary() {
     const walletUsed = Number(paymentSummaryState.walletUsed || 0);
     const onlineAmount = Number(paymentSummaryState.onlineAmount || 0);
     const passQueryString = buildPassQueryString();
+    const roundTripLegQueryString = buildRoundTripLegQueryString();
     const bookingIdsQueryString = buildBookingIdsQueryString();
 
     console.log("📘 Booking being confirmed:", booking);
@@ -897,7 +978,8 @@ async function confirmPaymentSummary() {
         `&trip_type=${encodeURIComponent(tripType)}` +
         `&email=${encodeURIComponent(currentUser.email)}` +
         `&amount=${encodeURIComponent(totalAmount)}` +
-        passQueryString
+        passQueryString +
+        roundTripLegQueryString
       );
 
       console.log("📥 processWalletBookingPayment response:", walletPayResult);
@@ -959,7 +1041,8 @@ async function confirmPaymentSummary() {
               `&razorpay_order_id=${encodeURIComponent(response.razorpay_order_id)}` +
               `&razorpay_payment_id=${encodeURIComponent(response.razorpay_payment_id)}` +
               `&razorpay_signature=${encodeURIComponent(response.razorpay_signature)}` +
-              passQueryString
+              passQueryString +
+              roundTripLegQueryString
             );
 
             console.log("📥 verifyMixedBookingPayment response:", verifyData);
@@ -1039,7 +1122,8 @@ async function confirmPaymentSummary() {
             `&razorpay_order_id=${encodeURIComponent(response.razorpay_order_id)}` +
             `&razorpay_payment_id=${encodeURIComponent(response.razorpay_payment_id)}` +
             `&razorpay_signature=${encodeURIComponent(response.razorpay_signature)}` +
-            passQueryString
+            passQueryString +
+            roundTripLegQueryString
           );
 
           console.log("📥 confirmBooking response:", confirmData);
