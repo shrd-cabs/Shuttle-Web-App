@@ -363,6 +363,105 @@ function clearBookingSummary() {
   console.log("🧹 Booking summary cleared");
 }
 
+async function collectDeviceInfo() {
+  const ua = navigator.userAgent || "";
+
+  const info = {
+    userAgent: ua,
+    platform: navigator.platform || "",
+
+    // Screen / viewport
+    screen_width: window.screen?.width || "",
+    screen_height: window.screen?.height || "",
+    viewport_width: window.innerWidth || "",
+    viewport_height: window.innerHeight || "",
+    device_pixel_ratio: window.devicePixelRatio || "",
+
+    // Network
+    connection_type: navigator.connection?.effectiveType || "",
+    downlink: navigator.connection?.downlink || "",
+    save_data: navigator.connection?.saveData || false,
+
+    touch_points: navigator.maxTouchPoints || 0,
+    is_mobile: /Mobi|Android|iPhone|iPad|iPod/i.test(ua),
+
+    // Core fields
+    device_type: "Unknown",
+    os: "Unknown",
+    os_version: "",
+    browser: "Unknown",
+    browser_version: "",
+
+    // ✅ ADDED BACK
+    model: ""
+  };
+
+  // iPhone
+  if (/iPhone/i.test(ua)) {
+    info.device_type = "iPhone";
+    info.os = "iOS";
+    const m = ua.match(/OS ([\d_]+)/);
+    info.os_version = m ? m[1].replace(/_/g, ".") : "";
+
+    // ❗ Apple doesn't expose model
+    info.model = "Apple iPhone";
+  }
+
+  // iPad
+  else if (/iPad/i.test(ua)) {
+    info.device_type = "iPad";
+    info.os = "iPadOS";
+    const m = ua.match(/OS ([\d_]+)/);
+    info.os_version = m ? m[1].replace(/_/g, ".") : "";
+
+    info.model = "Apple iPad";
+  }
+
+  // Android
+  else if (/Android/i.test(ua)) {
+    info.device_type = "Android";
+    info.os = "Android";
+    const m = ua.match(/Android\s([\d.]+)/);
+    info.os_version = m ? m[1] : "";
+
+    // Try extracting model (works in many Android UAs)
+    const modelMatch = ua.match(/Android.*;\s([^)]+)\)/);
+    info.model = modelMatch ? modelMatch[1] : "Android Device";
+  }
+
+  // Desktop
+  else if (/Windows/i.test(ua)) {
+    info.device_type = "Desktop";
+    info.os = "Windows";
+    info.model = "Windows PC";
+  } else if (/Macintosh/i.test(ua)) {
+    info.device_type = "Desktop";
+    info.os = "macOS";
+    info.model = "Mac";
+  } else if (/Linux/i.test(ua)) {
+    info.device_type = "Desktop";
+    info.os = "Linux";
+    info.model = "Linux PC";
+  }
+
+  // Browser detection
+  if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) {
+    info.browser = "Chrome";
+    const m = ua.match(/Chrome\/([\d.]+)/);
+    info.browser_version = m ? m[1] : "";
+  } else if (/Safari/i.test(ua) && /Version/i.test(ua)) {
+    info.browser = "Safari";
+    const m = ua.match(/Version\/([\d.]+)/);
+    info.browser_version = m ? m[1] : "";
+  } else if (/Firefox/i.test(ua)) {
+    info.browser = "Firefox";
+  } else if (/Edg/i.test(ua)) {
+    info.browser = "Edge";
+  }
+
+  return info;
+}
+
 // ===============================================================
 // LOG CHECK AVAILABILITY CLICK
 // ---------------------------------------------------------------
@@ -378,7 +477,11 @@ async function logCheckAvailabilityClick({
 }) {
   try {
     console.log("📝 Logging Check Availability click...");
-    console.log("👤 Current User from state.js:", currentUser);
+
+    // ✅ THIS LINE WAS MISSING
+    const deviceInfo = await collectDeviceInfo();
+
+    console.log("📱 Device Info:", deviceInfo);
 
     const params = new URLSearchParams({
       action: "logAvailabilitySearch",
@@ -389,13 +492,23 @@ async function logCheckAvailabilityClick({
       seats_required: pax || "",
       user_email: currentUser?.email || "GUEST",
       user_name: currentUser?.name || "Guest User",
-      device: navigator.userAgent || "",
+
+      device: deviceInfo.userAgent || "",
+      device_type: deviceInfo.device_type || "",
+      os: deviceInfo.os || "",
+      os_version: deviceInfo.os_version || "",
+      browser: deviceInfo.browser || "",
+      browser_version: deviceInfo.browser_version || "",
+      model: deviceInfo.model || "",
+      screen_size: `${deviceInfo.screen_width}x${deviceInfo.screen_height}`,
+      viewport_size: `${deviceInfo.viewport_width}x${deviceInfo.viewport_height}`,
+      network_type: /Mobi|Android|iPhone|iPad|iPod/i.test(deviceInfo.userAgent) ? (deviceInfo.connection_type || "") : "desktop/unknown",
+      device_json: JSON.stringify(deviceInfo),
+
       page_url: window.location.href || ""
     });
 
     const logUrl = `${APP_CONFIG.API_URL}?${params.toString()}`;
-
-    console.log("📡 Availability Log URL:", logUrl);
 
     const response = await fetch(logUrl);
     const data = await response.json();
