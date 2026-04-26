@@ -29,6 +29,7 @@
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
+import { currentUser } from "./state.js";
 
 // ===============================================================
 // CONSTANTS
@@ -363,6 +364,50 @@ function clearBookingSummary() {
 }
 
 // ===============================================================
+// LOG CHECK AVAILABILITY CLICK
+// ---------------------------------------------------------------
+// This runs for analysis purpose only.
+// Even if logging fails, searchRoutes should continue.
+// ===============================================================
+async function logCheckAvailabilityClick({
+  tripType,
+  travelDate,
+  fromStop,
+  toStop,
+  pax
+}) {
+  try {
+    console.log("📝 Logging Check Availability click...");
+    console.log("👤 Current User from state.js:", currentUser);
+
+    const params = new URLSearchParams({
+      action: "logAvailabilitySearch",
+      trip_type: tripType || "ONEWAY",
+      travel_date: travelDate || "",
+      from_stop: fromStop || "",
+      to_stop: toStop || "",
+      seats_required: pax || "",
+      user_email: currentUser?.email || "GUEST",
+      user_name: currentUser?.name || "Guest User",
+      device: navigator.userAgent || "",
+      page_url: window.location.href || ""
+    });
+
+    const logUrl = `${APP_CONFIG.API_URL}?${params.toString()}`;
+
+    console.log("📡 Availability Log URL:", logUrl);
+
+    const response = await fetch(logUrl);
+    const data = await response.json();
+
+    console.log("✅ Availability log response:", data);
+
+  } catch (error) {
+    console.warn("⚠️ Availability log failed, continuing search:", error);
+  }
+}
+
+// ===============================================================
 // CHECK AVAILABILITY
 // ===============================================================
 async function checkAvailability() {
@@ -376,6 +421,15 @@ async function checkAvailability() {
   const pax = getInputValue("noOfPAX");
 
   console.log("📌 Search Params:", {
+    tripType,
+    travelDate,
+    fromStop,
+    toStop,
+    pax
+  });
+
+  // 📝 Create analysis log for every Check Availability click
+  await logCheckAvailabilityClick({
     tripType,
     travelDate,
     fromStop,
