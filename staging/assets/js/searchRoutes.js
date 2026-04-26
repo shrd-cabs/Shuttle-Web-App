@@ -29,6 +29,7 @@
 // ===============================================================
 
 import { APP_CONFIG } from "./config.js";
+import { currentUser } from "./state.js";
 
 // ===============================================================
 // CONSTANTS
@@ -377,8 +378,7 @@ async function logCheckAvailabilityClick({
 }) {
   try {
     console.log("📝 Logging Check Availability click...");
-
-    const currentUser = window.currentUser || {};
+    console.log("👤 Current User from state.js:", currentUser);
 
     const params = new URLSearchParams({
       action: "logAvailabilitySearch",
@@ -387,8 +387,8 @@ async function logCheckAvailabilityClick({
       from_stop: fromStop || "",
       to_stop: toStop || "",
       seats_required: pax || "",
-      user_email: currentUser.email || "GUEST",
-      user_name: currentUser.name || "Guest User",
+      user_email: currentUser?.email || "GUEST",
+      user_name: currentUser?.name || "Guest User",
       device: navigator.userAgent || "",
       page_url: window.location.href || ""
     });
