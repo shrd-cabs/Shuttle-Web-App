@@ -428,15 +428,6 @@ async function checkAvailability() {
     pax
   });
 
-  // 📝 Create analysis log for every Check Availability click
-  await logCheckAvailabilityClick({
-    tripType,
-    travelDate,
-    fromStop,
-    toStop,
-    pax
-  });
-
   const routesContainer = getElement("routesContainer");
 
   if (!routesContainer) {
@@ -444,6 +435,19 @@ async function checkAvailability() {
     console.log("--------------------------------------------------");
     return;
   }
+
+  // ✅ Loader starts immediately
+  toggleLoader(true);
+
+  // ✅ Log click in background only.
+  // ❌ Do not use await here.
+  logCheckAvailabilityClick({
+    tripType,
+    travelDate,
+    fromStop,
+    toStop,
+    pax
+  });
 
   routesContainer.innerHTML = "";
   resetRenderedRoutesState();
@@ -454,6 +458,7 @@ async function checkAvailability() {
   if (!travelDate || !fromStop || !toStop) {
     console.warn("⚠️ Missing required input(s)");
     showAlert("Please select date and stops.", "warning");
+    toggleLoader(false);
     console.log("--------------------------------------------------");
     return;
   }
@@ -461,6 +466,7 @@ async function checkAvailability() {
   if (!isTripDateWithinAllowedRange(travelDate)) {
     console.warn("⚠️ Travel date is outside allowed range");
     showAlert(`Please select a date between today and the next ${MAX_ADVANCE_DAYS} days.`, "warning");
+    toggleLoader(false);
     console.log("--------------------------------------------------");
     return;
   }
@@ -468,13 +474,12 @@ async function checkAvailability() {
   if (fromStop === toStop) {
     console.warn("⚠️ From stop and To stop are same");
     showAlert("From and To stops cannot be the same.", "warning");
+    toggleLoader(false);
     console.log("--------------------------------------------------");
     return;
   }
 
   try {
-    toggleLoader(true);
-
     console.log("🌐 Calling backend searchRoutes API...");
 
     const url =
