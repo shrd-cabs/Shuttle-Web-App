@@ -34,6 +34,7 @@ import { openPaymentModal } from "./payment.js";
 import { syncWalletFromStorage } from "./wallet.js";
 import "./wallet.js";
 import { initTravelPass } from "./tripPasses.js";
+import { loadLiveTracking } from "./liveTracking.js";
 
 console.log("📦 Modules loaded");
 
@@ -100,11 +101,15 @@ function attachGlobalFunctions() {
         loadMyTrips();
       }
 
-      // NEW: Travel Pass init
       // This is additive and does not affect existing functions
       if (tabName === "travelPass") {
         console.log("🎫 Loading travel pass module...");
         await initTravelPass();
+      }
+
+      if (tabName === "liveTracking") {
+        console.log("🚍 Loading live tracking...");
+        loadLiveTracking();
       }
     }
   });

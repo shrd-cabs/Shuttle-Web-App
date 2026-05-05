@@ -2956,3 +2956,754 @@ ACTIVE CLICK EFFECT
     font-size: 24px;
   }
 }
+
+/* ===============================================================
+   LIVE TRACKING - FULL UPDATED CSS
+   Replace old Live Tracking CSS completely with this
+   =============================================================== */
+
+#liveTrackingSection {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* ===============================================================
+   LIVE TRIP LIST
+   =============================================================== */
+
+.live-trips-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.live-trips-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.live-trips-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.live-trips-header span {
+  background: #ede9fe;
+  color: #5b21b6;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.live-trip-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+.live-trip-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.live-trip-route {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.live-trip-subtitle {
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.live-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.live-now-badge,
+.live-upcoming-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.live-now-badge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.live-upcoming-badge {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.live-now-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: liveBlink 1.2s infinite;
+}
+
+@keyframes liveBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+.live-trip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.live-trip-info {
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.live-trip-info small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.live-trip-info strong {
+  color: #111827;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.live-track-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.live-track-btn {
+  min-width: 220px;
+  max-width: 280px;
+  width: auto;
+  border-radius: 12px;
+  font-weight: 900;
+  text-align: center;
+  background: linear-gradient(135deg, #6b46c1, #7c4dff);
+  box-shadow: 0 8px 20px rgba(124, 77, 255, 0.35);
+  transition: all 0.25s ease;
+}
+
+.live-track-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(124, 77, 255, 0.45);
+}
+
+/* ===============================================================
+   EMPTY / LOADING
+   =============================================================== */
+
+.live-empty-state,
+.live-loading-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 28px 18px;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.live-empty-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+.live-empty-state h3 {
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+.live-empty-state p,
+.live-loading-card p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* ===============================================================
+   DEDICATED LIVE TRACKING MODAL - CENTER FIX
+   =============================================================== */
+
+body.live-modal-open {
+  overflow: hidden !important;
+}
+
+#liveTrackingModal.live-tracking-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 999999 !important;
+
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 18px !important;
+  background: rgba(17, 24, 39, 0.72) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#liveTrackingModal .live-tracking-modal-box {
+  width: min(920px, 96vw) !important;
+  max-height: 92dvh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  padding: 22px !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28) !important;
+
+  margin: auto !important;
+  position: relative !important;
+  transform: none !important;
+}
+
+/* ===============================================================
+   MODAL HEADER
+   =============================================================== */
+
+.live-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.live-modal-header .trip-title {
+  margin: 0;
+  font-size: 24px;
+  color: #111827;
+  font-weight: 900;
+}
+
+.live-modal-subtitle {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.trip-close {
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 900;
+  color: #555;
+  line-height: 1;
+}
+
+.live-route-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 20px;
+  font-weight: 900;
+  color: #111827;
+  margin: 18px 0 12px;
+}
+
+.live-route-title strong {
+  color: #6b46c1;
+}
+
+.live-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.live-status-strip span {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e5e7eb;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.live-trip-badge {
+  color: #fff !important;
+  border: none !important;
+}
+
+.live-trip-badge.NOT_STARTED {
+  background: #64748b !important;
+}
+
+.live-trip-badge.IN_PROGRESS {
+  background: #6b46c1 !important;
+}
+
+.live-trip-badge.COMPLETED {
+  background: #16a34a !important;
+}
+
+/* ===============================================================
+   SUMMARY CARD
+   =============================================================== */
+
+.tracking-summary-card {
+  background: linear-gradient(135deg, #5f35b5, #7c4dff);
+  color: #fff;
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 14px 34px rgba(95, 53, 181, 0.28);
+}
+
+.tracking-summary-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.tracking-summary-top h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.tracking-summary-top p {
+  margin: 4px 0 0;
+  opacity: 0.9;
+  font-size: 13px;
+}
+
+.live-pulse-dot {
+  width: 14px;
+  height: 14px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: livePulse 1.6s infinite;
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8);
+  }
+
+  70% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.tracking-progress {
+  width: 100%;
+  height: 10px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.tracking-progress-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.tracking-current-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+}
+
+.tracking-current-box {
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 15px;
+  padding: 13px;
+}
+
+.tracking-current-box small {
+  display: block;
+  opacity: 0.8;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.tracking-current-box strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* ===============================================================
+   BOOKING INFO
+   =============================================================== */
+
+.live-booking-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.live-booking-info div {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.live-booking-info small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
+.live-booking-info strong {
+  color: #111827;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+/* ===============================================================
+   TIMELINE
+   =============================================================== */
+
+.tracking-timeline {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.tracking-stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+
+.tracking-stop:last-child {
+  padding-bottom: 0;
+}
+
+.tracking-stop::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 42px;
+  bottom: 0;
+  width: 3px;
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.tracking-stop:last-child::before {
+  display: none;
+}
+
+.tracking-stop.REACHED::before {
+  background: #22c55e;
+}
+
+.tracking-stop-marker {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  z-index: 1;
+}
+
+.tracking-stop.REACHED .tracking-stop-marker {
+  background: #22c55e;
+  color: #fff;
+}
+
+.tracking-stop.NEXT .tracking-stop-marker {
+  background: #6b46c1;
+  color: #fff;
+}
+
+.tracking-stop-content {
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.tracking-stop-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tracking-stop-title {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.tracking-stop-city {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.tracking-stop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  color: #475569;
+  font-size: 12px;
+}
+
+.tracking-stop-status {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.tracking-stop-status.REACHED,
+.tracking-stop-status.REACHED.CURRENT {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tracking-stop-status.NEXT {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.tracking-stop-status.PENDING {
+  background: #e5e7eb;
+  color: #475569;
+}
+
+/* ===============================================================
+   MODAL ACTIONS
+   =============================================================== */
+
+.live-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.live-modal-actions .btn {
+  min-width: 180px;
+}
+
+/* ===============================================================
+   LOADER
+   =============================================================== */
+
+.live-loader {
+  width: 34px;
+  height: 34px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #6b46c1;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: liveSpin 0.8s linear infinite;
+}
+
+@keyframes liveSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.live-modal-loading {
+  padding: 32px 12px;
+  text-align: center;
+}
+
+/* ===============================================================
+   MOBILE - CENTERED MODAL
+   =============================================================== */
+
+@media (max-width: 768px) {
+  #liveTrackingSection {
+    padding: 0 10px;
+  }
+
+  .live-trips-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-trip-top {
+    flex-direction: column;
+  }
+
+  .live-card-badges {
+    justify-content: flex-start;
+  }
+
+  .live-trip-grid,
+  .tracking-current-grid,
+  .live-booking-info {
+    grid-template-columns: 1fr;
+  }
+
+  .live-track-btn-wrapper {
+    width: 100%;
+  }
+
+  .live-track-btn {
+    width: 100%;
+    max-width: none;
+  }
+
+  #liveTrackingModal.live-tracking-modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 12px !important;
+  }
+
+  #liveTrackingModal .live-tracking-modal-box {
+    width: 100% !important;
+    max-width: 430px !important;
+    max-height: 90dvh !important;
+    border-radius: 22px !important;
+    padding: 16px !important;
+  }
+
+  .live-modal-header .trip-title {
+    font-size: 21px;
+  }
+
+  .live-route-title {
+    font-size: 17px;
+  }
+
+  .tracking-summary-card {
+    padding: 16px;
+  }
+
+  .tracking-summary-top h3 {
+    font-size: 21px;
+  }
+
+  .tracking-timeline {
+    padding: 14px;
+  }
+
+  .tracking-stop {
+    grid-template-columns: 36px 1fr;
+    gap: 11px;
+  }
+
+  .tracking-stop-marker {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tracking-stop::before {
+    left: 17px;
+    top: 36px;
+  }
+
+  .tracking-stop-main {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tracking-stop-status {
+    width: fit-content;
+  }
+
+  .tracking-stop-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .live-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .live-modal-actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* ===============================================================
+   VERY SMALL PHONES
+   =============================================================== */
+
+@media (max-width: 390px) {
+  #liveTrackingModal .live-tracking-modal-box {
+    max-width: 96vw !important;
+    padding: 14px !important;
+  }
+
+  .tracking-summary-top {
+    align-items: flex-start;
+  }
+
+  .live-status-strip span {
+    font-size: 11px;
+  }
+
+  .tracking-stop-title {
+    font-size: 14px;
+  }
+}

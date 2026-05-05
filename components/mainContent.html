@@ -29,7 +29,7 @@ UPDATED:
     </button>
 
     <button class="nav-tab" onclick="switchTab('liveTracking')" data-tab="liveTracking">
-      Live Tracking (Under Progress)
+      Live Tracking
     </button>
   </div>
 
@@ -312,29 +312,25 @@ UPDATED:
 
   <!-- LIVE TRACKING SECTION -->
   <div class="content-section" id="liveTrackingSection">
-    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
-      Live Tracking (Under Progress)
+
+    <h2 style="text-align:center;color:#333;margin-bottom:20px;">
+      Live Tracking
     </h2>
 
-    <div class="booking-form">
-      <div class="form-group">
-        <label for="cancelBookingId">Booking ID</label>
-        <input type="text" id="cancelBookingId" placeholder="Enter your booking ID">
-        <div class="error-text" id="cancelError"></div>
-      </div>
+    <!-- TODAY'S TRIPS LIST -->
+    <div class="my-trips" id="liveTripsList">
+      <p class="info-message">
+        Loading today's trips...
+      </p>
     </div>
 
-    <div id="cancelAlert" class="alert"></div>
-
-    <div class="button-group">
-      <button class="btn btn-danger" onclick="cancelBooking()">
-        Submit
-      </button>
-
-      <button class="btn btn-secondary" onclick="clearCancelForm()">
-        Clear
-      </button>
+    <!-- LIVE TRACKING DETAILS -->
+    <div id="liveTrackingDetails" style="display:none;margin-top:20px;">
+      <p class="info-message">
+        Select a trip to view live tracking.
+      </p>
     </div>
+
   </div>
 
 </div>
