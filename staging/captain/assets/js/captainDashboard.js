@@ -49,6 +49,11 @@ let currentTripId = "";
 let currentTravelDate = new Date().toISOString().slice(0, 10);
 
 // ===============================================================
+// KEEP CURRENT ACCORDION OPEN AFTER REFRESH
+// ===============================================================
+let lastOpenStopId = "";
+
+// ===============================================================
 // HELPER: SAFE TIME FORMAT
 // ---------------------------------------------------------------
 // Converts:
@@ -306,12 +311,44 @@ function toggleCaptainStopAccordion(headerEl) {
   console.log("📂 toggleCaptainStopAccordion() called");
 
   const card = headerEl.closest(".captain-stop-accordion");
+
   if (!card) {
     console.warn("⚠️ Accordion card not found");
     return;
   }
 
   card.classList.toggle("open");
+
+  // ===========================================================
+  // SAVE CURRENTLY OPEN STOP
+  // ===========================================================
+  if (card.classList.contains("open")) {
+    lastOpenStopId = card.dataset.stopId || "";
+  } else if (lastOpenStopId === card.dataset.stopId) {
+    lastOpenStopId = "";
+  }
+
+  console.log("📌 lastOpenStopId:", lastOpenStopId);
+}
+
+// ===============================================================
+// HELPER: REMEMBER CURRENT OPEN ACCORDION
+// ===============================================================
+function rememberOpenAccordionFromButton(buttonId) {
+  const button = document.getElementById(buttonId);
+
+  if (!button) return;
+
+  const card = button.closest(".captain-stop-accordion");
+
+  if (card?.dataset?.stopId) {
+    lastOpenStopId = card.dataset.stopId;
+
+    console.log(
+      "📌 Remembered accordion before refresh:",
+      lastOpenStopId
+    );
+  }
 }
 
 // ===============================================================
@@ -532,7 +569,18 @@ function renderStops(stops, passengers = []) {
     const isReached = String(stop.stopStatus || "").toUpperCase() === "REACHED";
 
     return `
-      <div class="captain-stop-accordion ${index === 0 ? "open" : ""}">
+      <div
+        class="captain-stop-accordion ${
+          lastOpenStopId
+            ? String(stop.stopId || "") === lastOpenStopId
+              ? "open"
+              : ""
+            : index === 0
+              ? "open"
+              : ""
+        }"
+        data-stop-id="${stopId}"
+      >        
         <div class="captain-stop-header" onclick="toggleCaptainStopAccordion(this)">
           <div class="captain-stop-title-row">
             <div class="captain-stop-title">
@@ -815,6 +863,9 @@ export async function markCaptainPassengerPickedUp(bookingId) {
   const textId = `pickupBtnText_${bookingId}`;
   const loaderId = `pickupBtnLoader_${bookingId}`;
 
+  // Remember currently opened accordion
+  rememberOpenAccordionFromButton(buttonId);
+
   const started = startActionButtonPending(buttonId, textId, loaderId, "Saving...");
   if (!started) return;
 
@@ -882,6 +933,8 @@ export async function markCaptainPassengerNoShow(bookingId) {
   const buttonId = `noShowBtn_${bookingId}`;
   const textId = `noShowBtnText_${bookingId}`;
   const loaderId = `noShowBtnLoader_${bookingId}`;
+  // Remember currently opened accordion
+  rememberOpenAccordionFromButton(buttonId);
 
   const started = startActionButtonPending(buttonId, textId, loaderId, "Saving...");
   if (!started) return;
@@ -938,6 +991,9 @@ export async function markCaptainPassengerNoShow(bookingId) {
 export async function markCaptainStopReached(stopId) {
   console.log("--------------------------------------------------");
   console.log(`📍 markCaptainStopReached() called → ${stopId}`);
+
+  // Keep same accordion open after refresh
+  lastOpenStopId = String(stopId || "");
 
   const session = getCaptainSession();
   console.log("🧾 Captain session:", session);

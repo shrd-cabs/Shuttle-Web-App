@@ -1,20 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <!-- ===========================================================
+     BASIC META
+  ============================================================ -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/jpeg" href="./assets/images/img1.jpeg">
-  <title>SHRD Shuttle Bus Booking System</title>
 
-  <!-- Main CSS -->
+  <!-- ===========================================================
+     SEO META (VERY IMPORTANT FOR GOOGLE)
+     This controls how your website appears in search results
+  ============================================================ -->
+
+  <!-- PAGE TITLE (Shown in Google + Browser Tab) -->
+  <title>SHRD Shuttle Booking | Smart Daily Shuttle Service</title>
+
+  <!-- META DESCRIPTION (MOST IMPORTANT FOR GOOGLE SNIPPET) -->
+  <meta
+    name="description"
+    content="Book daily shuttle services with SHRD Shuttle Booking. Manage bookings, wallet, travel passes and track your bus live with a seamless online experience."
+  />
+
+  <!-- KEYWORDS (Minor impact but good practice) -->
+  <meta
+    name="keywords"
+    content="SHRD Shuttle Booking, shuttle service, bus booking, online ticket booking, travel pass, live tracking, daily commute"
+  />
+
+  <!-- AUTHOR -->
+  <meta name="author" content="Shri Radhey Travel Services" />
+
+  <!-- ROBOTS (Allow indexing) -->
+  <meta name="robots" content="index, follow" />
+
+  <!-- ===========================================================
+     OPEN GRAPH (FOR WHATSAPP / SOCIAL SHARING)
+  ============================================================ -->
+  <meta property="og:title" content="SHRD Shuttle Booking" />
+  <meta
+    property="og:description"
+    content="Smart shuttle booking platform with wallet, travel passes and live tracking."
+  />
+  <meta property="og:url" content="https://www.shrdcabs.com" />
+  <meta property="og:type" content="website" />
+  <meta
+    property="og:image"
+    content="https://www.shrdcabs.com/assets/images/img1.jpeg"
+  />
+
+  <!-- ===========================================================
+     FAVICON
+  ============================================================ -->
+  <link rel="icon" type="image/jpeg" href="./assets/images/img1.jpeg" />
+
+  <!-- ===========================================================
+     MAIN CSS
+  ============================================================ -->
   <link rel="stylesheet" href="./assets/css/styles.css" />
 </head>
 
 <body>
 
-  <!-- ========================================================= -->
-  <!-- APP LOADER (Shown while components + sheet data loads) -->
-  <!-- ========================================================= -->
+  <!-- ===========================================================
+     HIDDEN H1 FOR SEO
+     Helps Google understand your page topic without affecting UI
+     IMPORTANT: Only one H1 should exist in DOM
+  ============================================================ -->
+  <h1 style="display:none;">
+    SHRD Shuttle Booking Platform
+  </h1>
+
+  <!-- ===========================================================
+     APP LOADER
+     Shown while components and data are loading
+  ============================================================ -->
   <div id="appLoader">
     <div class="loader-box">
       <div class="spinner"></div>
@@ -22,40 +82,46 @@
     </div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- MAIN APP WRAPPER -->
-  <!-- --------------------------------------------------------- -->
-  <!-- IMPORTANT:
-       Your CSS is designed to show the UI inside a centered white
-       container/card (like your GitHub screenshot).
-       
-       So we MUST wrap header/login/main/footer inside a container.
-  -->
-  <!-- ========================================================= -->
-
+  <!-- ===========================================================
+     MAIN APP CONTAINER
+     Keeps UI centered like your design
+  ============================================================ -->
   <div class="container">
 
-    <!-- These placeholders will be filled by componentLoader.js -->
+    <!-- HEADER COMPONENT -->
     <div id="headerComponent"></div>
 
+    <!-- LOGIN COMPONENT -->
     <div id="loginComponent"></div>
 
+    <!-- MAIN CONTENT -->
     <div id="mainContentComponent"></div>
 
+    <!-- FOOTER -->
     <div id="footerComponent"></div>
 
   </div>
 
-  <!-- ========================================================= -->
-  <!-- MODALS (should be outside container so they can overlay full page) -->
-  <!-- ========================================================= -->
+  <!-- ===========================================================
+     MODALS (OUTSIDE CONTAINER FOR FULL SCREEN OVERLAY)
+  ============================================================ -->
+
+  <!-- PAYMENT MODAL -->
   <div id="paymentModalComponent"></div>
+
+  <!-- CONFIRMATION MODAL -->
   <div id="confirmationModalComponent"></div>
 
-  <!-- ========================================================= -->
-  <!-- MAIN JS ENTRY POINT -->
-  <!-- ========================================================= -->
+  <!-- ===========================================================
+     EXTERNAL SCRIPTS
+  ============================================================ -->
+
+  <!-- RAZORPAY -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- MAIN JS ENTRY -->
   <script type="module" src="./assets/js/main.js"></script>
+
 </body>
+
 </html>
