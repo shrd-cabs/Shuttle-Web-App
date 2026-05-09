@@ -58,6 +58,11 @@ let passPurchaseState = {
 };
 
 // ===============================================================
+// PREVENT DOUBLE SUBMISSION & TRACK LOADER STATE
+// ===============================================================
+let isPassPurchaseProcessing = false;
+
+// ===============================================================
 // INIT TRAVEL PASS
 // ===============================================================
 export async function initTravelPass() {
@@ -441,7 +446,7 @@ function renderAvailablePasses(container) {
           </div>
 
           <div class="pass-card-actions" style="margin-top: 18px;">
-            <button class="btn btn-primary" onclick="buyTripPass('${escapeAttr(pass.pass_type_id)}')">
+            <button class="btn btn-primary buy-pass-btn" data-pass-id="${escapeAttr(pass.pass_type_id)}" onclick="buyTripPass('${escapeAttr(pass.pass_type_id)}')">
               Buy Pass
             </button>
           </div>
@@ -566,7 +571,7 @@ function renderPassUsage(container) {
             <tr>
               <td>${escapeHtml(item.booking_id || "-")}</td>
               <td>${escapeHtml(formatDisplayDateTime(item.travel_date || "-"))}</td>
-              <td>${escapeHtml(item.route_id || "-")}</td>
+              <td>${escapeHtml(item.route_id || "-")}</table>
               <td>${escapeHtml(item.from_stop || "-")}</td>
               <td>${escapeHtml(item.to_stop || "-")}</td>
               <td>₹${Number(item.original_fare || 0)}</td>
@@ -774,66 +779,170 @@ function formatDisplayDateTime(value) {
 }
 
 // ===============================================================
-// INJECT PASS PURCHASE SUMMARY MODAL
+// INJECT PASS PURCHASE SUMMARY MODAL (with loader upgrade)
 // ===============================================================
 function injectPassPurchaseModal() {
   console.log("🧩 injectPassPurchaseModal() called");
 
+  // If modal already exists, just upgrade it with loader spans (if missing)
   if (document.getElementById("passPurchaseOverlay")) {
-    console.log("ℹ️ Pass purchase modal already exists");
+    console.log("ℹ️ Pass purchase modal already exists, upgrading with loader...");
+    upgradePassPurchaseModalWithLoader();
     return;
   }
 
   const modalHtml = `
     <div class="payment-summary-overlay" id="passPurchaseOverlay" style="display:none;">
+
       <div class="payment-summary-modal">
+
+        <!-- HEADER -->
         <div class="payment-summary-header">
-          <h2>Buy Travel Pass</h2>
-          <button type="button" class="payment-summary-close" onclick="closePassPurchaseModal()">×</button>
+
+          <div>
+            <h2>Buy Travel Pass</h2>
+            <p>Complete your pass purchase securely</p>
+          </div>
+
+          <button
+            type="button"
+            class="payment-summary-close"
+            onclick="closePassPurchaseModal()"
+          >
+            ×
+          </button>
+
         </div>
 
+        <!-- BODY -->
         <div class="payment-summary-body">
-          <div class="payment-summary-row">
-            <span>Pass Name</span>
-            <strong id="passPurchaseName">-</strong>
+
+          <!-- PASS CARD -->
+          <div class="summary-card">
+
+            <div class="section-title">
+              Pass Details
+            </div>
+
+            <div class="payment-summary-row">
+              <span>Pass Name</span>
+              <strong id="passPurchaseName">
+                -
+              </strong>
+            </div>
+
+            <div class="payment-summary-row highlight-row">
+              <span>Pass Price</span>
+              <strong id="passPurchaseTotal">
+                ₹0
+              </strong>
+            </div>
+
           </div>
 
-          <div class="payment-summary-row">
-            <span>Pass Price</span>
-            <strong id="passPurchaseTotal">₹0</strong>
+          <!-- WALLET CARD -->
+          <div class="summary-card">
+
+            <div class="section-title">
+              Wallet
+            </div>
+
+            <div class="payment-summary-row">
+              <span>Wallet Balance</span>
+              <strong id="passPurchaseWalletBalance">
+                ₹0
+              </strong>
+            </div>
+
+            <label class="payment-wallet-checkbox">
+
+              <div class="wallet-checkbox-left">
+
+                <input
+                  type="checkbox"
+                  id="useWalletForPassCheckbox"
+                  onchange="handlePassWalletCheckboxChange()"
+                >
+
+                <span>
+                  Use wallet balance
+                </span>
+
+              </div>
+
+            </label>
+
+            <div class="payment-summary-row">
+              <span>Wallet Used</span>
+              <strong id="passPurchaseWalletUsed">
+                ₹0
+              </strong>
+            </div>
+
           </div>
 
-          <div class="payment-summary-row">
-            <span>Wallet Balance</span>
-            <strong id="passPurchaseWalletBalance">₹0</strong>
-          </div>
+          <!-- FINAL PAY -->
+          <div class="final-pay-section">
 
-          <label class="payment-wallet-checkbox">
-            <input type="checkbox" id="useWalletForPassCheckbox" onchange="handlePassWalletCheckboxChange()">
-            <span>Use wallet balance for this pass</span>
-          </label>
-
-          <div class="payment-summary-row">
-            <span>Wallet Used</span>
-            <strong id="passPurchaseWalletUsed">₹0</strong>
-          </div>
-
-          <div class="payment-summary-row">
             <span>Pay Online</span>
-            <strong id="passPurchaseOnlineAmount">₹0</strong>
+
+            <strong id="passPurchaseOnlineAmount">
+              ₹0
+            </strong>
+
           </div>
+
+          <!-- WARNING -->
+          <div class="payment-warning-note">
+
+            <div class="warning-icon">
+              ⚠️
+            </div>
+
+            <div class="warning-text">
+
+              <div class="warning-title">
+                Payment in progress
+              </div>
+
+              <div class="warning-desc">
+                Do not close or refresh this page.
+                Wait until your
+                <strong>pass activation confirmation</strong>
+                is received.
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
+        <!-- FOOTER (with loader spans) -->
         <div class="payment-summary-footer">
-          <button type="button" class="payment-summary-cancel-btn" onclick="closePassPurchaseModal()">
+
+          <button
+            type="button"
+            class="payment-summary-confirm-btn"
+            id="passPurchaseConfirmBtn"
+            onclick="confirmPassPurchaseSummary()"
+            style="display: inline-flex; align-items: center; gap: 8px;"
+          >
+            <span id="passPurchaseBtnText">Pay Now</span>
+            <span class="btn-loader" id="passPurchaseLoader" style="display: none;"></span>
+          </button>  
+          <button
+            type="button"
+            class="payment-summary-cancel-btn"
+            onclick="closePassPurchaseModal()"
+          >
             Cancel
           </button>
 
-          <button type="button" class="payment-summary-confirm-btn" id="passPurchaseConfirmBtn" onclick="confirmPassPurchaseSummary()">
-            Proceed
-          </button>
         </div>
+
       </div>
+
     </div>
   `;
 
@@ -842,10 +951,80 @@ function injectPassPurchaseModal() {
 }
 
 // ===============================================================
+// UPGRADE EXISTING MODAL WITH LOADER SPANS (if missing)
+// ===============================================================
+function upgradePassPurchaseModalWithLoader() {
+  const confirmBtn = document.getElementById("passPurchaseConfirmBtn");
+  if (!confirmBtn) return;
+
+  // Check if loader already exists
+  if (document.getElementById("passPurchaseLoader")) {
+    console.log("ℹ️ Loader already exists in modal, skipping upgrade");
+    return;
+  }
+
+  // Save original text content
+  const originalText = confirmBtn.innerText.trim();
+  
+  // Clear button content and add spans
+  confirmBtn.innerHTML = `
+    <span id="passPurchaseBtnText">${originalText}</span>
+    <span class="btn-loader" id="passPurchaseLoader" style="display: none;"></span>
+  `;
+  confirmBtn.style.display = "inline-flex";
+  confirmBtn.style.alignItems = "center";
+  confirmBtn.style.gap = "8px";
+  
+  console.log("✅ Pass purchase modal upgraded with loader spans");
+}
+
+// ===============================================================
+// TOGGLE LOADER FOR PASS PURCHASE MODAL BUTTON
+// ===============================================================
+function togglePassPurchaseLoader(show) {
+  console.log("🎛️ togglePassPurchaseLoader() called with:", show);
+
+  // First ensure modal is upgraded (in case it wasn't)
+  upgradePassPurchaseModalWithLoader();
+
+  const btn = document.getElementById("passPurchaseConfirmBtn");
+  const btnText = document.getElementById("passPurchaseBtnText");
+  const loader = document.getElementById("passPurchaseLoader");
+  const walletCheckbox = document.getElementById("useWalletForPassCheckbox");
+
+  if (!btn || !btnText || !loader) {
+    console.warn("⚠️ Pass purchase loader elements still not found");
+    return;
+  }
+
+  if (show) {
+    btnText.innerText = "Processing...";
+    loader.style.display = "inline-block";
+    btn.disabled = true;
+    if (walletCheckbox) walletCheckbox.disabled = true;
+  } else {
+    // Restore button text based on current state
+    if (passPurchaseState.onlineAmount === 0 && passPurchaseState.walletUsed > 0) {
+      btnText.innerText = `Pay ${formatAmount(passPurchaseState.totalAmount)} via Wallet`;
+    } else if (passPurchaseState.onlineAmount > 0 && passPurchaseState.walletUsed > 0) {
+      btnText.innerText = `Pay ${formatAmount(passPurchaseState.onlineAmount)} Online`;
+    } else {
+      btnText.innerText = `Pay ${formatAmount(passPurchaseState.totalAmount)} via Razorpay`;
+    }
+    loader.style.display = "none";
+    btn.disabled = false;
+    if (walletCheckbox) walletCheckbox.disabled = false;
+  }
+}
+
+// ===============================================================
 // OPEN / CLOSE PASS PURCHASE MODAL
 // ===============================================================
 function openPassPurchaseModal() {
   console.log("🧾 openPassPurchaseModal() called");
+
+  // Ensure modal is upgraded before showing
+  upgradePassPurchaseModalWithLoader();
 
   const overlay = document.getElementById("passPurchaseOverlay");
   if (!overlay) {
@@ -920,7 +1099,8 @@ function updatePassPurchaseSummaryUI() {
     onlineAmountEl.textContent = formatAmount(passPurchaseState.onlineAmount);
   }
 
-  if (confirmBtn) {
+  // Update button text without disturbing loader state
+  if (confirmBtn && !confirmBtn.disabled) {
     if (passPurchaseState.onlineAmount === 0 && passPurchaseState.walletUsed > 0) {
       confirmBtn.textContent = `Pay ${formatAmount(passPurchaseState.totalAmount)} via Wallet`;
     } else if (passPurchaseState.onlineAmount > 0 && passPurchaseState.walletUsed > 0) {
@@ -959,6 +1139,15 @@ async function buyTripPass(passTypeId) {
   if (!currentUser?.email) {
     alert("User not logged in");
     return;
+  }
+
+  // Find the clicked button and show loader on it
+  const clickedButton = document.querySelector(`.buy-pass-btn[data-pass-id="${passTypeId}"]`);
+  let originalButtonText = "";
+  if (clickedButton) {
+    originalButtonText = clickedButton.innerText;
+    clickedButton.disabled = true;
+    clickedButton.innerText = "Loading...";
   }
 
   try {
@@ -1002,6 +1191,12 @@ async function buyTripPass(passTypeId) {
   } catch (error) {
     console.error("❌ Failed to start pass purchase:", error);
     alert(error.message || "Unable to start pass purchase");
+  } finally {
+    // Restore the button only if it exists and we haven't moved to modal yet
+    if (clickedButton) {
+      clickedButton.disabled = false;
+      clickedButton.innerText = originalButtonText;
+    }
   }
 }
 
@@ -1015,11 +1210,15 @@ async function buyTripPass(passTypeId) {
 // ===============================================================
 async function confirmPassPurchaseSummary() {
   console.log("✅ confirmPassPurchaseSummary() called");
-  console.log("📦 Current passPurchaseState:", passPurchaseState);
+
+  if (isPassPurchaseProcessing) {
+    console.warn("⚠️ Purchase already in progress");
+    return;
+  }
+  isPassPurchaseProcessing = true;
+  togglePassPurchaseLoader(true);
 
   try {
-    closePassPurchaseModal();
-
     const pass = passPurchaseState.pass;
     const totalAmount = Number(passPurchaseState.totalAmount || 0);
     const walletUsed = Number(passPurchaseState.walletUsed || 0);
@@ -1052,6 +1251,8 @@ async function confirmPassPurchaseSummary() {
         refreshWalletUiIfAvailable()
       ]);
 
+      closePassPurchaseModal();
+      togglePassPurchaseLoader(false);
       return;
     }
 
@@ -1064,6 +1265,7 @@ async function confirmPassPurchaseSummary() {
       const order = await createPassOrder(onlineAmount * 100, pass.pass_type_id);
       console.log("📥 Mixed pass order response:", order);
 
+      // Keep loader visible while Razorpay is open
       const options = {
         key: APP_CONFIG.RAZORPAY_KEY_ID,
         amount: order.amount,
@@ -1075,6 +1277,7 @@ async function confirmPassPurchaseSummary() {
         handler: async function(response) {
           console.log("✅ Mixed pass payment success:", response);
 
+          // Keep loader visible during verification
           try {
             const verifyData = await verifyMixedPassPayment(
               pass.pass_type_id,
@@ -1092,15 +1295,22 @@ async function confirmPassPurchaseSummary() {
               refreshWalletUiIfAvailable()
             ]);
 
+            closePassPurchaseModal();
           } catch (error) {
             console.error("❌ Mixed pass verify failed:", error);
             alert(error.message || "Mixed pass payment verification failed");
+          } finally {
+            togglePassPurchaseLoader(false);
+            isPassPurchaseProcessing = false;
           }
         },
 
         modal: {
           ondismiss: function() {
             console.log("❌ Mixed pass Razorpay popup dismissed");
+            closePassPurchaseModal();
+            togglePassPurchaseLoader(false);
+            isPassPurchaseProcessing = false;
           }
         },
 
@@ -1149,15 +1359,22 @@ async function confirmPassPurchaseSummary() {
             refreshWalletUiIfAvailable()
           ]);
 
+          closePassPurchaseModal();
         } catch (error) {
           console.error("❌ Full pass verify failed:", error);
           alert(error.message || "Pass payment verification failed");
+        } finally {
+          togglePassPurchaseLoader(false);
+          isPassPurchaseProcessing = false;
         }
       },
 
       modal: {
         ondismiss: function() {
           console.log("❌ Full pass Razorpay popup dismissed");
+          closePassPurchaseModal();
+          togglePassPurchaseLoader(false);
+          isPassPurchaseProcessing = false;
         }
       },
 
@@ -1172,6 +1389,9 @@ async function confirmPassPurchaseSummary() {
   } catch (error) {
     console.error("❌ confirmPassPurchaseSummary() failed:", error);
     alert(error.message || "Unable to continue pass purchase");
+    closePassPurchaseModal();
+    togglePassPurchaseLoader(false);
+    isPassPurchaseProcessing = false;
   }
 }
 
