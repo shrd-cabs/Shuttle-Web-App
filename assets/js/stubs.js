@@ -14,9 +14,7 @@
 
 export function registerStubFunctions() {
   [
-    "resetBooking",
     "closeConfirmationModal",
-    "cancelBooking",
     "clearCancelForm",
   ].forEach((name) => {
     window[name] = function () {
