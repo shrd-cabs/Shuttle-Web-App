@@ -438,37 +438,70 @@ function injectPaymentSummaryModal() {
 
   const modalHtml = `
     <div class="payment-summary-overlay" id="paymentSummaryOverlay" style="display:none;">
+
       <div class="payment-summary-modal">
+
+        <!-- HEADER -->
         <div class="payment-summary-header">
-          <h2>Payment Summary</h2>
-          <button type="button" class="payment-summary-close" onclick="closePaymentSummaryModal()">×</button>
+          <div>
+            <h2>Payment Summary</h2>
+            <p>Review your booking before payment</p>
+          </div>
+
+          <button
+            type="button"
+            class="payment-summary-close"
+            onclick="closePaymentSummaryModal()"
+          >
+            ×
+          </button>
         </div>
 
+        <!-- BODY -->
         <div class="payment-summary-body">
 
-          <div class="payment-summary-row">
-            <span>Trip Type</span>
-            <strong id="summaryTripType">One Way</strong>
+          <!-- JOURNEY CARD -->
+          <div class="summary-card journey-card">
+
+            <div class="summary-top-row">
+              <span class="summary-label">Trip Type</span>
+              <span class="trip-badge" id="summaryTripType">
+                One Way
+              </span>
+            </div>
+
+            <div class="journey-route" id="summaryJourneyLabel">
+              Bus Stand, Rewari → Rajiv Chowk, Gurugram
+            </div>
+
           </div>
 
-          <div class="payment-summary-row">
-            <span>Journey</span>
-            <strong id="summaryJourneyLabel">-</strong>
+          <!-- FARE CARD -->
+          <div class="summary-card">
+
+            <div class="payment-summary-row total-row">
+              <span>Total Fare</span>
+              <strong id="summaryOriginalFare">₹0</strong>
+            </div>
+
           </div>
 
-          <div class="payment-summary-row">
-            <span>Total Fare</span>
-            <strong id="summaryOriginalFare">₹0</strong>
-          </div>
+          <!-- PASS CARD -->
+          <div class="summary-card" id="passSection">
 
-          <div id="passSection">
-            <div class="payment-summary-row">
-              <span>Trip Pass</span>
-              <strong id="summaryPassName">No Pass Applied</strong>
+            <div class="section-title">
+              Pass Details
             </div>
 
             <div class="payment-summary-row">
-              <span>Pass Discount</span>
+              <span>Trip Pass</span>
+              <strong id="summaryPassName">
+                No Pass Applied
+              </strong>
+            </div>
+
+            <div class="payment-summary-row">
+              <span>Discount</span>
               <strong id="summaryPassDiscount">₹0</strong>
             </div>
 
@@ -482,58 +515,104 @@ function injectPaymentSummaryModal() {
               <strong id="summaryPassRemaining">-</strong>
             </div>
 
-            <div class="payment-summary-row">
+            <div class="payment-summary-row highlight-row">
               <span>Fare After Pass</span>
               <strong id="summaryFareAfterPass">₹0</strong>
             </div>
+
           </div>
 
-          <div class="payment-summary-row">
-            <span>Wallet Balance</span>
-            <strong id="summaryWalletBalance">₹0</strong>
-          </div>
+          <!-- WALLET CARD -->
+          <div class="summary-card">
 
-          <label class="payment-wallet-checkbox">
-            <input type="checkbox" id="useWalletCheckbox" onchange="handleWalletCheckboxChange()">
-            <span>Use wallet balance</span>
-          </label>
+            <div class="section-title">
+              Wallet
+            </div>
 
-          <div class="payment-summary-row">
-            <span>Wallet Used</span>
-            <strong id="summaryWalletUsed">₹0</strong>
-          </div>
+            <div class="payment-summary-row">
+              <span>Wallet Balance</span>
+              <strong id="summaryWalletBalance">₹0</strong>
+            </div>
 
-          <div class="payment-summary-row">
-            <span>Pay Online</span>
-            <strong id="summaryOnlineAmount">₹0</strong>
-          </div>
+            <label class="payment-wallet-checkbox">
+              <div class="wallet-checkbox-left">
+                <input
+                  type="checkbox"
+                  id="useWalletCheckbox"
+                  onchange="handleWalletCheckboxChange()"
+                >
 
-          <div class="payment-warning-note">
-            <div class="warning-icon">⚠️</div>
-            <div class="warning-text">
-              <div class="warning-title">Payment in progress</div>
-              <div class="warning-desc">
-                Do not close or refresh this page.<br>
-                Wait until you receive the <strong>booking confirmation</strong>.
+                <span>Use wallet balance</span>
               </div>
+            </label>
+
+            <div class="payment-summary-row">
+              <span>Wallet Used</span>
+              <strong id="summaryWalletUsed">₹0</strong>
             </div>
+
           </div>
 
-          <div class="payment-summary-footer">
-            <div class="payment-footer-buttons">
-              <button type="button" class="payment-summary-cancel-btn" onclick="closePaymentSummaryModal()">
-                Cancel
-              </button>
+          <!-- FINAL PAY -->
+          <div class="final-pay-section">
 
-              <button type="button" class="payment-summary-confirm-btn" id="paymentSummaryConfirmBtn" onclick="confirmPaymentSummary()">
-                Proceed
-              </button>
-            </div>
+            <span>Pay Online</span>
+
+            <strong id="summaryOnlineAmount">
+              ₹0
+            </strong>
+
           </div>
+
+          <!-- WARNING -->
+          <div class="payment-warning-note">
+
+            <div class="warning-icon">⚠️</div>
+
+            <div class="warning-text">
+
+              <div class="warning-title">
+                Payment in progress
+              </div>
+
+              <div class="warning-desc">
+                Do not close or refresh this page.
+                Wait until you receive the
+                <strong>booking confirmation</strong>.
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
+
+        <!-- FOOTER -->
+        <div class="payment-summary-footer">
+
+          <button
+            type="button"
+            class="payment-summary-confirm-btn"
+            id="paymentSummaryConfirmBtn"
+            onclick="confirmPaymentSummary()"
+          >
+            Proceed to Pay
+          </button>
+
+          <button
+            type="button"
+            class="payment-summary-cancel-btn"
+            onclick="closePaymentSummaryModal()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
       </div>
+
     </div>
-  `;
+    `;
 
   document.body.insertAdjacentHTML("beforeend", modalHtml);
   console.log("✅ Payment summary modal injected into DOM");
