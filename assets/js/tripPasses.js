@@ -571,7 +571,7 @@ function renderPassUsage(container) {
             <tr>
               <td>${escapeHtml(item.booking_id || "-")}</td>
               <td>${escapeHtml(formatDisplayDateTime(item.travel_date || "-"))}</td>
-              <td>${escapeHtml(item.route_id || "-")}</table>
+              <td>${escapeHtml(item.route_id || "-")}</td>
               <td>${escapeHtml(item.from_stop || "-")}</td>
               <td>${escapeHtml(item.to_stop || "-")}</td>
               <td>₹${Number(item.original_fare || 0)}</td>
