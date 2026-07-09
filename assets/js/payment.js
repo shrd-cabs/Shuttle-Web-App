@@ -426,6 +426,38 @@ function buildBookingIdsQueryString() {
 }
 
 // ===============================================================
+// SAVE RAZORPAY ORDER ID AGAINST HOLD BOOKING
+// ---------------------------------------------------------------
+// Required for Razorpay webhook backup confirmation.
+// Must run after createOrder() and before Razorpay opens.
+// ===============================================================
+async function saveRazorpayOrderIdForHoldBooking(razorpayOrderId) {
+  console.log("🧾 saveRazorpayOrderIdForHoldBooking() called:", razorpayOrderId);
+
+  if (!razorpayOrderId) {
+    throw new Error("Razorpay order ID missing");
+  }
+
+  if (!Array.isArray(holdBookingIds) || holdBookingIds.length === 0) {
+    throw new Error("HOLD booking IDs missing");
+  }
+
+  const result = await safeFetch(
+    `${APP_CONFIG.API_URL}?action=saveRazorpayOrderIdForBooking` +
+    buildBookingIdsQueryString() +
+    `&razorpay_order_id=${encodeURIComponent(razorpayOrderId)}`
+  );
+
+  console.log("📥 saveRazorpayOrderIdForBooking response:", result);
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to save Razorpay order ID");
+  }
+
+  return result;
+}
+
+// ===============================================================
 // INJECT PAYMENT SUMMARY MODAL HTML
 // ===============================================================
 function injectPaymentSummaryModal() {
@@ -1093,6 +1125,8 @@ async function confirmPaymentSummary() {
         return;
       }
 
+      await saveRazorpayOrderIdForHoldBooking(order.id);
+
       togglePayLoader(false);
 
       const options = {
@@ -1176,6 +1210,8 @@ async function confirmPaymentSummary() {
       return;
     }
 
+    await saveRazorpayOrderIdForHoldBooking(order.id);
+
     togglePayLoader(false);
 
     const options = {
@@ -1252,29 +1288,35 @@ function startHoldTimer() {
 
   clearTimeout(holdTimer);
 
+  const idsSnapshot = [...holdBookingIds];
+  const tripTypeSnapshot = paymentSummaryState?.tripType || "ONEWAY";
+
   holdTimer = setTimeout(async () => {
     console.log("⌛ HOLD TIME EXPIRED");
-    await cancelHoldBooking();
+    await cancelHoldBookingByIds(idsSnapshot, tripTypeSnapshot);
   }, HOLD_TIME);
 }
 
 // ===============================================================
 // CANCEL HOLD BOOKING
 // ===============================================================
-async function cancelHoldBooking() {
-  if (!Array.isArray(holdBookingIds) || holdBookingIds.length === 0) {
-    console.warn("⚠️ No holdBookingIds present, skipping cancel");
+async function cancelHoldBookingByIds(ids, tripType = "ONEWAY") {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    console.warn("⚠️ No booking IDs provided, skipping cancel");
     return;
   }
 
-  console.log("🚫 Cancelling HOLD booking IDs:", holdBookingIds);
+  console.log("🚫 Cancelling HOLD booking IDs:", ids);
+
+  const bookingQuery =
+    ids.length === 1
+      ? `&booking_id=${encodeURIComponent(ids[0])}`
+      : `&booking_ids=${encodeURIComponent(ids.join(","))}`;
 
   try {
-    const tripType = paymentSummaryState?.tripType || "ONEWAY";
-
     const data = await safeFetch(
-      `${APP_CONFIG.API_URL}?action=cancelBooking` +
-      buildBookingIdsQueryString() +
+      `${APP_CONFIG.API_URL}?action=releaseHoldBooking` +
+      bookingQuery +
       `&trip_type=${encodeURIComponent(tripType)}`
     );
 
@@ -1282,6 +1324,13 @@ async function cancelHoldBooking() {
   } catch (err) {
     console.error("❌ Cancel Error:", err);
   }
+}
+
+async function cancelHoldBooking() {
+  await cancelHoldBookingByIds(
+    [...holdBookingIds],
+    paymentSummaryState?.tripType || "ONEWAY"
+  );
 
   holdBookingIds = [];
   console.log("❌ HOLD booking(s) cancelled and local IDs reset");
