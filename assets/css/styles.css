@@ -1735,69 +1735,1802 @@ Custom no-library searchable select
 }
 
 /* ============================================================
-ROUTE CARD BASE
-============================================================ */
+   ROUTE CARD
+   ------------------------------------------------------------
+   Supports:
+   - Premium route layout
+   - Bus number chip
+   - Pickup / drop timeline
+   - Seats, fare and total grid
+   - Route & Stops button
+   - Select Route button
+   - Existing selected state
+   - Mobile, tablet and desktop
+   ============================================================ */
+
+
+/* ============================================================
+   ROUTE CARD BASE
+   ============================================================ */
 .route-card {
-  border: 1px solid #ddd;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #fff;
-  transition: all 0.25s ease;
   position: relative;
+  margin-bottom: 16px;
+  padding: 18px;
+
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
 }
 
+
 /* ============================================================
-HOVER STATE
-============================================================ */
+   HOVER STATE
+   ============================================================ */
 .route-card:hover {
-  background-color: #f8f8f8;
-  border-color: #bbb;
+  transform: translateY(-2px);
+  border-color: #cfcfcf;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
 }
 
+
 /* ============================================================
-SELECTED STATE (MAIN FEATURE)
-============================================================ */
+   SELECTED STATE
+   ============================================================ */
 .route-card.selected {
   border: 2px solid #6f49d9;
-  background: #f3f0ff;
-  box-shadow: 0 4px 12px rgba(111, 73, 217, 0.15);
+  background: #faf8ff;
+  box-shadow: 0 10px 30px rgba(111, 73, 217, 0.16);
 }
 
-/* Title highlight */
 .route-card.selected h3 {
   color: #6f49d9;
 }
 
+
 /* ============================================================
-SELECTED BADGE (✔ Selected)
-============================================================ */
+   SELECTED BADGE
+   ============================================================ */
 .route-card.selected::after {
   content: "✔ Selected";
+
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+
+  padding: 5px 10px;
+
   background: #6f49d9;
-  color: #fff;
+  color: #ffffff;
+
+  border-radius: 999px;
+
   font-size: 11px;
-  padding: 4px 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+.route-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.route-card-label {
+  display: inline-block;
+  margin-bottom: 4px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.route-card-heading h3 {
+  margin: 0;
+  padding-right: 4px;
+
+  color: #222222;
+
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.35;
+
+  word-break: break-word;
+}
+
+
+/* ============================================================
+   BUS NUMBER CHIP
+   ============================================================ */
+.route-card-bus-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  flex-shrink: 0;
+
+  padding: 7px 12px;
+
+  background: #f4f1ff;
+  color: #6f49d9;
+
+  border: 1px solid #e4dcff;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   JOURNEY TIME ROW
+   ------------------------------------------------------------
+   Displays:
+   Pickup time ───── 🚌 ───── Drop-off time
+   ============================================================ */
+.route-card-journey {
+  display: grid;
+  grid-template-columns:
+    minmax(72px, auto)
+    minmax(80px, 1fr)
+    minmax(72px, auto);
+
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+
+/* ============================================================
+   PICKUP / DROP TIME BLOCKS
+   ============================================================ */
+.route-card-time {
+  min-width: 0;
+  text-align: left;
+}
+
+.route-card-time-right {
+  text-align: right;
+}
+
+.route-card-time small {
+  display: block;
+  margin-bottom: 4px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.route-card-time strong {
+  display: block;
+
+  color: #222222;
+
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+
+/* ============================================================
+   JOURNEY CONNECTOR
+   ============================================================ */
+.route-card-direction {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 9px;
+
+  min-width: 0;
+}
+
+.route-card-direction span {
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(111, 73, 217, 0.15),
+    rgba(111, 73, 217, 0.75)
+  );
+
   border-radius: 999px;
 }
 
+.route-card-direction span:last-child {
+  background: linear-gradient(
+    90deg,
+    rgba(111, 73, 217, 0.75),
+    rgba(111, 73, 217, 0.15)
+  );
+}
+
+
 /* ============================================================
-BUTTON STYLING WHEN SELECTED
-============================================================ */
+   CENTER BUS ICON
+   ------------------------------------------------------------
+   Your HTML currently contains:
+   <strong>→</strong>
+
+   The arrow is hidden and replaced visually by the bus icon.
+   ============================================================ */
+.route-card-direction strong {
+  width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f4f1ff;
+  color: #6f49d9;
+
+  border: 1px solid #e4dcff;
+  border-radius: 50%;
+
+  font-size: 0;
+  line-height: 1;
+
+  box-shadow: 0 3px 10px rgba(111, 73, 217, 0.13);
+}
+
+.route-card-direction strong::before {
+  content: "🚌";
+  font-size: 16px;
+}
+
+
+/* ============================================================
+   SELECTED JOURNEY EMPHASIS
+   ============================================================ */
+.route-card.selected .route-card-direction strong {
+  background: #6f49d9;
+  border-color: #6f49d9;
+  box-shadow: 0 4px 12px rgba(111, 73, 217, 0.22);
+}
+
+.route-card.selected .route-card-direction span {
+  background: linear-gradient(
+    90deg,
+    rgba(111, 73, 217, 0.25),
+    #6f49d9
+  );
+}
+
+.route-card.selected .route-card-direction span:last-child {
+  background: linear-gradient(
+    90deg,
+    #6f49d9,
+    rgba(111, 73, 217, 0.25)
+  );
+}
+
+
+/* ============================================================
+   ROUTE INFORMATION GRID
+   ============================================================ */
+.route-card-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.route-card-info-item {
+  min-width: 0;
+  padding: 12px;
+
+  background: #fafafa;
+
+  border: 1px solid #eeeeee;
+  border-radius: 10px;
+}
+
+.route-card-info-item small {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.route-card-info-item strong {
+  display: block;
+
+  color: #222222;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  word-break: break-word;
+}
+
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+.route-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.route-card-actions .btn {
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  border-radius: 10px;
+
+  text-align: center;
+  line-height: 1.2;
+}
+
+
+/* ============================================================
+   ROUTE & STOPS BUTTON
+   ============================================================ */
+.view-route-details-btn {
+  background: #ffffff;
+  color: #6f49d9;
+
+  border: 2px solid #6f49d9;
+
+  font-weight: 700;
+}
+
+.view-route-details-btn:hover {
+  background: #f4f1ff;
+  color: #553c9a;
+
+  border-color: #553c9a;
+
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(111, 73, 217, 0.14);
+}
+
+
+/* ============================================================
+   SELECT BUTTON WHEN CARD IS SELECTED
+   ============================================================ */
 .route-card.selected .select-route-btn {
   background: #6f49d9 !important;
-  color: #fff !important;
+  color: #ffffff !important;
+}
+
+
+/* ============================================================
+   ACTIVE CLICK EFFECT
+   ------------------------------------------------------------
+   Apply the press effect to buttons only.
+
+   The full card is no longer scaled because clicking
+   Route & Stops should not visually compress the complete card.
+   ============================================================ */
+.route-card-actions .btn:active {
+  transform: scale(0.98);
+}
+
+
+/* ============================================================
+   TABLET / LARGE PHONE
+   ============================================================ */
+@media (max-width: 768px) {
+  .route-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .route-card-heading {
+    padding-right: 86px;
+  }
+
+  .route-card-heading h3 {
+    font-size: 18px;
+  }
+
+  .route-card-bus-chip {
+    position: absolute;
+    top: 52px;
+    right: 16px;
+
+    max-width: calc(100% - 32px);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .route-card-journey {
+    grid-template-columns:
+      minmax(64px, auto)
+      minmax(60px, 1fr)
+      minmax(64px, auto);
+
+    gap: 10px;
+    margin-top: 38px;
+  }
+
+  .route-card-time strong {
+    font-size: 19px;
+  }
+
+  .route-card-direction {
+    gap: 7px;
+  }
+
+  .route-card-direction strong {
+    width: 30px;
+    height: 30px;
+  }
+
+  .route-card-direction strong::before {
+    font-size: 14px;
+  }
+
+  .route-card-info-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .route-card-info-item {
+    padding: 10px;
+  }
+
+  .route-card-info-item strong {
+    font-size: 15px;
+  }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 600px) {
+  .route-card-heading {
+    display: block;
+    padding-right: 82px;
+  }
+
+  .route-card-label {
+    font-size: 10px;
+  }
+
+  .route-card-heading h3 {
+    font-size: 17px;
+  }
+
+  .route-card.selected::after {
+    top: 12px;
+    right: 12px;
+
+    padding: 4px 8px;
+
+    font-size: 10px;
+  }
+
+  .route-card-bus-chip {
+    position: static;
+
+    width: fit-content;
+    max-width: 100%;
+
+    margin-top: 10px;
+  }
+
+  .route-card-journey {
+    margin-top: 0;
+  }
+
+  .route-card-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .route-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .route-card-actions .btn {
+    min-height: 48px;
+  }
+}
+
+
+/* ============================================================
+   SMALL MOBILE
+   ============================================================ */
+@media (max-width: 420px) {
+  .route-card {
+    padding: 14px;
+  }
+
+  .route-card-heading {
+    padding-right: 76px;
+  }
+
+  .route-card-heading h3 {
+    font-size: 16px;
+  }
+
+  .route-card-journey {
+    grid-template-columns:
+      minmax(56px, auto)
+      minmax(48px, 1fr)
+      minmax(56px, auto);
+
+    gap: 7px;
+  }
+
+  .route-card-time small {
+    font-size: 9px;
+    letter-spacing: 0.2px;
+  }
+
+  .route-card-time strong {
+    font-size: 17px;
+  }
+
+  .route-card-direction {
+    gap: 5px;
+  }
+
+  .route-card-direction strong {
+    width: 27px;
+    height: 27px;
+  }
+
+  .route-card-direction strong::before {
+    font-size: 13px;
+  }
+
+  .route-card-info-item {
+    padding: 11px;
+  }
+
+  .route-card-info-item strong {
+    font-size: 15px;
+  }
+}
+/* ===========================================================
+   ROUTE DETAILS MODAL
+   -----------------------------------------------------------
+   Standalone popup. No Live Tracking dependency.
+   =========================================================== */
+
+
+/* Prevent the page behind the popup from scrolling */
+body.route-details-open {
+  overflow: hidden;
+}
+
+
+/* Full-screen dark overlay */
+.route-details-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.68);
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.route-details-overlay.is-open {
+  display: flex;
+}
+
+
+/* Main popup box */
+.route-details-modal {
+  width: min(760px, 100%);
+  max-height: min(90vh, 900px);
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 22px;
+
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.38);
+
+  animation: routeDetailsOpen 0.22s ease;
+}
+
+
+/* Popup internal layout */
+.route-details-layout {
+  max-height: min(90vh, 900px);
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+}
+
+
+/* Header */
+.route-details-header {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 22px 24px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6b46c1 0%,
+      #553c9a 100%
+    );
+
+  color: #ffffff;
+}
+
+.route-details-header-copy {
+  min-width: 0;
+}
+
+.route-details-eyebrow {
+  display: block;
+  margin-bottom: 5px;
+
+  color: rgba(255, 255, 255, 0.8);
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.route-details-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.25;
+
+  word-break: break-word;
+}
+
+.route-details-header p {
+  margin: 6px 0 0;
+
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+
+/* Header close button */
+.route-details-close-btn {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+
+  font-size: 28px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.route-details-close-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: rotate(5deg);
+}
+
+
+/* Only this middle section scrolls */
+.route-details-scroll-area {
+  min-height: 0;
+  overflow-y: auto;
+
+  padding: 20px;
+
+  background: #f8fafc;
+
+  overscroll-behavior: contain;
+}
+
+
+/* Pickup / drop summary */
+.route-details-hero {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(90px, 0.55fr)
+    minmax(0, 1fr);
+
+  align-items: center;
+  gap: 16px;
+
+  padding: 18px;
+
+  background: #ffffff;
+
+  border: 1px solid #e9e5f5;
+  border-radius: 16px;
+}
+
+.route-details-endpoint {
+  min-width: 0;
+}
+
+.route-details-endpoint-right {
+  text-align: right;
+}
+
+.route-details-endpoint small {
+  display: block;
+  margin-bottom: 4px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.route-details-endpoint strong {
+  display: block;
+
+  color: #111827;
+
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.route-details-endpoint span {
+  display: block;
+  margin-top: 5px;
+
+  color: #475569;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  word-break: break-word;
+}
+
+
+/* Connecting line and bus */
+.route-details-route-visual {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 7px;
+}
+
+.route-details-route-visual span {
+  height: 2px;
+
+  background: #c4b5fd;
+
+  border-radius: 999px;
+}
+
+.route-details-route-visual b {
+  width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f3efff;
+
+  border: 1px solid #ddd2ff;
+  border-radius: 50%;
+
+  font-size: 16px;
+}
+
+
+/* Journey information cards */
+.route-details-stats {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 14px;
+}
+
+.route-details-stats > div {
+  min-width: 0;
+
+  padding: 13px 14px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+}
+
+.route-details-stats small {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-details-stats strong {
+  display: block;
+
+  color: #111827;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  word-break: break-word;
+}
+
+
+/* Journey-not-found notice */
+.route-details-notice {
+  margin-top: 14px;
+  padding: 12px 14px;
+
+  background: #fff8e8;
+  color: #6d5200;
+
+  border: 1px solid #f4d48b;
+  border-radius: 12px;
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.route-details-notice strong,
+.route-details-notice span {
+  display: block;
+}
+
+.route-details-notice strong {
+  margin-bottom: 3px;
+  color: #8a5a00;
+}
+
+
+/* Timeline section heading */
+.route-details-stops-section {
+  margin-top: 20px;
+}
+
+.route-details-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-bottom: 12px;
+}
+
+.route-details-section-heading > div > span {
+  display: block;
+  margin-bottom: 4px;
+
+  color: #6b46c1;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.route-details-section-heading h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.route-details-schedule-chip {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  background: #ede9fe;
+  color: #5b21b6;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* Timeline */
+.route-details-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-details-stop {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.route-details-stop-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.route-details-stop-marker {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f1f5f9;
+  color: #64748b;
+
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.route-details-stop-line {
+  width: 2px;
+  min-height: 44px;
+  flex: 1;
+
+  background: #e2e8f0;
+}
+
+.route-details-stop-card {
+  min-width: 0;
+
+  margin-bottom: 12px;
+  padding: 13px 14px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+}
+
+.route-details-stop-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.route-details-stop-top > div {
+  min-width: 0;
+}
+
+.route-details-stop-top h4 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+
+  word-break: break-word;
+}
+
+.route-details-stop-top p {
+  margin: 4px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+.route-details-stop-top time {
+  flex-shrink: 0;
+
+  color: #553c9a;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.route-details-stop-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 9px;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+.route-details-stop-badge {
+  padding: 4px 8px;
+
+  background: #f1f5f9;
+  color: #475569;
+
+  border-radius: 999px;
+
+  font-weight: 800;
+}
+
+
+/* Pickup styling */
+.route-details-stop.is-pickup
+.route-details-stop-marker {
+  background: #6b46c1;
+  color: #ffffff;
+  border-color: #6b46c1;
+}
+
+.route-details-stop.is-pickup
+.route-details-stop-card {
+  border-color: #c4b5fd;
+  background: #faf8ff;
+}
+
+.route-details-stop.is-pickup
+.route-details-stop-badge {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+
+/* Drop-off styling */
+.route-details-stop.is-drop
+.route-details-stop-marker {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+
+.route-details-stop.is-drop
+.route-details-stop-card {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.route-details-stop.is-drop
+.route-details-stop-badge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+
+/* Selected segment inside complete route */
+.route-details-stop.is-journey
+.route-details-stop-marker {
+  border-color: #8b5cf6;
+  color: #6b46c1;
+}
+
+.route-details-stop.is-journey
+.route-details-stop-badge {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+
+/* Expandable full route */
+.route-details-full-route {
+  margin-top: 18px;
+}
+
+.route-details-expand-btn {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  background: #f5f0ff;
+  color: #553c9a;
+
+  border: 1px solid #ddd2ff;
+  border-radius: 12px;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.route-details-expand-btn > span:first-child {
+  min-width: 0;
+}
+
+.route-details-expand-btn strong,
+.route-details-expand-btn small {
+  display: block;
+}
+
+.route-details-expand-btn strong {
+  font-size: 14px;
+}
+
+.route-details-expand-btn small {
+  margin-top: 3px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.route-details-expand-symbol {
+  flex-shrink: 0;
+
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.route-details-full-route-content {
+  margin-top: 14px;
+  padding-top: 14px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.route-details-subheading {
+  margin-bottom: 12px;
+
+  color: #553c9a;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+
+/* Sticky footer */
+.route-details-footer {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 15px 20px;
+
+  background: #ffffff;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.route-details-footer p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.route-details-footer-btn {
+  width: auto;
+  min-width: 140px;
+  margin: 0;
+}
+
+
+/* Loading and error states */
+.route-details-state-layout {
+  min-height: 360px;
+}
+
+.route-details-state {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 48px 24px;
+
+  text-align: center;
+}
+
+.route-details-state h3 {
+  margin: 16px 0 6px;
+
+  color: #111827;
+}
+
+.route-details-state p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+.route-details-spinner {
+  width: 42px;
+  height: 42px;
+
+  border: 4px solid #e9e5f5;
+  border-top-color: #6b46c1;
+  border-radius: 50%;
+
+  animation: routeDetailsSpin 0.8s linear infinite;
+}
+
+.route-details-error-icon {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fee2e2;
+  color: #b91c1c;
+
+  border-radius: 50%;
+
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.route-details-error-actions {
+  width: min(360px, 100%);
+
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.route-details-error-actions .btn {
+  margin: 0;
+}
+
+
+/* Animations */
+@keyframes routeDetailsOpen {
+  from {
+    opacity: 0;
+    transform:
+      translateY(14px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes routeDetailsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ===========================================================
+   TABLET / MOBILE
+   =========================================================== */
+@media (max-width: 768px) {
+  .route-details-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .route-details-modal {
+    width: 100%;
+    max-height: 94vh;
+
+    border-radius: 22px 22px 0 0;
+  }
+
+  .route-details-layout {
+    max-height: 94vh;
+  }
+
+  .route-details-header {
+    padding: 18px;
+  }
+
+  .route-details-header h2 {
+    font-size: 21px;
+  }
+
+  .route-details-scroll-area {
+    padding: 15px;
+  }
+
+  .route-details-hero {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(60px, 0.4fr)
+      minmax(0, 1fr);
+
+    gap: 9px;
+    padding: 14px;
+  }
+
+  .route-details-endpoint strong {
+    font-size: 19px;
+  }
+
+  .route-details-endpoint span {
+    font-size: 12px;
+  }
+
+  .route-details-route-visual b {
+    width: 29px;
+    height: 29px;
+
+    font-size: 14px;
+  }
+
+  .route-details-stats {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+  .route-details-stats > div {
+    padding: 11px 9px;
+  }
+
+  .route-details-stats strong {
+    font-size: 13px;
+  }
+
+  .route-details-footer {
+    padding: 12px 15px;
+  }
+}
+
+
+/* ===========================================================
+   SMALL MOBILE
+   =========================================================== */
+@media (max-width: 480px) {
+  .route-details-header {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .route-details-header h2 {
+    font-size: 19px;
+  }
+
+  .route-details-header p {
+    font-size: 12px;
+  }
+
+  .route-details-close-btn {
+    width: 34px;
+    height: 34px;
+
+    font-size: 24px;
+  }
+
+  .route-details-hero {
+    grid-template-columns:
+      minmax(0, 1fr)
+      50px
+      minmax(0, 1fr);
+  }
+
+  .route-details-endpoint small {
+    font-size: 9px;
+  }
+
+  .route-details-endpoint strong {
+    font-size: 17px;
+  }
+
+  .route-details-endpoint span {
+    font-size: 11px;
+  }
+
+  .route-details-route-visual {
+    gap: 4px;
+  }
+
+  .route-details-route-visual b {
+    width: 26px;
+    height: 26px;
+
+    font-size: 12px;
+  }
+
+  .route-details-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .route-details-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .route-details-stop {
+    grid-template-columns:
+      30px minmax(0, 1fr);
+
+    gap: 8px;
+  }
+
+  .route-details-stop-marker {
+    width: 26px;
+    height: 26px;
+
+    font-size: 10px;
+  }
+
+  .route-details-stop-card {
+    padding: 11px 12px;
+  }
+
+  .route-details-stop-top h4 {
+    font-size: 13px;
+  }
+
+  .route-details-stop-top time {
+    font-size: 12px;
+  }
+
+  .route-details-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .route-details-footer p {
+    text-align: center;
+  }
+
+  .route-details-footer-btn {
+    width: 100%;
+  }
+
+  .route-details-error-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================================
-ACTIVE CLICK EFFECT
-============================================================ */
-.route-card:active {
-  transform: scale(0.98);
+   ROUND-TRIP ROUTE SECTIONS
+   ------------------------------------------------------------
+   Gives onward and return route groups a light tinted background
+   and cleaner headings.
+   ============================================================ */
+
+.roundtrip-routes-wrapper {
+  display: grid;
+  gap: 24px;
+}
+
+
+/* Shared section container */
+.roundtrip-section {
+  padding: 18px;
+
+  border: 1px solid #e8e5f2;
+  border-radius: 18px;
+
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+
+/* Light purple background for onward */
+.roundtrip-section-onward {
+  background:
+    linear-gradient(
+      180deg,
+      #faf8ff 0%,
+      #f7f4ff 100%
+    );
+}
+
+
+/* Light blue-gray background for return */
+.roundtrip-section-return {
+  background:
+    linear-gradient(
+      180deg,
+      #f8fbff 0%,
+      #f4f8fc 100%
+    );
+}
+
+
+/* Section heading block */
+.roundtrip-section-heading {
+  margin-bottom: 16px;
+  padding: 0 2px;
+}
+
+.roundtrip-section-label {
+  display: inline-block;
+  margin-bottom: 5px;
+
+  color: #6b46c1;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.roundtrip-section-heading h3 {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.roundtrip-section-heading p {
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+
+  word-break: break-word;
+}
+
+
+/* Give route cards a slightly softer background inside groups */
+.roundtrip-section .route-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(107, 70, 193, 0.12);
+}
+
+
+/* Return cards can have a faint blue-neutral border */
+.roundtrip-section-return .route-card {
+  border-color: rgba(71, 85, 105, 0.13);
+}
+
+
+/* ============================================================
+   TABLET / MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+  .roundtrip-routes-wrapper {
+    gap: 18px;
+  }
+
+  .roundtrip-section {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .roundtrip-section-heading {
+    margin-bottom: 13px;
+  }
+
+  .roundtrip-section-heading h3 {
+    font-size: 18px;
+  }
+
+  .roundtrip-section-heading p {
+    font-size: 12px;
+  }
+}
+
+
+/* ============================================================
+   SMALL MOBILE
+   ============================================================ */
+@media (max-width: 480px) {
+  .roundtrip-section {
+    padding: 11px;
+    border-radius: 13px;
+  }
+
+  .roundtrip-section-heading h3 {
+    font-size: 17px;
+  }
+
+  .roundtrip-section-heading p {
+    font-size: 11px;
+  }
+}
+
+/* ============================================================
+   ONE-WAY ROUTE SECTION
+   ============================================================ */
+
+.oneway-routes-section {
+  padding: 18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #faf8ff 0%,
+      #f7f4ff 100%
+    );
+
+  border: 1px solid #e8e5f2;
+  border-radius: 18px;
+
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.oneway-section-heading {
+  margin-bottom: 16px;
+  padding: 0 2px;
+}
+
+.oneway-section-label {
+  display: inline-block;
+  margin-bottom: 5px;
+
+  color: #6b46c1;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.oneway-section-heading h3 {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.oneway-section-heading p {
+  margin: 6px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+
+  word-break: break-word;
+}
+
+.oneway-section-heading p strong {
+  margin: 0 5px;
+  color: #6b46c1;
+}
+
+.oneway-routes-section .route-card {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(107, 70, 193, 0.12);
+}
+
+
+/* Tablet and mobile */
+@media (max-width: 768px) {
+  .oneway-routes-section {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .oneway-section-heading h3 {
+    font-size: 18px;
+  }
+
+  .oneway-section-heading p {
+    font-size: 12px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .oneway-routes-section {
+    padding: 11px;
+    border-radius: 13px;
+  }
+
+  .oneway-section-heading h3 {
+    font-size: 17px;
+  }
+
+  .oneway-section-heading p {
+    font-size: 11px;
+  }
 }
 
 /* ===========================================================
