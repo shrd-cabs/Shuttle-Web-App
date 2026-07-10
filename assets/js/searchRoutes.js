@@ -30,6 +30,7 @@
 
 import { APP_CONFIG } from "./config.js";
 import { currentUser } from "./state.js";
+import { openRouteDetails } from "./routeDetails.js";
 
 // ===============================================================
 // CONSTANTS
@@ -725,20 +726,63 @@ function escapeHtml(value) {
 
 // ===============================================================
 // RENDER ONE-WAY ROUTES
+// ---------------------------------------------------------------
+// Renders a professional heading for one-way search results,
+// followed by all available route cards.
 // ===============================================================
-function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
+function renderRoutes(
+  routes,
+  travelDate,
+  pax,
+  fromStop,
+  toStop
+) {
   console.log("🎨 Rendering one-way routes...");
 
   const container = getElement("routesContainer");
+
   if (!container) {
-    console.error("❌ routesContainer not found during render");
+    console.error(
+      "❌ routesContainer not found during render"
+    );
+
     return;
   }
 
   selectedRouteIndex = -1;
   window._renderedRoutes = routes;
 
-  let html = `<h3>Select Available Route</h3>`;
+  const visibleFromStop =
+    getInputValue("tripFromSearch") ||
+    fromStop ||
+    "-";
+
+  const visibleToStop =
+    getInputValue("tripToSearch") ||
+    toStop ||
+    "-";
+
+  let html = `
+    <section class="oneway-routes-section">
+
+      <div class="oneway-section-heading">
+
+        <span class="oneway-section-label">
+          One-way journey
+        </span>
+
+        <h3>
+          Select your available route
+        </h3>
+
+        <p>
+          <span>${escapeHtml(visibleFromStop)}</span>
+          <strong aria-hidden="true">→</strong>
+          <span>${escapeHtml(visibleToStop)}</span>
+        </p>
+
+      </div>
+  `;
 
   routes.forEach((route, index) => {
     html += buildRouteCardHtml({
@@ -749,14 +793,39 @@ function renderRoutes(routes, travelDate, pax, fromStop, toStop) {
     });
   });
 
-  container.innerHTML = html;
-  attachOneWayRouteListeners(routes, travelDate, pax, fromStop, toStop);
+  html += `
+    </section>
+  `;
 
-  console.log("✅ One-way routes rendered successfully");
+  container.innerHTML = html;
+
+  attachOneWayRouteListeners(
+    routes,
+    travelDate,
+    pax,
+    fromStop,
+    toStop
+  );
+
+  console.log(
+    "✅ One-way routes rendered successfully"
+  );
 }
 
 // ===============================================================
 // RENDER ROUND-TRIP ROUTES
+// ---------------------------------------------------------------
+// Renders two clearly separated route groups:
+//
+// 1. Onward Journey
+// 2. Return Journey
+//
+// Each section includes:
+// - Professional section label
+// - Clear heading
+// - Visible journey direction
+// - Matching light-background CSS hooks
+// - Existing route-card rendering
 // ===============================================================
 function renderRoundTripRoutes({
   onwardRoutes,
@@ -769,19 +838,59 @@ function renderRoundTripRoutes({
   console.log("🎨 Rendering round-trip routes...");
 
   const container = getElement("routesContainer");
+
   if (!container) {
-    console.error("❌ routesContainer not found during round-trip render");
+    console.error(
+      "❌ routesContainer not found during round-trip render"
+    );
+
     return;
   }
 
   selectedOnwardRouteIndex = -1;
   selectedReturnRouteIndex = -1;
 
+  // Visible stop names shown to the customer.
+  // Hidden fields continue to contain the stop IDs.
+  const visibleFromStop =
+    getInputValue("tripFromSearch") ||
+    fromStop ||
+    "-";
+
+  const visibleToStop =
+    getInputValue("tripToSearch") ||
+    toStop ||
+    "-";
+
   let html = `
     <div class="roundtrip-routes-wrapper">
 
-      <div class="roundtrip-section">
-        <h3>Onward Route (${escapeHtml(fromStop)} → ${escapeHtml(toStop)})</h3>
+      <!-- =====================================================
+           ONWARD JOURNEY SECTION
+           ===================================================== -->
+      <section
+        class="
+          roundtrip-section
+          roundtrip-section-onward
+        "
+      >
+        <div class="roundtrip-section-heading">
+
+          <span class="roundtrip-section-label">
+            Onward Journey
+          </span>
+
+          <h3>
+            Select your onward route
+          </h3>
+
+          <p>
+            <span>${escapeHtml(visibleFromStop)}</span>
+            <strong aria-hidden="true">→</strong>
+            <span>${escapeHtml(visibleToStop)}</span>
+          </p>
+
+        </div>
   `;
 
   onwardRoutes.forEach((route, index) => {
@@ -794,10 +903,35 @@ function renderRoundTripRoutes({
   });
 
   html += `
-      </div>
+      </section>
 
-      <div class="roundtrip-section" style="margin-top:20px;">
-        <h3>Return Route (${escapeHtml(toStop)} → ${escapeHtml(fromStop)})</h3>
+
+      <!-- =====================================================
+           RETURN JOURNEY SECTION
+           ===================================================== -->
+      <section
+        class="
+          roundtrip-section
+          roundtrip-section-return
+        "
+      >
+        <div class="roundtrip-section-heading">
+
+          <span class="roundtrip-section-label">
+            Return Journey
+          </span>
+
+          <h3>
+            Select your return route
+          </h3>
+
+          <p>
+            <span>${escapeHtml(visibleToStop)}</span>
+            <strong aria-hidden="true">→</strong>
+            <span>${escapeHtml(visibleFromStop)}</span>
+          </p>
+
+        </div>
   `;
 
   returnRoutes.forEach((route, index) => {
@@ -810,7 +944,8 @@ function renderRoundTripRoutes({
   });
 
   html += `
-      </div>
+      </section>
+
     </div>
   `;
 
@@ -825,96 +960,403 @@ function renderRoundTripRoutes({
     toStop
   });
 
-  console.log("✅ Round-trip routes rendered successfully");
+  console.log(
+    "✅ Round-trip routes rendered successfully"
+  );
 }
 
 // ===============================================================
 // ROUTE CARD HTML BUILDER
+// ---------------------------------------------------------------
+// Creates one available-route card.
+//
+// Two actions are provided:
+// 1. View Route & Stops
+// 2. Select Route
+//
+// The View Route button does not select the route or modify the
+// booking summary.
 // ===============================================================
-function buildRouteCardHtml({ route, index, sectionType, buttonText }) {
+function buildRouteCardHtml({
+  route,
+  index,
+  sectionType,
+  buttonText
+}) {
   const routeName = route.route_name ?? "-";
   const pickupTime = route.arrivalTime_at_pickup ?? "-";
   const dropTime = route.reachingTime_at_drop ?? "-";
   const availableSeats = route.available_seats ?? "-";
   const farePerSeat = route.fare_per_seat ?? "-";
   const totalAmount = route.total_amount ?? "-";
+  const busNumber = route.bus_number ?? "-";
 
   return `
     <div
       class="route-card"
       data-route-card-index="${index}"
       data-route-section="${escapeHtml(sectionType)}"
-      style="padding:15px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;"
     >
-      <h3>${escapeHtml(routeName)}</h3>
+      <!-- Route name -->
+      <div class="route-card-heading">
+        <div>
+          <span class="route-card-label">Available Route</span>
 
-      <p>
-        <strong>Journey:</strong>
-        ${escapeHtml(pickupTime)} → ${escapeHtml(dropTime)}<br>
+          <h3>${escapeHtml(routeName)}</h3>
+        </div>
 
-        <strong>Available Seats:</strong> ${escapeHtml(availableSeats)}<br>
+        ${
+          busNumber !== "-"
+            ? `
+              <span class="route-card-bus-chip">
+                🚌 ${escapeHtml(busNumber)}
+              </span>
+            `
+            : ""
+        }
+      </div>
 
-        <strong>Fare per Seat:</strong> ₹${escapeHtml(farePerSeat)}<br>
+      <!-- Journey time -->
+      <div class="route-card-journey">
+        <div class="route-card-time">
+          <small>Pickup</small>
+          <strong>${escapeHtml(pickupTime)}</strong>
+        </div>
 
-        <strong>Total:</strong> ₹${escapeHtml(totalAmount)}
-      </p>
+        <div class="route-card-direction" aria-hidden="true">
+          <span></span>
+          <strong>→</strong>
+          <span></span>
+        </div>
 
-      <button
-        type="button"
-        class="btn btn-primary select-route-btn"
-        data-route-index="${index}"
-        data-route-section="${escapeHtml(sectionType)}">
-        ${escapeHtml(buttonText)}
-      </button>
+        <div class="route-card-time route-card-time-right">
+          <small>Drop-off</small>
+          <strong>${escapeHtml(dropTime)}</strong>
+        </div>
+      </div>
+
+      <!-- Route information -->
+      <div class="route-card-info-grid">
+        <div class="route-card-info-item">
+          <small>Available Seats</small>
+          <strong>${escapeHtml(availableSeats)}</strong>
+        </div>
+
+        <div class="route-card-info-item">
+          <small>Fare per Seat</small>
+          <strong>₹${escapeHtml(farePerSeat)}</strong>
+        </div>
+
+        <div class="route-card-info-item">
+          <small>Total Amount</small>
+          <strong>₹${escapeHtml(totalAmount)}</strong>
+        </div>
+      </div>
+
+      <!-- Route actions -->
+      <div class="route-card-actions">
+
+        <button
+          type="button"
+          class="btn view-route-details-btn"
+          data-route-index="${index}"
+          data-route-section="${escapeHtml(sectionType)}"
+        >
+          <span aria-hidden="true">📍</span>
+          Route & Stops
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary select-route-btn"
+          data-route-index="${index}"
+          data-route-section="${escapeHtml(sectionType)}"
+        >
+          ${escapeHtml(buttonText)}
+        </button>
+
+      </div>
     </div>
   `;
 }
 
 // ===============================================================
-// ATTACH ONE-WAY LISTENERS
+// ATTACH ONE-WAY ROUTE LISTENERS
+// ---------------------------------------------------------------
+// Handles both actions for one-way route cards:
+//
+// 1. Route & Stops
+//    - Opens scheduled route information
+//    - Does not select the route
+//    - Does not update booking summary
+//
+// 2. Select Route
+//    - Preserves the existing booking flow
+//    - Updates selected card and booking summary
 // ===============================================================
-function attachOneWayRouteListeners(routes, travelDate, pax, fromStop, toStop) {
-  const buttons = document.querySelectorAll('.select-route-btn[data-route-section="oneway"]');
-  console.log(`🔘 Found ${buttons.length} one-way route button(s)`);
+function attachOneWayRouteListeners(
+  routes,
+  travelDate,
+  pax,
+  fromStop,
+  toStop
+) {
+  // Hidden fields normally contain stop IDs.
+  const fromStopId = fromStop || "";
+  const toStopId = toStop || "";
 
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const index = Number(this.dataset.routeIndex);
-      const route = routes?.[index];
+  // Visible search fields contain customer-facing stop names.
+  const fromStopName =
+    getInputValue("tripFromSearch") ||
+    fromStop ||
+    "";
 
-      console.log("🖱️ One-way Select Route clicked:", { index, route });
+  const toStopName =
+    getInputValue("tripToSearch") ||
+    toStop ||
+    "";
 
-      if (!route) {
-        console.error("❌ Route data not found for selected one-way button");
-        showAlert("Unable to select this route.", "error");
-        return;
+  // =============================================================
+  // ROUTE & STOPS BUTTONS
+  // =============================================================
+  const routeDetailsButtons =
+    document.querySelectorAll(
+      '.view-route-details-btn[data-route-section="oneway"]'
+    );
+
+  console.log(
+    `📍 Found ${routeDetailsButtons.length} one-way Route & Stops button(s)`
+  );
+
+  routeDetailsButtons.forEach((button) => {
+    button.addEventListener(
+      "click",
+      async function (event) {
+        // Prevent this click from behaving like a route-card click.
+        event.preventDefault();
+        event.stopPropagation();
+
+        const index =
+          Number(this.dataset.routeIndex);
+
+        const route =
+          routes?.[index];
+
+        console.log(
+          "🗺️ One-way Route & Stops clicked:",
+          {
+            index,
+            route,
+            fromStopId,
+            toStopId,
+            fromStopName,
+            toStopName
+          }
+        );
+
+        if (!Number.isInteger(index) || index < 0) {
+          console.error(
+            "❌ Invalid one-way route index:",
+            index
+          );
+
+          showAlert(
+            "Unable to identify this route.",
+            "error"
+          );
+
+          return;
+        }
+
+        if (!route) {
+          console.error(
+            "❌ One-way route data not found for Route & Stops"
+          );
+
+          showAlert(
+            "Unable to load this route's details.",
+            "error"
+          );
+
+          return;
+        }
+
+        const routeId =
+          route.route_id ?? "";
+
+        if (!routeId) {
+          console.error(
+            "❌ Route ID missing for Route & Stops:",
+            route
+          );
+
+          showAlert(
+            "Route information is currently unavailable.",
+            "error"
+          );
+
+          return;
+        }
+
+        try {
+          await openRouteDetails({
+            routeId,
+            routeName:
+              route.route_name ?? "",
+
+            fromStopId,
+            toStopId,
+
+            fromStopName,
+            toStopName,
+
+            pickupTime:
+              route.arrivalTime_at_pickup ?? "",
+
+            dropTime:
+              route.reachingTime_at_drop ?? "",
+
+            busNumber:
+              route.bus_number ?? ""
+          });
+
+        } catch (error) {
+          console.error(
+            "❌ Failed to open one-way Route & Stops:",
+            error
+          );
+
+          showAlert(
+            "Unable to load route details. Please try again.",
+            "error"
+          );
+        }
       }
+    );
+  });
 
-      applySelectedRouteUI(index, "oneway");
-      selectedRouteIndex = index;
 
-      selectRouteHandler({
-        tripType: "ONEWAY",
-        routeId: route.route_id ?? "",
-        routeName: route.route_name ?? "-",
-        arrivalTime: route.arrivalTime_at_pickup ?? "-",
-        reachingTime: route.reachingTime_at_drop ?? "-",
-        travelDate,
-        pax,
-        totalAmount: Number(route.total_amount ?? 0),
-        fromStop,
-        toStop,
-        busId: route.bus_id ?? "",
-        busNumber: route.bus_number ?? "-",
-        driverName: route.driver_name ?? "-",
-        driverPhone: route.driver_phone ?? "-"
-      });
-    });
+  // =============================================================
+  // SELECT ROUTE BUTTONS
+  // =============================================================
+  const selectButtons =
+    document.querySelectorAll(
+      '.select-route-btn[data-route-section="oneway"]'
+    );
+
+  console.log(
+    `🔘 Found ${selectButtons.length} one-way Select Route button(s)`
+  );
+
+  selectButtons.forEach((button) => {
+    button.addEventListener(
+      "click",
+      function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const index =
+          Number(this.dataset.routeIndex);
+
+        const route =
+          routes?.[index];
+
+        console.log(
+          "🖱️ One-way Select Route clicked:",
+          {
+            index,
+            route
+          }
+        );
+
+        if (!Number.isInteger(index) || index < 0) {
+          console.error(
+            "❌ Invalid one-way route index:",
+            index
+          );
+
+          showAlert(
+            "Unable to identify this route.",
+            "error"
+          );
+
+          return;
+        }
+
+        if (!route) {
+          console.error(
+            "❌ One-way route data not found"
+          );
+
+          showAlert(
+            "Unable to select this route.",
+            "error"
+          );
+
+          return;
+        }
+
+        selectedRouteIndex = index;
+
+        applySelectedRouteUI(
+          index,
+          "oneway"
+        );
+
+        selectRouteHandler({
+          tripType: "ONEWAY",
+
+          routeId:
+            route.route_id ?? "",
+
+          routeName:
+            route.route_name ?? "-",
+
+          arrivalTime:
+            route.arrivalTime_at_pickup ?? "-",
+
+          reachingTime:
+            route.reachingTime_at_drop ?? "-",
+
+          travelDate,
+          pax,
+
+          totalAmount:
+            Number(route.total_amount ?? 0),
+
+          fromStop,
+          toStop,
+
+          busId:
+            route.bus_id ?? "",
+
+          busNumber:
+            route.bus_number ?? "-",
+
+          driverName:
+            route.driver_name ?? "-",
+
+          driverPhone:
+            route.driver_phone ?? "-"
+        });
+      }
+    );
   });
 }
-
 // ===============================================================
-// ATTACH ROUND-TRIP LISTENERS
+// ATTACH ROUND-TRIP ROUTE LISTENERS
+// ---------------------------------------------------------------
+// Handles both route sections:
+//
+// Onward:
+// Selected From → Selected To
+//
+// Return:
+// Selected To → Selected From
+//
+// Each section gets:
+// 1. Route & Stops button
+// 2. Select route button
 // ===============================================================
 function attachRoundTripRouteListeners({
   onwardRoutes,
@@ -924,27 +1366,184 @@ function attachRoundTripRouteListeners({
   fromStop,
   toStop
 }) {
-  const onwardButtons = document.querySelectorAll('.select-route-btn[data-route-section="onward"]');
-  const returnButtons = document.querySelectorAll('.select-route-btn[data-route-section="return"]');
+  // Hidden input values contain stop IDs.
+  const originalFromStopId = fromStop;
+  const originalToStopId = toStop;
 
-  console.log(`🔘 Found ${onwardButtons.length} onward button(s)`);
-  console.log(`🔘 Found ${returnButtons.length} return button(s)`);
+  // Visible search values contain stop names.
+  const originalFromStopName =
+    getInputValue("tripFromSearch");
 
-  onwardButtons.forEach((btn) => {
-    btn.addEventListener("click", function () {
+  const originalToStopName =
+    getInputValue("tripToSearch");
+
+  // =============================================================
+  // ONWARD: VIEW ROUTE & STOPS
+  // =============================================================
+  const onwardDetailsButtons =
+    document.querySelectorAll(
+      '.view-route-details-btn[data-route-section="onward"]'
+    );
+
+  console.log(
+    `📍 Found ${onwardDetailsButtons.length} onward route details button(s)`
+  );
+
+  onwardDetailsButtons.forEach((button) => {
+    button.addEventListener("click", async function () {
       const index = Number(this.dataset.routeIndex);
       const route = onwardRoutes?.[index];
 
-      console.log("🖱️ Onward route selected:", { index, route });
+      console.log(
+        "🗺️ Onward Route & Stops clicked:",
+        {
+          index,
+          route
+        }
+      );
 
       if (!route) {
-        console.error("❌ Onward route data not found");
-        showAlert("Unable to select onward route.", "error");
+        console.error(
+          "❌ Onward route data not found for Route & Stops"
+        );
+
+        showAlert(
+          "Unable to load onward route details.",
+          "error"
+        );
+
+        return;
+      }
+
+      await openRouteDetails({
+        routeId: route.route_id ?? "",
+        routeName: route.route_name ?? "",
+
+        // Onward keeps the original direction.
+        fromStopId: originalFromStopId,
+        toStopId: originalToStopId,
+
+        fromStopName: originalFromStopName,
+        toStopName: originalToStopName,
+
+        pickupTime:
+          route.arrivalTime_at_pickup ?? "",
+
+        dropTime:
+          route.reachingTime_at_drop ?? "",
+
+        busNumber:
+          route.bus_number ?? ""
+      });
+    });
+  });
+
+  // =============================================================
+  // RETURN: VIEW ROUTE & STOPS
+  // =============================================================
+  const returnDetailsButtons =
+    document.querySelectorAll(
+      '.view-route-details-btn[data-route-section="return"]'
+    );
+
+  console.log(
+    `📍 Found ${returnDetailsButtons.length} return route details button(s)`
+  );
+
+  returnDetailsButtons.forEach((button) => {
+    button.addEventListener("click", async function () {
+      const index = Number(this.dataset.routeIndex);
+      const route = returnRoutes?.[index];
+
+      console.log(
+        "🗺️ Return Route & Stops clicked:",
+        {
+          index,
+          route
+        }
+      );
+
+      if (!route) {
+        console.error(
+          "❌ Return route data not found for Route & Stops"
+        );
+
+        showAlert(
+          "Unable to load return route details.",
+          "error"
+        );
+
+        return;
+      }
+
+      await openRouteDetails({
+        routeId: route.route_id ?? "",
+        routeName: route.route_name ?? "",
+
+        // Return route reverses pickup and destination.
+        fromStopId: originalToStopId,
+        toStopId: originalFromStopId,
+
+        fromStopName: originalToStopName,
+        toStopName: originalFromStopName,
+
+        pickupTime:
+          route.arrivalTime_at_pickup ?? "",
+
+        dropTime:
+          route.reachingTime_at_drop ?? "",
+
+        busNumber:
+          route.bus_number ?? ""
+      });
+    });
+  });
+
+  // =============================================================
+  // ONWARD: SELECT ROUTE
+  // =============================================================
+  const onwardSelectButtons =
+    document.querySelectorAll(
+      '.select-route-btn[data-route-section="onward"]'
+    );
+
+  console.log(
+    `🔘 Found ${onwardSelectButtons.length} onward Select Route button(s)`
+  );
+
+  onwardSelectButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const index = Number(this.dataset.routeIndex);
+      const route = onwardRoutes?.[index];
+
+      console.log(
+        "🖱️ Onward route selected:",
+        {
+          index,
+          route
+        }
+      );
+
+      if (!route) {
+        console.error(
+          "❌ Onward route data not found"
+        );
+
+        showAlert(
+          "Unable to select onward route.",
+          "error"
+        );
+
         return;
       }
 
       selectedOnwardRouteIndex = index;
-      applySelectedRouteUI(index, "onward");
+
+      applySelectedRouteUI(
+        index,
+        "onward"
+      );
+
       updateRoundTripSelection({
         legType: "onward",
         route,
@@ -956,21 +1555,51 @@ function attachRoundTripRouteListeners({
     });
   });
 
-  returnButtons.forEach((btn) => {
-    btn.addEventListener("click", function () {
+  // =============================================================
+  // RETURN: SELECT ROUTE
+  // =============================================================
+  const returnSelectButtons =
+    document.querySelectorAll(
+      '.select-route-btn[data-route-section="return"]'
+    );
+
+  console.log(
+    `🔘 Found ${returnSelectButtons.length} return Select Route button(s)`
+  );
+
+  returnSelectButtons.forEach((button) => {
+    button.addEventListener("click", function () {
       const index = Number(this.dataset.routeIndex);
       const route = returnRoutes?.[index];
 
-      console.log("🖱️ Return route selected:", { index, route });
+      console.log(
+        "🖱️ Return route selected:",
+        {
+          index,
+          route
+        }
+      );
 
       if (!route) {
-        console.error("❌ Return route data not found");
-        showAlert("Unable to select return route.", "error");
+        console.error(
+          "❌ Return route data not found"
+        );
+
+        showAlert(
+          "Unable to select return route.",
+          "error"
+        );
+
         return;
       }
 
       selectedReturnRouteIndex = index;
-      applySelectedRouteUI(index, "return");
+
+      applySelectedRouteUI(
+        index,
+        "return"
+      );
+
       updateRoundTripSelection({
         legType: "return",
         route,
