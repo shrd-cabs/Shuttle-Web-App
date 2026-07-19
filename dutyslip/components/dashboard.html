@@ -1,0 +1,92 @@
+<!-- ===========================================================
+     DRIVER DASHBOARD
+     -----------------------------------------------------------
+     Hidden until the driver successfully logs in.
+=========================================================== -->
+
+<main
+  id="driverDashboard"
+  class="driver-dashboard"
+  style="display: none;"
+>
+
+  <!-- =========================================================
+       DRIVER WELCOME CARD
+  ========================================================== -->
+  <section class="driver-welcome-card">
+
+    <div class="driver-welcome-details">
+
+      <p class="driver-welcome-label">
+        Welcome back
+      </p>
+
+      <h2 id="dashboardDriverName">
+        Driver
+      </h2>
+
+      <p id="dashboardDriverMobile">
+        Mobile:
+      </p>
+
+      <p id="dashboardVendorName">
+        Vendor:
+      </p>
+
+    </div>
+
+    <div class="driver-status-badge">
+      Active
+    </div>
+
+  </section>
+
+  <!-- =========================================================
+       PORTAL CONTENT
+  ========================================================== -->
+  <section class="duty-dashboard-content">
+
+    <div class="duty-dashboard-heading">
+
+      <div>
+        <h2>Duty Slip Portal</h2>
+
+        <p>
+          Create, update and review your assigned duty slips.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        id="createDutySlipBtn"
+        class="btn btn-primary duty-action-button"
+      >
+        + Create Duty Slip
+      </button>
+
+    </div>
+
+    <!-- =======================================================
+         TEMPORARY EMPTY STATE
+         -------------------------------------------------------
+         This will later be replaced by the Duty Slip form and
+         previous Duty Slip records.
+    ======================================================== -->
+    <div class="duty-empty-state">
+
+      <div class="duty-empty-icon">
+        📋
+      </div>
+
+      <h3>No duty slips displayed yet</h3>
+
+      <p>
+        Driver login is connected. The Duty Slip form will be
+        added in the next stage.
+      </p>
+
+    </div>
+
+  </section>
+
+</main>
