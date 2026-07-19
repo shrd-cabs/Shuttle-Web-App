@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- ===========================================================
+       BASIC META
+  ============================================================ -->
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <!-- ===========================================================
+       PAGE INFORMATION
+  ============================================================ -->
+  <title>SHRD Duty Slip | Driver Portal</title>
+
+  <meta
+    name="description"
+    content="SHRD Transport Services driver duty slip portal."
+  />
+
+  <!-- Driver portal should not appear in Google search results -->
+  <meta
+    name="robots"
+    content="noindex, nofollow"
+  />
+
+  <!-- ===========================================================
+       FAVICON
+  ============================================================ -->
+  <link
+    rel="icon"
+    type="image/jpeg"
+    href="../assets/images/img1.jpeg"
+  />
+
+  <!-- ===========================================================
+       CSS
+       -----------------------------------------------------------
+       1. Reuse the main Shuttle website stylesheet.
+       2. Load Duty Slip-specific styling afterwards.
+  ============================================================ -->
+  <link
+    rel="stylesheet"
+    href="../assets/css/styles.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="./assets/css/dutyslip.css"
+  />
+</head>
+
+<body>
+
+  <!-- ===========================================================
+       APPLICATION LOADER
+       -----------------------------------------------------------
+       Visible while HTML components are loading.
+  ============================================================ -->
+  <div id="appLoader">
+    <div class="loader-box">
+      <div class="spinner"></div>
+
+      <p>Loading SHRD Duty Slip Portal...</p>
+    </div>
+  </div>
+
+  <!-- ===========================================================
+       MAIN APPLICATION CONTAINER
+  ============================================================ -->
+  <div class="container">
+
+    <!-- Header is loaded from components/header.html -->
+    <div id="headerComponent"></div>
+
+    <!-- Login is loaded from components/login.html -->
+    <div id="loginComponent"></div>
+
+    <!-- Dashboard is loaded from components/dashboard.html -->
+    <div id="dashboardComponent"></div>
+
+    <!-- Footer is loaded from components/footer.html -->
+    <div id="footerComponent"></div>
+
+  </div>
+
+  <!-- ===========================================================
+       MAIN JAVASCRIPT ENTRY
+  ============================================================ -->
+  <script
+    type="module"
+    src="./assets/js/main.js"
+  ></script>
+
+</body>
+
+</html>
