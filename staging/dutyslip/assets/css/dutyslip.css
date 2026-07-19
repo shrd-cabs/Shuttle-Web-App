@@ -1,0 +1,370 @@
+/* ===============================================================
+   SHRD DUTY SLIP PORTAL
+   ---------------------------------------------------------------
+   This stylesheet contains only Duty Slip-specific styles.
+
+   The common website styles are loaded from:
+   ../assets/css/styles.css
+================================================================ */
+
+
+/* ===============================================================
+   DRIVER LOGIN
+================================================================ */
+
+.duty-login-heading-block {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.duty-login-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(107, 70, 193, 0.12);
+  font-size: 30px;
+}
+
+.duty-login-heading {
+  margin: 0 0 8px;
+  color: #333;
+  font-size: 27px;
+}
+
+.duty-login-description {
+  max-width: 450px;
+  margin: 0 auto;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.driver-login-help {
+  margin: 18px 0 0;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+
+/* ===============================================================
+   PASSWORD INPUT
+================================================================ */
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 74px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  padding: 5px 7px;
+  border: 0;
+  background: transparent;
+  color: #6b46c1;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.password-toggle-btn:hover {
+  text-decoration: underline;
+}
+
+.password-toggle-btn:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #6b46c1;
+  outline-offset: 2px;
+}
+
+
+/* ===============================================================
+   LOGIN MESSAGES
+================================================================ */
+
+.driver-login-message {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.driver-login-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+
+/* ===============================================================
+   DRIVER HEADER INFORMATION
+================================================================ */
+
+.driver-header-info {
+  align-items: center;
+  gap: 7px;
+  max-width: 210px;
+  padding: 9px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.driver-header-info span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driver-header-icon {
+  flex-shrink: 0;
+}
+
+
+/* ===============================================================
+   DRIVER DASHBOARD
+================================================================ */
+
+.driver-dashboard {
+  padding: 30px;
+  background: #f6f4fb;
+}
+
+.driver-welcome-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 25px;
+  border: 1px solid rgba(107, 70, 193, 0.08);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(47, 36, 72, 0.08);
+}
+
+.driver-welcome-details {
+  min-width: 0;
+}
+
+.driver-welcome-label {
+  margin: 0 0 5px;
+  color: #6b46c1;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.driver-welcome-card h2 {
+  margin: 0 0 10px;
+  color: #30264a;
+  font-size: 27px;
+}
+
+.driver-welcome-card p:not(.driver-welcome-label) {
+  margin: 4px 0;
+  color: #716b7c;
+  font-size: 14px;
+}
+
+.driver-status-badge {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+/* ===============================================================
+   DUTY DASHBOARD CONTENT
+================================================================ */
+
+.duty-dashboard-content {
+  margin-top: 22px;
+  padding: 25px;
+  border: 1px solid rgba(107, 70, 193, 0.08);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(47, 36, 72, 0.08);
+}
+
+.duty-dashboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ece8f5;
+}
+
+.duty-dashboard-heading h2 {
+  margin: 0 0 6px;
+  color: #30264a;
+  font-size: 23px;
+}
+
+.duty-dashboard-heading p {
+  margin: 0;
+  color: #716b7c;
+  font-size: 14px;
+}
+
+.duty-action-button {
+  width: auto;
+  min-width: 170px;
+}
+
+
+/* ===============================================================
+   EMPTY STATE
+================================================================ */
+
+.duty-empty-state {
+  padding: 55px 24px;
+  text-align: center;
+}
+
+.duty-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #f1edfa;
+  font-size: 34px;
+}
+
+.duty-empty-state h3 {
+  margin: 0 0 10px;
+  color: #30264a;
+  font-size: 20px;
+}
+
+.duty-empty-state p {
+  max-width: 500px;
+  margin: 0 auto;
+  color: #716b7c;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+/* ===============================================================
+   APPLICATION ERROR
+================================================================ */
+
+.duty-app-error-screen {
+  display: grid;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(
+    135deg,
+    #6b46c1,
+    #8447ff
+  );
+  place-items: center;
+}
+
+.duty-app-error-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 35px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(31, 23, 57, 0.22);
+  text-align: center;
+}
+
+.duty-app-error-icon {
+  margin-bottom: 12px;
+  font-size: 44px;
+}
+
+.duty-app-error-card h2 {
+  margin: 0 0 10px;
+  color: #30264a;
+}
+
+.duty-app-error-card p {
+  margin: 0 0 24px;
+  color: #716b7c;
+}
+
+
+/* ===============================================================
+   TABLET
+================================================================ */
+
+@media (max-width: 768px) {
+  .driver-dashboard {
+    padding: 20px;
+  }
+
+  .driver-header-info {
+    display: none !important;
+  }
+
+  .duty-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .duty-action-button {
+    width: 100%;
+  }
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+  .driver-dashboard {
+    padding: 14px;
+  }
+
+  .driver-welcome-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .driver-status-badge {
+    align-self: flex-start;
+  }
+
+  .duty-dashboard-content {
+    padding: 20px 16px;
+  }
+
+  .duty-empty-state {
+    padding: 40px 10px;
+  }
+
+  .duty-login-heading {
+    font-size: 24px;
+  }
+}

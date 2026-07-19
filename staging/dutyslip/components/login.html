@@ -1,0 +1,135 @@
+<!-- ===========================================================
+     DRIVER LOGIN COMPONENT
+     -----------------------------------------------------------
+     Authentication fields:
+     - Mobile number
+     - Password
+
+     Driver signup is intentionally not available.
+=========================================================== -->
+
+<section
+  class="login-section active"
+  id="driverLoginSection"
+>
+
+  <div class="login-form">
+
+    <!-- =======================================================
+         LOGIN HEADING
+    ======================================================== -->
+    <div class="duty-login-heading-block">
+
+      <div class="duty-login-icon">
+        👨‍✈️
+      </div>
+
+      <h2 class="duty-login-heading">
+        Driver Login
+      </h2>
+
+      <p class="duty-login-description">
+        Enter your registered mobile number and password
+        to access the Duty Slip portal.
+      </p>
+
+    </div>
+
+    <!-- =======================================================
+         LOGIN FORM
+    ======================================================== -->
+    <form id="driverLoginForm">
+
+      <!-- MOBILE NUMBER -->
+      <div class="form-group">
+
+        <label for="driverMobile">
+          Mobile Number
+        </label>
+
+        <input
+          type="tel"
+          id="driverMobile"
+          name="mobile"
+          placeholder="Enter 10-digit mobile number"
+          inputmode="numeric"
+          autocomplete="username"
+          maxlength="10"
+          required
+        />
+
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="form-group">
+
+        <label for="driverPassword">
+          Password
+        </label>
+
+        <div class="password-input-wrapper">
+
+          <input
+            type="password"
+            id="driverPassword"
+            name="password"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          />
+
+          <button
+            type="button"
+            id="togglePasswordBtn"
+            class="password-toggle-btn"
+            aria-label="Show password"
+          >
+            Show
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================================
+           LOGIN ERROR
+           Hidden until an error occurs.
+      ====================================================== -->
+      <div
+        id="driverLoginError"
+        class="driver-login-message driver-login-error"
+        role="alert"
+        style="display: none;"
+      ></div>
+
+      <!-- =====================================================
+           LOGIN BUTTON
+      ====================================================== -->
+      <button
+        type="submit"
+        id="driverLoginBtn"
+        class="btn btn-primary"
+      >
+        <span id="driverLoginBtnText">
+          Login
+        </span>
+
+        <span
+          id="driverLoginLoader"
+          class="btn-loader"
+          style="display: none;"
+        ></span>
+      </button>
+
+    </form>
+
+    <!-- =======================================================
+         LOGIN HELP
+    ======================================================== -->
+    <p class="driver-login-help">
+      Forgot your password? Please contact the transport administrator.
+    </p>
+
+  </div>
+
+</section>
